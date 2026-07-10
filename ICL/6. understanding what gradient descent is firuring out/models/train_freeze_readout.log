@@ -1,0 +1,542 @@
+device     : cuda:1
+head       : freeze_readout  (eps=1e-06)
+attn_dim   : 220
+suffix_len : 100  (loss & eval on last 100 tokens only)
+lr         : 0.001  grad_clip=1.0  patience=30
+epochs     : 50  batch=256
+thresholds : [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+
+
+====================================================================
+  [1/9] thr=0.1  attn_dim=220  head=freeze_readout  params=545,620 (trainable=387,200)  train=20,000  loss_suffix=100/200
+====================================================================
+  ep    1/50  loss=2.7459  tr=0.090  te=0.089  8.5s/ep  ETA=7m
+  ep    2/50  loss=2.7379  tr=0.090  te=0.091  8.1s/ep  ETA=7m
+  ep    3/50  loss=2.7248  tr=0.090  te=0.088  8.1s/ep  ETA=6m
+  ep    4/50  loss=2.7187  tr=0.091  te=0.088  8.1s/ep  ETA=6m
+  ep    5/50  loss=2.7144  tr=0.092  te=0.089  8.1s/ep  ETA=6m
+  ep    6/50  loss=2.7120  tr=0.093  te=0.088  8.2s/ep  ETA=6m
+  ep    7/50  loss=2.7117  tr=0.093  te=0.089  8.1s/ep  ETA=6m
+  ep    8/50  loss=2.7125  tr=0.094  te=0.090  8.1s/ep  ETA=6m  [stale 1/30]
+  ep    9/50  loss=2.7113  tr=0.094  te=0.089  8.1s/ep  ETA=6m
+  ep   10/50  loss=2.7114  tr=0.094  te=0.088  8.1s/ep  ETA=5m  [stale 1/30]
+  ep   11/50  loss=2.7118  tr=0.095  te=0.089  8.1s/ep  ETA=5m  [stale 2/30]
+  ep   12/50  loss=2.7115  tr=0.095  te=0.089  8.2s/ep  ETA=5m  [stale 3/30]
+  ep   13/50  loss=2.7108  tr=0.095  te=0.090  8.2s/ep  ETA=5m
+  ep   14/50  loss=2.7109  tr=0.096  te=0.089  8.2s/ep  ETA=5m  [stale 1/30]
+  ep   15/50  loss=2.7105  tr=0.096  te=0.090  8.2s/ep  ETA=5m
+  ep   16/50  loss=2.7104  tr=0.096  te=0.088  8.1s/ep  ETA=5m
+  ep   17/50  loss=2.7107  tr=0.097  te=0.089  8.2s/ep  ETA=4m  [stale 1/30]
+  ep   18/50  loss=2.7104  tr=0.097  te=0.088  8.2s/ep  ETA=4m
+  ep   19/50  loss=2.7101  tr=0.098  te=0.088  8.2s/ep  ETA=4m
+  ep   20/50  loss=2.7094  tr=0.098  te=0.088  8.2s/ep  ETA=4m
+  ep   21/50  loss=2.7099  tr=0.098  te=0.089  8.2s/ep  ETA=4m  [stale 1/30]
+  ep   22/50  loss=2.7093  tr=0.099  te=0.090  8.1s/ep  ETA=4m
+  ep   23/50  loss=2.7095  tr=0.099  te=0.089  8.1s/ep  ETA=4m  [stale 1/30]
+  ep   24/50  loss=2.7094  tr=0.099  te=0.089  8.1s/ep  ETA=4m  [stale 2/30]
+  ep   25/50  loss=2.7098  tr=0.099  te=0.089  8.2s/ep  ETA=3m  [stale 3/30]
+  ep   26/50  loss=2.7086  tr=0.099  te=0.088  8.1s/ep  ETA=3m
+  ep   27/50  loss=2.7090  tr=0.100  te=0.089  8.2s/ep  ETA=3m  [stale 1/30]
+  ep   28/50  loss=2.7089  tr=0.100  te=0.090  8.2s/ep  ETA=3m  [stale 2/30]
+  ep   29/50  loss=2.7083  tr=0.100  te=0.089  8.1s/ep  ETA=3m
+  ep   30/50  loss=2.7087  tr=0.100  te=0.089  8.1s/ep  ETA=3m  [stale 1/30]
+  ep   31/50  loss=2.7082  tr=0.101  te=0.089  8.2s/ep  ETA=3m
+  ep   32/50  loss=2.7088  tr=0.101  te=0.088  8.1s/ep  ETA=2m  [stale 1/30]
+  ep   33/50  loss=2.7074  tr=0.101  te=0.090  8.1s/ep  ETA=2m
+  ep   34/50  loss=2.7072  tr=0.101  te=0.090  8.1s/ep  ETA=2m
+  ep   35/50  loss=2.7079  tr=0.102  te=0.089  8.2s/ep  ETA=2m  [stale 1/30]
+  ep   36/50  loss=2.7073  tr=0.101  te=0.089  8.1s/ep  ETA=2m  [stale 2/30]
+  ep   37/50  loss=2.7072  tr=0.102  te=0.088  8.1s/ep  ETA=2m  [stale 3/30]
+  ep   38/50  loss=2.7074  tr=0.102  te=0.089  8.1s/ep  ETA=2m  [stale 4/30]
+  ep   39/50  loss=2.7063  tr=0.102  te=0.090  8.1s/ep  ETA=1m
+  ep   40/50  loss=2.7072  tr=0.103  te=0.089  8.1s/ep  ETA=1m  [stale 1/30]
+  ep   41/50  loss=2.7066  tr=0.102  te=0.088  8.2s/ep  ETA=1m  [stale 2/30]
+  ep   42/50  loss=2.7066  tr=0.103  te=0.090  8.2s/ep  ETA=1m  [stale 3/30]
+  ep   43/50  loss=2.7065  tr=0.103  te=0.088  8.1s/ep  ETA=57s  [stale 4/30]
+  ep   44/50  loss=2.7062  tr=0.103  te=0.090  8.2s/ep  ETA=49s
+  ep   45/50  loss=2.7063  tr=0.103  te=0.089  8.1s/ep  ETA=41s  [stale 1/30]
+  ep   46/50  loss=2.7070  tr=0.103  te=0.089  8.2s/ep  ETA=33s  [stale 2/30]
+  ep   47/50  loss=2.7064  tr=0.103  te=0.089  8.1s/ep  ETA=24s  [stale 3/30]
+  ep   48/50  loss=2.7060  tr=0.103  te=0.090  8.2s/ep  ETA=16s
+  ep   49/50  loss=2.7060  tr=0.103  te=0.089  8.2s/ep  ETA=8s  [stale 1/30]
+  ep   50/50  loss=2.7055  tr=0.104  te=0.089  8.1s/ep  ETA=0s
+
+  [DONE] thr=0.1  time=7m  best_loss=2.7055  final_te=0.089
+  saved → models/model_freeze_readout_x_0.1.pth
+
+  [1/9 done]  elapsed=7m  est remaining=55m
+
+====================================================================
+  [2/9] thr=0.2  attn_dim=220  head=freeze_readout  params=545,620 (trainable=387,200)  train=20,000  loss_suffix=100/200
+====================================================================
+  ep    1/50  loss=2.8337  tr=0.080  te=0.081  8.2s/ep  ETA=7m
+  ep    2/50  loss=2.8196  tr=0.080  te=0.081  8.3s/ep  ETA=7m
+  ep    3/50  loss=2.8072  tr=0.081  te=0.079  8.2s/ep  ETA=6m
+  ep    4/50  loss=2.8026  tr=0.082  te=0.080  8.2s/ep  ETA=6m
+  ep    5/50  loss=2.8002  tr=0.083  te=0.080  8.2s/ep  ETA=6m
+  ep    6/50  loss=2.7991  tr=0.083  te=0.079  8.1s/ep  ETA=6m
+  ep    7/50  loss=2.7991  tr=0.083  te=0.079  8.2s/ep  ETA=6m
+  ep    8/50  loss=2.7988  tr=0.083  te=0.081  8.2s/ep  ETA=6m
+  ep    9/50  loss=2.7986  tr=0.084  te=0.080  8.2s/ep  ETA=6m
+  ep   10/50  loss=2.7986  tr=0.084  te=0.081  8.2s/ep  ETA=5m
+  ep   11/50  loss=2.7982  tr=0.084  te=0.081  8.2s/ep  ETA=5m
+  ep   12/50  loss=2.7978  tr=0.085  te=0.080  8.2s/ep  ETA=5m
+  ep   13/50  loss=2.7986  tr=0.085  te=0.081  8.2s/ep  ETA=5m  [stale 1/30]
+  ep   14/50  loss=2.7973  tr=0.085  te=0.079  8.1s/ep  ETA=5m
+  ep   15/50  loss=2.7973  tr=0.086  te=0.080  8.2s/ep  ETA=5m
+  ep   16/50  loss=2.7970  tr=0.086  te=0.080  8.1s/ep  ETA=5m
+  ep   17/50  loss=2.7974  tr=0.086  te=0.080  8.2s/ep  ETA=4m  [stale 1/30]
+  ep   18/50  loss=2.7965  tr=0.087  te=0.079  8.2s/ep  ETA=4m
+  ep   19/50  loss=2.7966  tr=0.087  te=0.080  8.2s/ep  ETA=4m  [stale 1/30]
+  ep   20/50  loss=2.7964  tr=0.087  te=0.081  8.2s/ep  ETA=4m
+  ep   21/50  loss=2.7968  tr=0.087  te=0.080  8.2s/ep  ETA=4m  [stale 1/30]
+  ep   22/50  loss=2.7963  tr=0.088  te=0.081  8.2s/ep  ETA=4m
+  ep   23/50  loss=2.7961  tr=0.088  te=0.080  8.2s/ep  ETA=4m
+  ep   24/50  loss=2.7959  tr=0.088  te=0.080  8.2s/ep  ETA=4m
+  ep   25/50  loss=2.7960  tr=0.088  te=0.080  8.1s/ep  ETA=3m  [stale 1/30]
+  ep   26/50  loss=2.7948  tr=0.089  te=0.078  8.1s/ep  ETA=3m
+  ep   27/50  loss=2.7954  tr=0.089  te=0.080  8.2s/ep  ETA=3m  [stale 1/30]
+  ep   28/50  loss=2.7950  tr=0.089  te=0.078  8.2s/ep  ETA=3m  [stale 2/30]
+  ep   29/50  loss=2.7951  tr=0.089  te=0.079  8.2s/ep  ETA=3m  [stale 3/30]
+  ep   30/50  loss=2.7946  tr=0.090  te=0.079  8.2s/ep  ETA=3m
+  ep   31/50  loss=2.7941  tr=0.090  te=0.079  8.2s/ep  ETA=3m
+  ep   32/50  loss=2.7936  tr=0.090  te=0.080  8.2s/ep  ETA=2m
+  ep   33/50  loss=2.7936  tr=0.090  te=0.079  8.2s/ep  ETA=2m  [stale 1/30]
+  ep   34/50  loss=2.7932  tr=0.090  te=0.079  8.1s/ep  ETA=2m
+  ep   35/50  loss=2.7928  tr=0.091  te=0.078  8.2s/ep  ETA=2m
+  ep   36/50  loss=2.7921  tr=0.091  te=0.078  8.2s/ep  ETA=2m
+  ep   37/50  loss=2.7921  tr=0.091  te=0.078  8.1s/ep  ETA=2m  [stale 1/30]
+  ep   38/50  loss=2.7920  tr=0.091  te=0.078  8.2s/ep  ETA=2m
+  ep   39/50  loss=2.7918  tr=0.091  te=0.078  8.2s/ep  ETA=1m
+  ep   40/50  loss=2.7913  tr=0.091  te=0.078  8.3s/ep  ETA=1m
+  ep   41/50  loss=2.7912  tr=0.091  te=0.079  8.2s/ep  ETA=1m
+  ep   42/50  loss=2.7911  tr=0.091  te=0.078  8.2s/ep  ETA=1m
+  ep   43/50  loss=2.7902  tr=0.091  te=0.078  8.2s/ep  ETA=57s
+  ep   44/50  loss=2.7900  tr=0.091  te=0.079  8.2s/ep  ETA=49s
+  ep   45/50  loss=2.7903  tr=0.091  te=0.079  8.2s/ep  ETA=41s  [stale 1/30]
+  ep   46/50  loss=2.7892  tr=0.092  te=0.077  8.2s/ep  ETA=33s
+  ep   47/50  loss=2.7890  tr=0.091  te=0.080  8.2s/ep  ETA=25s
+  ep   48/50  loss=2.7887  tr=0.092  te=0.077  8.2s/ep  ETA=16s
+  ep   49/50  loss=2.7879  tr=0.092  te=0.079  8.2s/ep  ETA=8s
+  ep   50/50  loss=2.7865  tr=0.092  te=0.078  8.1s/ep  ETA=0s
+
+  [DONE] thr=0.2  time=7m  best_loss=2.7865  final_te=0.078
+  saved → models/model_freeze_readout_x_0.2.pth
+
+  [2/9 done]  elapsed=14m  est remaining=48m
+
+====================================================================
+  [3/9] thr=0.3  attn_dim=220  head=freeze_readout  params=545,620 (trainable=387,200)  train=20,000  loss_suffix=100/200
+====================================================================
+  ep    1/50  loss=2.8808  tr=0.077  te=0.080  8.2s/ep  ETA=7m
+  ep    2/50  loss=2.8703  tr=0.079  te=0.081  8.2s/ep  ETA=7m
+  ep    3/50  loss=2.8573  tr=0.079  te=0.083  8.2s/ep  ETA=6m
+  ep    4/50  loss=2.8492  tr=0.081  te=0.083  8.2s/ep  ETA=6m
+  ep    5/50  loss=2.8453  tr=0.081  te=0.083  8.1s/ep  ETA=6m
+  ep    6/50  loss=2.8446  tr=0.081  te=0.082  8.2s/ep  ETA=6m
+  ep    7/50  loss=2.8446  tr=0.081  te=0.082  8.1s/ep  ETA=6m  [stale 1/30]
+  ep    8/50  loss=2.8444  tr=0.082  te=0.082  8.2s/ep  ETA=6m
+  ep    9/50  loss=2.8434  tr=0.082  te=0.081  8.2s/ep  ETA=6m
+  ep   10/50  loss=2.8431  tr=0.082  te=0.081  8.2s/ep  ETA=5m
+  ep   11/50  loss=2.8429  tr=0.082  te=0.080  8.2s/ep  ETA=5m
+  ep   12/50  loss=2.8425  tr=0.082  te=0.080  8.2s/ep  ETA=5m
+  ep   13/50  loss=2.8417  tr=0.082  te=0.081  8.2s/ep  ETA=5m
+  ep   14/50  loss=2.8406  tr=0.082  te=0.080  8.1s/ep  ETA=5m
+  ep   15/50  loss=2.8409  tr=0.082  te=0.079  8.2s/ep  ETA=5m  [stale 1/30]
+  ep   16/50  loss=2.8392  tr=0.083  te=0.080  8.2s/ep  ETA=5m
+  ep   17/50  loss=2.8387  tr=0.083  te=0.079  8.1s/ep  ETA=4m
+  ep   18/50  loss=2.8376  tr=0.083  te=0.080  8.2s/ep  ETA=4m
+  ep   19/50  loss=2.8356  tr=0.083  te=0.081  8.2s/ep  ETA=4m
+  ep   20/50  loss=2.8324  tr=0.085  te=0.084  8.2s/ep  ETA=4m
+  ep   21/50  loss=2.8284  tr=0.087  te=0.084  8.2s/ep  ETA=4m
+  ep   22/50  loss=2.8230  tr=0.089  te=0.086  8.2s/ep  ETA=4m
+  ep   23/50  loss=2.8178  tr=0.091  te=0.089  8.2s/ep  ETA=4m
+  ep   24/50  loss=2.8139  tr=0.092  te=0.091  8.2s/ep  ETA=4m
+  ep   25/50  loss=2.8103  tr=0.094  te=0.091  8.2s/ep  ETA=3m
+  ep   26/50  loss=2.8075  tr=0.094  te=0.093  8.2s/ep  ETA=3m
+  ep   27/50  loss=2.8053  tr=0.095  te=0.093  8.2s/ep  ETA=3m
+  ep   28/50  loss=2.8034  tr=0.096  te=0.093  8.2s/ep  ETA=3m
+  ep   29/50  loss=2.8025  tr=0.096  te=0.092  8.2s/ep  ETA=3m
+  ep   30/50  loss=2.8013  tr=0.097  te=0.093  8.2s/ep  ETA=3m
+  ep   31/50  loss=2.8006  tr=0.097  te=0.091  8.1s/ep  ETA=3m
+  ep   32/50  loss=2.8002  tr=0.097  te=0.092  8.1s/ep  ETA=2m
+  ep   33/50  loss=2.7996  tr=0.098  te=0.093  8.2s/ep  ETA=2m
+  ep   34/50  loss=2.7986  tr=0.098  te=0.094  8.1s/ep  ETA=2m
+  ep   35/50  loss=2.7988  tr=0.098  te=0.093  8.2s/ep  ETA=2m  [stale 1/30]
+  ep   36/50  loss=2.7986  tr=0.098  te=0.093  8.2s/ep  ETA=2m
+  ep   37/50  loss=2.7975  tr=0.099  te=0.094  8.1s/ep  ETA=2m
+  ep   38/50  loss=2.7981  tr=0.099  te=0.093  8.1s/ep  ETA=2m  [stale 1/30]
+  ep   39/50  loss=2.7974  tr=0.099  te=0.094  8.2s/ep  ETA=1m
+  ep   40/50  loss=2.7967  tr=0.099  te=0.095  8.2s/ep  ETA=1m
+  ep   41/50  loss=2.7968  tr=0.099  te=0.094  8.2s/ep  ETA=1m  [stale 1/30]
+  ep   42/50  loss=2.7964  tr=0.099  te=0.094  8.2s/ep  ETA=1m
+  ep   43/50  loss=2.7959  tr=0.099  te=0.093  8.2s/ep  ETA=57s
+  ep   44/50  loss=2.7957  tr=0.099  te=0.094  8.2s/ep  ETA=49s
+  ep   45/50  loss=2.7956  tr=0.100  te=0.093  8.2s/ep  ETA=41s
+  ep   46/50  loss=2.7953  tr=0.100  te=0.095  8.2s/ep  ETA=33s
+  ep   47/50  loss=2.7942  tr=0.100  te=0.094  8.2s/ep  ETA=25s
+  ep   48/50  loss=2.7943  tr=0.100  te=0.095  8.2s/ep  ETA=16s  [stale 1/30]
+  ep   49/50  loss=2.7944  tr=0.100  te=0.095  8.2s/ep  ETA=8s  [stale 2/30]
+  ep   50/50  loss=2.7943  tr=0.100  te=0.095  8.2s/ep  ETA=0s  [stale 3/30]
+
+  [DONE] thr=0.3  time=7m  best_loss=2.7942  final_te=0.095
+  saved → models/model_freeze_readout_x_0.3.pth
+
+  [3/9 done]  elapsed=20m  est remaining=41m
+
+====================================================================
+  [4/9] thr=0.4  attn_dim=220  head=freeze_readout  params=545,620 (trainable=387,200)  train=20,000  loss_suffix=100/200
+====================================================================
+  ep    1/50  loss=2.8864  tr=0.093  te=0.097  8.2s/ep  ETA=7m
+  ep    2/50  loss=2.8756  tr=0.096  te=0.098  8.2s/ep  ETA=7m
+  ep    3/50  loss=2.8624  tr=0.097  te=0.098  8.2s/ep  ETA=6m
+  ep    4/50  loss=2.8541  tr=0.099  te=0.100  8.3s/ep  ETA=6m
+  ep    5/50  loss=2.8501  tr=0.099  te=0.100  8.2s/ep  ETA=6m
+  ep    6/50  loss=2.8479  tr=0.100  te=0.101  8.2s/ep  ETA=6m
+  ep    7/50  loss=2.8460  tr=0.101  te=0.102  8.2s/ep  ETA=6m
+  ep    8/50  loss=2.8435  tr=0.102  te=0.102  8.2s/ep  ETA=6m
+  ep    9/50  loss=2.8390  tr=0.103  te=0.105  8.2s/ep  ETA=6m
+  ep   10/50  loss=2.8295  tr=0.108  te=0.113  8.2s/ep  ETA=5m
+  ep   11/50  loss=2.8139  tr=0.117  te=0.123  8.2s/ep  ETA=5m
+  ep   12/50  loss=2.8005  tr=0.123  te=0.124  8.2s/ep  ETA=5m
+  ep   13/50  loss=2.7902  tr=0.126  te=0.127  8.2s/ep  ETA=5m
+  ep   14/50  loss=2.7836  tr=0.128  te=0.129  8.1s/ep  ETA=5m
+  ep   15/50  loss=2.7776  tr=0.129  te=0.129  8.2s/ep  ETA=5m
+  ep   16/50  loss=2.7724  tr=0.130  te=0.131  8.2s/ep  ETA=5m
+  ep   17/50  loss=2.7677  tr=0.131  te=0.130  8.2s/ep  ETA=4m
+  ep   18/50  loss=2.7645  tr=0.131  te=0.131  8.1s/ep  ETA=4m
+  ep   19/50  loss=2.7623  tr=0.132  te=0.131  8.2s/ep  ETA=4m
+  ep   20/50  loss=2.7604  tr=0.132  te=0.131  8.2s/ep  ETA=4m
+  ep   21/50  loss=2.7579  tr=0.132  te=0.130  8.2s/ep  ETA=4m
+  ep   22/50  loss=2.7566  tr=0.132  te=0.130  8.2s/ep  ETA=4m
+  ep   23/50  loss=2.7557  tr=0.133  te=0.132  8.2s/ep  ETA=4m
+  ep   24/50  loss=2.7546  tr=0.133  te=0.132  8.1s/ep  ETA=4m
+  ep   25/50  loss=2.7543  tr=0.133  te=0.131  8.2s/ep  ETA=3m
+  ep   26/50  loss=2.7530  tr=0.133  te=0.131  8.2s/ep  ETA=3m
+  ep   27/50  loss=2.7524  tr=0.133  te=0.131  8.2s/ep  ETA=3m
+  ep   28/50  loss=2.7521  tr=0.133  te=0.132  8.2s/ep  ETA=3m
+  ep   29/50  loss=2.7510  tr=0.133  te=0.132  8.2s/ep  ETA=3m
+  ep   30/50  loss=2.7507  tr=0.134  te=0.132  8.2s/ep  ETA=3m
+  ep   31/50  loss=2.7493  tr=0.134  te=0.132  8.2s/ep  ETA=3m
+  ep   32/50  loss=2.7499  tr=0.134  te=0.132  8.2s/ep  ETA=2m  [stale 1/30]
+  ep   33/50  loss=2.7484  tr=0.134  te=0.131  8.2s/ep  ETA=2m
+  ep   34/50  loss=2.7487  tr=0.134  te=0.133  8.2s/ep  ETA=2m  [stale 1/30]
+  ep   35/50  loss=2.7479  tr=0.134  te=0.131  8.2s/ep  ETA=2m
+  ep   36/50  loss=2.7471  tr=0.134  te=0.132  8.3s/ep  ETA=2m
+  ep   37/50  loss=2.7463  tr=0.134  te=0.132  8.2s/ep  ETA=2m
+  ep   38/50  loss=2.7457  tr=0.134  te=0.133  8.1s/ep  ETA=2m
+  ep   39/50  loss=2.7454  tr=0.134  te=0.132  8.2s/ep  ETA=1m
+  ep   40/50  loss=2.7448  tr=0.134  te=0.132  8.2s/ep  ETA=1m
+  ep   41/50  loss=2.7438  tr=0.134  te=0.132  8.2s/ep  ETA=1m
+  ep   42/50  loss=2.7434  tr=0.134  te=0.133  8.2s/ep  ETA=1m
+  ep   43/50  loss=2.7435  tr=0.135  te=0.132  8.1s/ep  ETA=57s  [stale 1/30]
+  ep   44/50  loss=2.7430  tr=0.135  te=0.132  8.2s/ep  ETA=49s
+  ep   45/50  loss=2.7421  tr=0.135  te=0.133  8.1s/ep  ETA=41s
+  ep   46/50  loss=2.7418  tr=0.135  te=0.133  8.2s/ep  ETA=33s
+  ep   47/50  loss=2.7406  tr=0.135  te=0.133  8.1s/ep  ETA=25s
+  ep   48/50  loss=2.7408  tr=0.135  te=0.132  8.2s/ep  ETA=16s  [stale 1/30]
+  ep   49/50  loss=2.7406  tr=0.135  te=0.134  8.2s/ep  ETA=8s
+  ep   50/50  loss=2.7396  tr=0.135  te=0.133  8.2s/ep  ETA=0s
+
+  [DONE] thr=0.4  time=7m  best_loss=2.7396  final_te=0.133
+  saved → models/model_freeze_readout_x_0.4.pth
+
+  [4/9 done]  elapsed=27m  est remaining=34m
+
+====================================================================
+  [5/9] thr=0.5  attn_dim=220  head=freeze_readout  params=545,620 (trainable=387,200)  train=20,000  loss_suffix=100/200
+====================================================================
+  ep    1/50  loss=2.8595  tr=0.122  te=0.121  8.2s/ep  ETA=7m
+  ep    2/50  loss=2.8495  tr=0.125  te=0.125  8.2s/ep  ETA=7m
+  ep    3/50  loss=2.8308  tr=0.131  te=0.135  8.2s/ep  ETA=6m
+  ep    4/50  loss=2.8029  tr=0.149  te=0.154  8.2s/ep  ETA=6m
+  ep    5/50  loss=2.7696  tr=0.163  te=0.165  8.3s/ep  ETA=6m
+  ep    6/50  loss=2.7432  tr=0.170  te=0.170  8.2s/ep  ETA=6m
+  ep    7/50  loss=2.7185  tr=0.175  te=0.173  8.2s/ep  ETA=6m
+  ep    8/50  loss=2.7008  tr=0.178  te=0.175  8.2s/ep  ETA=6m
+  ep    9/50  loss=2.6899  tr=0.179  te=0.177  8.2s/ep  ETA=6m
+  ep   10/50  loss=2.6815  tr=0.180  te=0.177  8.2s/ep  ETA=5m
+  ep   11/50  loss=2.6762  tr=0.181  te=0.177  8.2s/ep  ETA=5m
+  ep   12/50  loss=2.6711  tr=0.181  te=0.177  8.1s/ep  ETA=5m
+  ep   13/50  loss=2.6656  tr=0.182  te=0.178  8.2s/ep  ETA=5m
+  ep   14/50  loss=2.6597  tr=0.182  te=0.179  8.2s/ep  ETA=5m
+  ep   15/50  loss=2.6572  tr=0.182  te=0.179  8.2s/ep  ETA=5m
+  ep   16/50  loss=2.6554  tr=0.183  te=0.180  8.2s/ep  ETA=5m
+  ep   17/50  loss=2.6532  tr=0.183  te=0.179  8.3s/ep  ETA=5m
+  ep   18/50  loss=2.6516  tr=0.183  te=0.179  8.2s/ep  ETA=4m
+  ep   19/50  loss=2.6511  tr=0.183  te=0.180  8.1s/ep  ETA=4m
+  ep   20/50  loss=2.6492  tr=0.183  te=0.179  8.2s/ep  ETA=4m
+  ep   21/50  loss=2.6473  tr=0.183  te=0.179  8.2s/ep  ETA=4m
+  ep   22/50  loss=2.6463  tr=0.183  te=0.180  8.2s/ep  ETA=4m
+  ep   23/50  loss=2.6444  tr=0.183  te=0.179  8.2s/ep  ETA=4m
+  ep   24/50  loss=2.6441  tr=0.184  te=0.180  8.3s/ep  ETA=4m
+  ep   25/50  loss=2.6427  tr=0.184  te=0.180  8.1s/ep  ETA=3m
+  ep   26/50  loss=2.6419  tr=0.184  te=0.180  8.1s/ep  ETA=3m
+  ep   27/50  loss=2.6415  tr=0.184  te=0.181  8.2s/ep  ETA=3m
+  ep   28/50  loss=2.6404  tr=0.184  te=0.180  8.2s/ep  ETA=3m
+  ep   29/50  loss=2.6393  tr=0.184  te=0.181  8.2s/ep  ETA=3m
+  ep   30/50  loss=2.6386  tr=0.184  te=0.180  8.2s/ep  ETA=3m
+  ep   31/50  loss=2.6376  tr=0.184  te=0.180  8.2s/ep  ETA=3m
+  ep   32/50  loss=2.6370  tr=0.184  te=0.181  8.2s/ep  ETA=2m
+  ep   33/50  loss=2.6361  tr=0.184  te=0.181  8.2s/ep  ETA=2m
+  ep   34/50  loss=2.6351  tr=0.184  te=0.180  8.2s/ep  ETA=2m
+  ep   35/50  loss=2.6339  tr=0.184  te=0.181  8.2s/ep  ETA=2m
+  ep   36/50  loss=2.6332  tr=0.184  te=0.181  8.2s/ep  ETA=2m
+  ep   37/50  loss=2.6324  tr=0.184  te=0.181  8.2s/ep  ETA=2m
+  ep   38/50  loss=2.6314  tr=0.184  te=0.181  8.3s/ep  ETA=2m
+  ep   39/50  loss=2.6308  tr=0.185  te=0.181  8.2s/ep  ETA=2m
+  ep   40/50  loss=2.6295  tr=0.185  te=0.181  8.2s/ep  ETA=1m
+  ep   41/50  loss=2.6283  tr=0.185  te=0.181  8.2s/ep  ETA=1m
+  ep   42/50  loss=2.6274  tr=0.185  te=0.181  8.2s/ep  ETA=1m
+  ep   43/50  loss=2.6259  tr=0.185  te=0.181  8.2s/ep  ETA=57s
+  ep   44/50  loss=2.6244  tr=0.185  te=0.182  8.2s/ep  ETA=49s
+  ep   45/50  loss=2.6238  tr=0.185  te=0.182  8.2s/ep  ETA=41s
+  ep   46/50  loss=2.6232  tr=0.185  te=0.181  8.2s/ep  ETA=33s
+  ep   47/50  loss=2.6219  tr=0.185  te=0.182  8.1s/ep  ETA=25s
+  ep   48/50  loss=2.6207  tr=0.185  te=0.182  8.1s/ep  ETA=16s
+  ep   49/50  loss=2.6193  tr=0.185  te=0.181  8.2s/ep  ETA=8s
+  ep   50/50  loss=2.6191  tr=0.185  te=0.182  8.2s/ep  ETA=0s
+
+  [DONE] thr=0.5  time=7m  best_loss=2.6191  final_te=0.182
+  saved → models/model_freeze_readout_x_0.5.pth
+
+  [5/9 done]  elapsed=34m  est remaining=27m
+
+====================================================================
+  [6/9] thr=0.6  attn_dim=220  head=freeze_readout  params=545,620 (trainable=387,200)  train=20,000  loss_suffix=100/200
+====================================================================
+  ep    1/50  loss=2.7947  tr=0.151  te=0.158  8.1s/ep  ETA=7m
+  ep    2/50  loss=2.7808  tr=0.157  te=0.173  8.1s/ep  ETA=7m
+  ep    3/50  loss=2.7412  tr=0.186  te=0.210  8.2s/ep  ETA=6m
+  ep    4/50  loss=2.6772  tr=0.214  te=0.226  8.2s/ep  ETA=6m
+  ep    5/50  loss=2.6219  tr=0.224  te=0.232  8.2s/ep  ETA=6m
+  ep    6/50  loss=2.5810  tr=0.229  te=0.237  8.2s/ep  ETA=6m
+  ep    7/50  loss=2.5543  tr=0.232  te=0.240  8.1s/ep  ETA=6m
+  ep    8/50  loss=2.5370  tr=0.234  te=0.240  8.2s/ep  ETA=6m
+  ep    9/50  loss=2.5234  tr=0.235  te=0.243  8.3s/ep  ETA=6m
+  ep   10/50  loss=2.5150  tr=0.236  te=0.243  8.2s/ep  ETA=5m
+  ep   11/50  loss=2.5090  tr=0.236  te=0.243  8.2s/ep  ETA=5m
+  ep   12/50  loss=2.5055  tr=0.236  te=0.243  8.3s/ep  ETA=5m
+  ep   13/50  loss=2.5024  tr=0.237  te=0.243  8.2s/ep  ETA=5m
+  ep   14/50  loss=2.5000  tr=0.237  te=0.243  8.1s/ep  ETA=5m
+  ep   15/50  loss=2.4969  tr=0.237  te=0.243  8.2s/ep  ETA=5m
+  ep   16/50  loss=2.4956  tr=0.237  te=0.243  8.2s/ep  ETA=5m
+  ep   17/50  loss=2.4927  tr=0.237  te=0.243  8.2s/ep  ETA=4m
+  ep   18/50  loss=2.4909  tr=0.238  te=0.243  8.2s/ep  ETA=4m
+  ep   19/50  loss=2.4889  tr=0.238  te=0.244  8.2s/ep  ETA=4m
+  ep   20/50  loss=2.4884  tr=0.238  te=0.243  8.2s/ep  ETA=4m
+  ep   21/50  loss=2.4852  tr=0.238  te=0.244  8.2s/ep  ETA=4m
+  ep   22/50  loss=2.4830  tr=0.238  te=0.244  8.2s/ep  ETA=4m
+  ep   23/50  loss=2.4812  tr=0.238  te=0.244  8.2s/ep  ETA=4m
+  ep   24/50  loss=2.4801  tr=0.238  te=0.244  8.2s/ep  ETA=4m
+  ep   25/50  loss=2.4775  tr=0.238  te=0.244  8.2s/ep  ETA=3m
+  ep   26/50  loss=2.4753  tr=0.238  te=0.244  8.2s/ep  ETA=3m
+  ep   27/50  loss=2.4724  tr=0.238  te=0.245  8.2s/ep  ETA=3m
+  ep   28/50  loss=2.4702  tr=0.238  te=0.244  8.1s/ep  ETA=3m
+  ep   29/50  loss=2.4680  tr=0.238  te=0.245  8.2s/ep  ETA=3m
+  ep   30/50  loss=2.4673  tr=0.238  te=0.245  8.2s/ep  ETA=3m
+  ep   31/50  loss=2.4645  tr=0.238  te=0.245  8.2s/ep  ETA=3m
+  ep   32/50  loss=2.4632  tr=0.238  te=0.244  8.2s/ep  ETA=2m
+  ep   33/50  loss=2.4623  tr=0.239  te=0.245  8.2s/ep  ETA=2m
+  ep   34/50  loss=2.4607  tr=0.238  te=0.245  8.2s/ep  ETA=2m
+  ep   35/50  loss=2.4594  tr=0.239  te=0.246  8.2s/ep  ETA=2m
+  ep   36/50  loss=2.4581  tr=0.239  te=0.246  8.2s/ep  ETA=2m
+  ep   37/50  loss=2.4566  tr=0.239  te=0.246  8.2s/ep  ETA=2m
+  ep   38/50  loss=2.4568  tr=0.239  te=0.245  8.1s/ep  ETA=2m  [stale 1/30]
+  ep   39/50  loss=2.4548  tr=0.239  te=0.246  8.2s/ep  ETA=1m
+  ep   40/50  loss=2.4546  tr=0.239  te=0.246  8.2s/ep  ETA=1m
+  ep   41/50  loss=2.4530  tr=0.239  te=0.247  8.2s/ep  ETA=1m
+  ep   42/50  loss=2.4520  tr=0.239  te=0.247  8.1s/ep  ETA=1m
+  ep   43/50  loss=2.4514  tr=0.239  te=0.246  8.2s/ep  ETA=57s
+  ep   44/50  loss=2.4509  tr=0.239  te=0.246  8.2s/ep  ETA=49s
+  ep   45/50  loss=2.4501  tr=0.239  te=0.247  8.2s/ep  ETA=41s
+  ep   46/50  loss=2.4489  tr=0.239  te=0.246  8.2s/ep  ETA=33s
+  ep   47/50  loss=2.4479  tr=0.239  te=0.246  8.2s/ep  ETA=25s
+  ep   48/50  loss=2.4481  tr=0.239  te=0.245  8.2s/ep  ETA=16s  [stale 1/30]
+  ep   49/50  loss=2.4475  tr=0.239  te=0.246  8.2s/ep  ETA=8s
+  ep   50/50  loss=2.4469  tr=0.239  te=0.246  8.2s/ep  ETA=0s
+
+  [DONE] thr=0.6  time=7m  best_loss=2.4469  final_te=0.246
+  saved → models/model_freeze_readout_x_0.6.pth
+
+  [6/9 done]  elapsed=41m  est remaining=20m
+
+====================================================================
+  [7/9] thr=0.7  attn_dim=220  head=freeze_readout  params=545,620 (trainable=387,200)  train=20,000  loss_suffix=100/200
+====================================================================
+  ep    1/50  loss=2.7105  tr=0.177  te=0.181  8.2s/ep  ETA=7m
+  ep    2/50  loss=2.6825  tr=0.195  te=0.223  8.2s/ep  ETA=7m
+  ep    3/50  loss=2.6041  tr=0.247  te=0.270  8.2s/ep  ETA=6m
+  ep    4/50  loss=2.4932  tr=0.278  te=0.284  8.2s/ep  ETA=6m
+  ep    5/50  loss=2.4153  tr=0.287  te=0.287  8.1s/ep  ETA=6m
+  ep    6/50  loss=2.3746  tr=0.290  te=0.290  8.2s/ep  ETA=6m
+  ep    7/50  loss=2.3444  tr=0.291  te=0.293  8.2s/ep  ETA=6m
+  ep    8/50  loss=2.3209  tr=0.293  te=0.294  8.2s/ep  ETA=6m
+  ep    9/50  loss=2.3029  tr=0.294  te=0.296  8.2s/ep  ETA=6m
+  ep   10/50  loss=2.2931  tr=0.295  te=0.296  8.2s/ep  ETA=5m
+  ep   11/50  loss=2.2875  tr=0.295  te=0.297  8.1s/ep  ETA=5m
+  ep   12/50  loss=2.2811  tr=0.296  te=0.298  8.2s/ep  ETA=5m
+  ep   13/50  loss=2.2786  tr=0.296  te=0.298  8.2s/ep  ETA=5m
+  ep   14/50  loss=2.2732  tr=0.296  te=0.298  8.2s/ep  ETA=5m
+  ep   15/50  loss=2.2713  tr=0.296  te=0.297  8.2s/ep  ETA=5m
+  ep   16/50  loss=2.2683  tr=0.296  te=0.297  8.2s/ep  ETA=5m
+  ep   17/50  loss=2.2645  tr=0.297  te=0.298  8.2s/ep  ETA=4m
+  ep   18/50  loss=2.2618  tr=0.297  te=0.297  8.2s/ep  ETA=4m
+  ep   19/50  loss=2.2594  tr=0.297  te=0.298  8.3s/ep  ETA=4m
+  ep   20/50  loss=2.2564  tr=0.297  te=0.298  8.2s/ep  ETA=4m
+  ep   21/50  loss=2.2533  tr=0.297  te=0.297  8.1s/ep  ETA=4m
+  ep   22/50  loss=2.2513  tr=0.297  te=0.298  8.2s/ep  ETA=4m
+  ep   23/50  loss=2.2500  tr=0.297  te=0.297  8.2s/ep  ETA=4m
+  ep   24/50  loss=2.2470  tr=0.297  te=0.298  8.2s/ep  ETA=4m
+  ep   25/50  loss=2.2441  tr=0.297  te=0.297  8.2s/ep  ETA=3m
+  ep   26/50  loss=2.2429  tr=0.297  te=0.297  8.2s/ep  ETA=3m
+  ep   27/50  loss=2.2418  tr=0.297  te=0.299  8.2s/ep  ETA=3m
+  ep   28/50  loss=2.2394  tr=0.297  te=0.298  8.2s/ep  ETA=3m
+  ep   29/50  loss=2.2386  tr=0.297  te=0.299  8.2s/ep  ETA=3m
+  ep   30/50  loss=2.2362  tr=0.298  te=0.298  8.2s/ep  ETA=3m
+  ep   31/50  loss=2.2356  tr=0.298  te=0.299  8.1s/ep  ETA=3m
+  ep   32/50  loss=2.2320  tr=0.298  te=0.299  8.2s/ep  ETA=2m
+  ep   33/50  loss=2.2293  tr=0.298  te=0.298  8.2s/ep  ETA=2m
+  ep   34/50  loss=2.2281  tr=0.298  te=0.298  8.2s/ep  ETA=2m
+  ep   35/50  loss=2.2267  tr=0.298  te=0.299  8.1s/ep  ETA=2m
+  ep   36/50  loss=2.2256  tr=0.298  te=0.299  8.2s/ep  ETA=2m
+  ep   37/50  loss=2.2242  tr=0.298  te=0.299  8.2s/ep  ETA=2m
+  ep   38/50  loss=2.2242  tr=0.298  te=0.299  8.2s/ep  ETA=2m
+  ep   39/50  loss=2.2220  tr=0.298  te=0.299  8.2s/ep  ETA=1m
+  ep   40/50  loss=2.2215  tr=0.298  te=0.298  8.2s/ep  ETA=1m
+  ep   41/50  loss=2.2201  tr=0.298  te=0.298  8.2s/ep  ETA=1m
+  ep   42/50  loss=2.2182  tr=0.298  te=0.298  8.2s/ep  ETA=1m
+  ep   43/50  loss=2.2173  tr=0.298  te=0.299  8.3s/ep  ETA=57s
+  ep   44/50  loss=2.2158  tr=0.298  te=0.299  8.2s/ep  ETA=49s
+  ep   45/50  loss=2.2151  tr=0.298  te=0.299  8.2s/ep  ETA=41s
+  ep   46/50  loss=2.2137  tr=0.298  te=0.299  8.2s/ep  ETA=33s
+  ep   47/50  loss=2.2134  tr=0.298  te=0.299  8.2s/ep  ETA=25s
+  ep   48/50  loss=2.2124  tr=0.298  te=0.299  8.2s/ep  ETA=16s
+  ep   49/50  loss=2.2108  tr=0.298  te=0.299  8.2s/ep  ETA=8s
+  ep   50/50  loss=2.2105  tr=0.298  te=0.299  8.2s/ep  ETA=0s
+
+  [DONE] thr=0.7  time=7m  best_loss=2.2105  final_te=0.299
+  saved → models/model_freeze_readout_x_0.7.pth
+
+  [7/9 done]  elapsed=48m  est remaining=14m
+
+====================================================================
+  [8/9] thr=0.8  attn_dim=220  head=freeze_readout  params=545,620 (trainable=387,200)  train=20,000  loss_suffix=100/200
+====================================================================
+  ep    1/50  loss=2.6025  tr=0.204  te=0.203  8.2s/ep  ETA=7m
+  ep    2/50  loss=2.5453  tr=0.242  te=0.286  8.2s/ep  ETA=7m
+  ep    3/50  loss=2.3924  tr=0.322  te=0.341  8.2s/ep  ETA=6m
+  ep    4/50  loss=2.2318  tr=0.348  te=0.350  8.2s/ep  ETA=6m
+  ep    5/50  loss=2.1478  tr=0.352  te=0.351  8.2s/ep  ETA=6m
+  ep    6/50  loss=2.1045  tr=0.354  te=0.352  8.1s/ep  ETA=6m
+  ep    7/50  loss=2.0775  tr=0.355  te=0.353  8.2s/ep  ETA=6m
+  ep    8/50  loss=2.0553  tr=0.356  te=0.353  8.2s/ep  ETA=6m
+  ep    9/50  loss=2.0409  tr=0.357  te=0.353  8.2s/ep  ETA=6m
+  ep   10/50  loss=2.0229  tr=0.357  te=0.355  8.2s/ep  ETA=5m
+  ep   11/50  loss=2.0082  tr=0.358  te=0.355  8.2s/ep  ETA=5m
+  ep   12/50  loss=1.9938  tr=0.359  te=0.354  8.2s/ep  ETA=5m
+  ep   13/50  loss=1.9906  tr=0.359  te=0.355  8.2s/ep  ETA=5m
+  ep   14/50  loss=1.9836  tr=0.359  te=0.355  8.2s/ep  ETA=5m
+  ep   15/50  loss=1.9784  tr=0.359  te=0.355  8.2s/ep  ETA=5m
+  ep   16/50  loss=1.9748  tr=0.359  te=0.356  8.2s/ep  ETA=5m
+  ep   17/50  loss=1.9726  tr=0.360  te=0.356  8.2s/ep  ETA=4m
+  ep   18/50  loss=1.9684  tr=0.360  te=0.358  8.2s/ep  ETA=4m
+  ep   19/50  loss=1.9660  tr=0.360  te=0.357  8.2s/ep  ETA=4m
+  ep   20/50  loss=1.9636  tr=0.360  te=0.357  8.2s/ep  ETA=4m
+  ep   21/50  loss=1.9610  tr=0.360  te=0.357  8.2s/ep  ETA=4m
+  ep   22/50  loss=1.9605  tr=0.360  te=0.357  8.2s/ep  ETA=4m
+  ep   23/50  loss=1.9572  tr=0.360  te=0.357  8.2s/ep  ETA=4m
+  ep   24/50  loss=1.9549  tr=0.360  te=0.358  8.2s/ep  ETA=4m
+  ep   25/50  loss=1.9540  tr=0.360  te=0.358  8.2s/ep  ETA=3m
+  ep   26/50  loss=1.9529  tr=0.360  te=0.358  8.2s/ep  ETA=3m
+  ep   27/50  loss=1.9520  tr=0.360  te=0.358  8.2s/ep  ETA=3m
+  ep   28/50  loss=1.9496  tr=0.360  te=0.358  8.2s/ep  ETA=3m
+  ep   29/50  loss=1.9485  tr=0.361  te=0.358  8.2s/ep  ETA=3m
+  ep   30/50  loss=1.9478  tr=0.360  te=0.358  8.2s/ep  ETA=3m
+  ep   31/50  loss=1.9472  tr=0.361  te=0.359  8.2s/ep  ETA=3m
+  ep   32/50  loss=1.9461  tr=0.361  te=0.358  8.2s/ep  ETA=2m
+  ep   33/50  loss=1.9457  tr=0.361  te=0.358  8.2s/ep  ETA=2m
+  ep   34/50  loss=1.9460  tr=0.361  te=0.358  8.2s/ep  ETA=2m  [stale 1/30]
+  ep   35/50  loss=1.9456  tr=0.361  te=0.358  8.2s/ep  ETA=2m
+  ep   36/50  loss=1.9443  tr=0.361  te=0.359  8.2s/ep  ETA=2m
+  ep   37/50  loss=1.9450  tr=0.361  te=0.358  8.2s/ep  ETA=2m  [stale 1/30]
+  ep   38/50  loss=1.9436  tr=0.360  te=0.358  8.2s/ep  ETA=2m
+  ep   39/50  loss=1.9440  tr=0.361  te=0.357  8.2s/ep  ETA=1m  [stale 1/30]
+  ep   40/50  loss=1.9435  tr=0.361  te=0.359  8.2s/ep  ETA=1m
+  ep   41/50  loss=1.9427  tr=0.361  te=0.358  8.1s/ep  ETA=1m
+  ep   42/50  loss=1.9424  tr=0.361  te=0.358  8.1s/ep  ETA=1m
+  ep   43/50  loss=1.9414  tr=0.361  te=0.358  8.1s/ep  ETA=57s
+  ep   44/50  loss=1.9404  tr=0.361  te=0.358  8.2s/ep  ETA=49s
+  ep   45/50  loss=1.9405  tr=0.361  te=0.359  8.3s/ep  ETA=41s  [stale 1/30]
+  ep   46/50  loss=1.9400  tr=0.361  te=0.359  8.1s/ep  ETA=33s
+  ep   47/50  loss=1.9397  tr=0.361  te=0.359  8.2s/ep  ETA=25s
+  ep   48/50  loss=1.9397  tr=0.361  te=0.359  8.1s/ep  ETA=16s
+  ep   49/50  loss=1.9385  tr=0.361  te=0.359  8.2s/ep  ETA=8s
+  ep   50/50  loss=1.9380  tr=0.361  te=0.359  8.2s/ep  ETA=0s
+
+  [DONE] thr=0.8  time=7m  best_loss=1.9380  final_te=0.359
+  saved → models/model_freeze_readout_x_0.8.pth
+
+  [8/9 done]  elapsed=55m  est remaining=7m
+
+====================================================================
+  [9/9] thr=0.9  attn_dim=220  head=freeze_readout  params=545,620 (trainable=387,200)  train=20,000  loss_suffix=100/200
+====================================================================
+  ep    1/50  loss=2.4546  tr=0.229  te=0.230  8.1s/ep  ETA=7m
+  ep    2/50  loss=2.4166  tr=0.250  te=0.320  8.1s/ep  ETA=7m
+  ep    3/50  loss=2.1688  tr=0.375  te=0.410  8.2s/ep  ETA=6m
+  ep    4/50  loss=1.9171  tr=0.416  te=0.421  8.2s/ep  ETA=6m
+  ep    5/50  loss=1.7941  tr=0.422  te=0.425  8.2s/ep  ETA=6m
+  ep    6/50  loss=1.7342  tr=0.424  te=0.426  8.2s/ep  ETA=6m
+  ep    7/50  loss=1.6983  tr=0.425  te=0.427  8.2s/ep  ETA=6m
+  ep    8/50  loss=1.6743  tr=0.425  te=0.427  8.2s/ep  ETA=6m
+  ep    9/50  loss=1.6575  tr=0.426  te=0.428  8.2s/ep  ETA=6m
+  ep   10/50  loss=1.6451  tr=0.426  te=0.426  8.2s/ep  ETA=5m
+  ep   11/50  loss=1.6340  tr=0.427  te=0.428  8.2s/ep  ETA=5m
+  ep   12/50  loss=1.6242  tr=0.427  te=0.426  8.2s/ep  ETA=5m
+  ep   13/50  loss=1.6195  tr=0.427  te=0.428  8.2s/ep  ETA=5m
+  ep   14/50  loss=1.6164  tr=0.427  te=0.427  8.2s/ep  ETA=5m
+  ep   15/50  loss=1.6115  tr=0.427  te=0.427  8.2s/ep  ETA=5m
+  ep   16/50  loss=1.6056  tr=0.427  te=0.427  8.2s/ep  ETA=5m
+  ep   17/50  loss=1.6023  tr=0.427  te=0.426  8.2s/ep  ETA=4m
+  ep   18/50  loss=1.5986  tr=0.428  te=0.428  8.2s/ep  ETA=4m
+  ep   19/50  loss=1.5967  tr=0.428  te=0.427  8.2s/ep  ETA=4m
+  ep   20/50  loss=1.5950  tr=0.428  te=0.429  8.1s/ep  ETA=4m
+  ep   21/50  loss=1.5921  tr=0.427  te=0.429  8.2s/ep  ETA=4m
+  ep   22/50  loss=1.5901  tr=0.427  te=0.429  8.2s/ep  ETA=4m
+  ep   23/50  loss=1.5893  tr=0.428  te=0.428  8.2s/ep  ETA=4m
+  ep   24/50  loss=1.5878  tr=0.428  te=0.430  8.1s/ep  ETA=4m
+  ep   25/50  loss=1.5867  tr=0.428  te=0.429  8.2s/ep  ETA=3m
+  ep   26/50  loss=1.5862  tr=0.428  te=0.429  8.2s/ep  ETA=3m
+  ep   27/50  loss=1.5852  tr=0.428  te=0.429  8.2s/ep  ETA=3m
+  ep   28/50  loss=1.5842  tr=0.428  te=0.430  8.2s/ep  ETA=3m
+  ep   29/50  loss=1.5831  tr=0.428  te=0.428  8.2s/ep  ETA=3m
+  ep   30/50  loss=1.5818  tr=0.428  te=0.428  8.2s/ep  ETA=3m
+  ep   31/50  loss=1.5815  tr=0.428  te=0.429  8.2s/ep  ETA=3m
+  ep   32/50  loss=1.5811  tr=0.428  te=0.429  8.2s/ep  ETA=2m
+  ep   33/50  loss=1.5801  tr=0.428  te=0.429  8.2s/ep  ETA=2m
+  ep   34/50  loss=1.5794  tr=0.428  te=0.429  8.2s/ep  ETA=2m
+  ep   35/50  loss=1.5789  tr=0.428  te=0.429  8.2s/ep  ETA=2m
+  ep   36/50  loss=1.5781  tr=0.428  te=0.429  8.2s/ep  ETA=2m
+  ep   37/50  loss=1.5778  tr=0.428  te=0.428  8.2s/ep  ETA=2m
+  ep   38/50  loss=1.5773  tr=0.428  te=0.427  8.2s/ep  ETA=2m
+  ep   39/50  loss=1.5753  tr=0.428  te=0.427  8.2s/ep  ETA=1m
+  ep   40/50  loss=1.5746  tr=0.428  te=0.427  8.2s/ep  ETA=1m
+  ep   41/50  loss=1.5763  tr=0.428  te=0.428  8.2s/ep  ETA=1m  [stale 1/30]
+  ep   42/50  loss=1.5750  tr=0.428  te=0.427  8.2s/ep  ETA=1m  [stale 2/30]
+  ep   43/50  loss=1.5745  tr=0.428  te=0.427  8.2s/ep  ETA=57s
+  ep   44/50  loss=1.5753  tr=0.428  te=0.427  8.2s/ep  ETA=49s  [stale 1/30]
+  ep   45/50  loss=1.5741  tr=0.428  te=0.426  8.2s/ep  ETA=41s
+  ep   46/50  loss=1.5740  tr=0.428  te=0.428  8.2s/ep  ETA=33s
+  ep   47/50  loss=1.5725  tr=0.428  te=0.427  8.2s/ep  ETA=25s
+  ep   48/50  loss=1.5728  tr=0.428  te=0.427  8.2s/ep  ETA=16s  [stale 1/30]
+  ep   49/50  loss=1.5725  tr=0.428  te=0.427  8.3s/ep  ETA=8s  [stale 2/30]
+  ep   50/50  loss=1.5718  tr=0.429  te=0.427  8.2s/ep  ETA=0s
+
+  [DONE] thr=0.9  time=7m  best_loss=1.5718  final_te=0.427
+  saved → models/model_freeze_readout_x_0.9.pth
+
+  [9/9 done]  elapsed=1.0h  est remaining=0s
+
+Summary → models/training_summary.json
+Curves  → models/training_curves.png

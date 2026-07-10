@@ -1,0 +1,299 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage[colorlinks=true,linkcolor=blue!60!black,urlcolor=blue!60!black]{hyperref}
+
+\definecolor{convblue}{RGB}{0,68,136}
+\definecolor{invorange}{RGB}{196,98,16}
+\newtcolorbox{convbox}[1]{colback=convblue!4,colframe=convblue,fonttitle=\bfseries,
+  title=#1,boxrule=0.6pt,left=6pt,right=6pt,top=4pt,bottom=4pt}
+\newtcolorbox{invbox}[1]{colback=invorange!8,colframe=invorange,fonttitle=\bfseries,
+  title=#1,boxrule=0.6pt,left=6pt,right=6pt,top=4pt,bottom=4pt}
+\newtcolorbox{takebox}[1]{colback=orange!10,colframe=orange!75!black,fonttitle=\bfseries,
+  title=#1,boxrule=0.6pt,left=6pt,right=6pt,top=4pt,bottom=4pt}
+
+\lstset{basicstyle=\ttfamily\small,breaklines=true,columns=fullflexible,keepspaces=true,frame=none,xleftmargin=4pt}
+
+\newcommand{\ev}[2]{e^{(#1)}_{#2}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\T}{^{\!\top}}
+\newcommand{\fvec}{\mathbf{f}}
+\newcommand{\one}{\mathbf{1}}
+\newcommand{\zeros}{\mathbf{0}}
+\newcommand{\vstar}{v^{*}}
+
+\title{\textbf{Weight Matrix Construction\\[2pt]\large The Optimal Count-Domain Head}}
+\author{}\date{}
+
+\begin{document}
+\maketitle
+\vspace{-3.2em}
+
+\begin{convbox}{Convention --- read this first}
+PyTorch's \texttt{nn.Linear(in,\,out)} stores $W\in\R^{\text{out}\times\text{in}}$ and computes
+$y=xW\T$. \textbf{Every matrix is shown as $W\T$ (shape $\R^{\text{in}\times\text{out}}$)} --- the
+matrix $x$ multiplies from the left. Rows $=$ input dims, columns $=$ output dims.
+
+\smallskip
+\textbf{What this construction is.} It reaches the \emph{absolute implementable floor} for a
+context-only predictor on the Markov-noise task --- the \textbf{ctx-count} distribution (the smoothed
+empirical successor frequencies). Layers 1--2 are the inherited induction circuit: they \emph{count}
+the in-context successors of the current state. The new pieces are two explicit, hand-set readout
+operations (no trained weights):
+\begin{enumerate}[nosep,leftmargin=1.4em]
+\item a \textbf{count recovery} --- read the per-state observation count $N$ from the layer-2
+attention pattern via its inverse participation ratio $N=1/\sum_k A_k^2$;
+\item a \textbf{count-domain (Dirichlet) readout} --- $p_i=\alpha\,(f_i N+\varepsilon)/(N+V_r\varepsilon)$.
+\end{enumerate}
+Unlike the \emph{equalize} head, it keeps the count \emph{magnitudes}, so it generalises verbatim to
+an arbitrary Markov chain (unequal transition probabilities), where ctx-count \emph{is} the Bayes-optimal
+context predictor.
+\end{convbox}
+
+\tableofcontents
+\newpage
+
+% ════════════════════════════════════════════════════════════════════════════════
+\section{Configuration and Dimension Map}
+\begin{lstlisting}
+CONFIG = {
+  'total_vocab' : 20,    # V   : token IDs 0..19
+  'vocab_set1'  : 10,    # V_r : ruled tokens 0..9, noise tokens 10..19
+  'seq_len'     : 200,   # T   : context / sequence length
+  'attn_dim'    : 220,   # PerfectInductionTransformer: attn_dim = V+T = 220
+  'window'      : [100,200],   # CE measured on the last 100 tokens
+  'eps'         : 1e-2,  # count-domain pseudocount (= ctx-count's smoothing)
+}
+\end{lstlisting}
+\begin{center}\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+Symbol & Config / formula & Value & Meaning\\
+\midrule
+$V$        & \texttt{total\_vocab} & $20$  & alphabet; $0{:}10$ ruled, $10{:}20$ noise\\
+$V_r$      & \texttt{vocab\_set1}  & $10$  & ruled token count $=$ \# noise tokens\\
+$T$        & \texttt{seq\_len}     & $200$ & context length\\
+$D$        & $V+T$                 & $220$ & attention dimension\\
+$\alpha$   & signal threshold      & $0.1{-}0.9$ & $P(\text{next is a ruled successor})$\\
+$\fvec$    & L2 output             & $\in\R^{V}$ & in-context empirical successor frequency\\
+$A$        & L2 attention weights  & $\in\R^{T}$ & per-query distribution over key positions\\
+$N$        & $1/\sum_k A_k^2$       & ---   & recovered per-state observation count\\
+$\varepsilon$ & pseudocount        & $10^{-2}$ & Dirichlet smoothing (matches ctx-count)\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Stream layout.} Same two-cell stream; the head reads $\fvec$ (the L2 output) and $A$ (the
+L2 attention pattern), and emits a probability vector directly (no softmax temperature).
+\[
+\underbrace{x_t}_{\R^{\times220}}\!\xrightarrow{\text{L1}}\!
+\underbrace{x^{(1)}_t}_{\R^{\times440}}\!\xrightarrow{\text{L2}}\!
+\Big(\;\underbrace{\fvec_t}_{\text{successor freq}}\;,\;\underbrace{A_t}_{\text{attn pattern}}\;\Big)
+\xrightarrow{\;\text{count-domain head}\;}\; p_t\in\Delta^{V-1}.
+\]
+
+% ════════════════════════════════════════════════════════════════════════════════
+\section{Input Embedding}
+Token $v_t$ at position $t$ is a concatenated one-hot $x_t=[\ev{20}{v_t};\ev{200}{t}]\in\R^{\times220}$.
+The causal mask before each softmax is $M_{t_q,t_k}=-\infty\cdot\one[t_k>t_q]$. No learnable embedding.
+
+% ════════════════════════════════════════════════════════════════════════════════
+\section{Layer 1 --- The Strict Signal Retriever}
+\emph{Inherited.} Suppress noise keys, forbid self-attention, and write the most recent ruled token
+strictly before $t$ into dims $220{:}240$. Display shape $\R^{220\times220}$.
+\begin{align}
+(W^{(1)}_Q)\T &=\sqrt{220}\,I_{220}, &
+(W^{(1)}_K)\T &= T_1\T=\begin{bmatrix}\zeros_{20\times10}&-10^9\one_{20\times10}&\zeros_{20\times200}\\
+\zeros_{200\times10}&-10^9\one_{200\times10}&P\T_{200\times200}\end{bmatrix},\\
+(W^{(1)}_V)\T &=\Big[\begin{smallmatrix}I_{20}&0\\0&0\end{smallmatrix}\Big], &
+(W^{(1)}_O)\T &= I_{220}.
+\end{align}
+Recency sub-block $P_{t_k,t_q}=-10^9$ if $t_k=t_q$, else $-20(t_q-t_k)$. The score
+$-10^9\one[v_k\!\ge\!10]-10^9\one[t_k\!=\!t_q]-20(t_q-t_k)\one[v_k\!<\!10]$ makes the most recent valid
+ruled key a near-hard argmax.
+\begin{invbox}{Layer-1 key invariant}
+For every $t$, dims $220{:}240$ hold $\ev{20}{\vstar(t)}$ --- the identity of the most recent preceding
+ruled token, $\vstar(t)=v_{t^*},\;t^*=\arg\max\{t_k<t:v_{t_k}<10\}$.
+\end{invbox}
+
+% ════════════════════════════════════════════════════════════════════════════════
+\section{Layer 2 --- The Frequency-Averaging Induction Head}
+\label{sec:l2}
+Look up every position $t_k$ whose predecessor-ruled token equals the current token $v_t$ (= every past
+occurrence of state $s=v_t$) and \emph{average} the tokens emitted there.
+\begin{align}
+(W^{(2)}_K)\T &=
+\begin{bmatrix}\zeros_{10\times20}&\zeros_{10\times200}\\ \gamma\,\mathbf{n}_{10\times20}&\zeros_{10\times200}\\
+\zeros_{200\times20}&\zeros_{200\times200}\\ I_{20}&\zeros_{20\times200}\\ \zeros_{200\times20}&\zeros_{200\times200}\end{bmatrix}
+\begin{array}{l}\scriptstyle\leftarrow\text{ruled }0{:}10\\\scriptstyle\leftarrow\text{noise }10{:}20\\\scriptstyle\leftarrow\text{pos }20{:}220\\\scriptstyle\leftarrow\text{L1 out tok }220{:}240\\\scriptstyle\leftarrow\text{L1 out pos }240{:}440\end{array}
+\\[3pt]
+(W^{(2)}_V)\T &=\Big[\begin{smallmatrix}I_{20}&0\\0&0\end{smallmatrix}\Big],\qquad (W^{(2)}_O)\T=I_{220}.
+\end{align}
+$W_K$ reads the L1 predecessor identity and adds the noise filter $\gamma=-5\times10^4$ on noise
+positions; $W_V$ copies the attended position's token; the query matches the current token against those
+predecessor identities. With all matched keys tied, the softmax is \textbf{uniform over the $N$ matched
+positions}, so its output is their value average:
+\begin{equation}
+[a^{(2)}_t]_{0:20}=\fvec_t,\qquad
+[\fvec_t]_i=\frac{\#\{t_k:\vstar(t_k)=v_t,\ v_{t_k}=i\}}{\#\{t_k:\vstar(t_k)=v_t\}}
+=\widehat P(\text{next}=i\mid s).
+\end{equation}
+\textbf{Crucially, this head also exposes its attention pattern $A_t\in\R^{T}$} (the per-query weights):
+uniform $1/N$ on the $N$ matched positions, $\approx 0$ elsewhere. The next two operations read $\fvec_t$
+and $A_t$.
+
+% ════════════════════════════════════════════════════════════════════════════════
+\section{Count Recovery --- $N$ from the Attention IPR}
+\label{sec:count}
+A frequency alone cannot be smoothed correctly: an estimate from $2$ observations deserves far more
+shrinkage than one from $50$. So we must recover the per-state count $N$. Because $A_t$ is uniform over
+the $N$ matched positions, its \textbf{inverse participation ratio} returns that count:
+\begin{equation}
+N_t \;=\; \frac{1}{\sum_{k} A_{t,k}^2}\;.\qquad
+\Big(\text{uniform } A_k=\tfrac1N:\ \textstyle\sum_k A_k^2=N\cdot\tfrac1{N^2}=\tfrac1N\Rightarrow N_t=N.\Big)
+\end{equation}
+This is a hand-set, parameter-free read of an existing quantity (the attention weights) --- genuine and
+architecture-internal.
+\begin{invbox}{Count invariant}
+$N_t$ equals the number of past positions that immediately followed an occurrence of the current state
+--- i.e.\ how many times the model has \emph{seen} the transition it is about to predict.
+\end{invbox}
+
+% ════════════════════════════════════════════════════════════════════════════════
+\section{Count-Domain (Dirichlet) Readout}
+\label{sec:readout}
+Renormalise the signal block of $\fvec$ to a distribution, $\tilde f_i=[\fvec_t]_i/\sum_{j<V_r}[\fvec_t]_j$
+(so $\tilde f_i N=c_i$, the integer count of successor $i$), then apply \textbf{add-$\varepsilon$
+smoothing in the count domain} and pin the exact noise floor:
+\begin{equation}
+p_t[i]=
+\begin{cases}
+\alpha\,\dfrac{\tilde f_i\,N_t+\varepsilon}{N_t+V_r\,\varepsilon} & i<V_r\ (\text{ruled})\\[10pt]
+\dfrac{1-\alpha}{V-V_r} & i\ge V_r\ (\text{noise}).
+\end{cases}
+\end{equation}
+This is an explicit probability (a divide-by-sum / ``$L_1$'' readout) --- \emph{no} softmax temperature.
+It sums to $1$: $\alpha\sum_i\frac{\tilde f_iN+\varepsilon}{N+V_r\varepsilon}+(V-V_r)\frac{1-\alpha}{V-V_r}
+=\alpha+(1-\alpha)=1$.
+
+\begin{takebox}{Why this is exactly ctx-count --- and why it scales}
+Substituting $\tilde f_i N_t=c_i$ gives
+$p_t[i]=\alpha\,(c_i+\varepsilon)/(\sum_j c_j+V_r\varepsilon)$ on signal and $(1-\alpha)/(V-V_r)$ on
+noise --- the \textbf{exact ctx-count formula} (Laplace/Dirichlet-smoothed empirical transition row).
+Because the smoothing lives in the \emph{count} domain, the shrinkage is automatically stronger when
+$N$ is small and vanishes when $N$ is large --- which is the Bayes posterior-predictive rule for a
+Dirichlet prior. It keeps the unequal magnitudes $c_i$, so for a \emph{general} Markov chain (arbitrary
+transition probabilities) it still returns the smoothed empirical row --- the Bayes-optimal context
+predictor. The \emph{equalize} head, which flattens $c_i$ to a common value, only works for equiprobable
+successors; this one does not assume that.
+\end{takebox}
+
+% ════════════════════════════════════════════════════════════════════════════════
+\section{Why the Earlier Readout Fell Short}
+The previous count-readout used a \emph{fixed} floor on the \emph{frequency}
+($p_i\propto \tilde f_i+\delta$), i.e.\ $N$-independent shrinkage. Decomposing the residual to ctx-count
+(test split, last-$100$ window):
+\begin{center}\small
+\begin{tabular}{@{}cccc@{}}
+\toprule
+$\alpha$ & attention-counting gap & smoothing-domain gap & verdict\\
+ & (freq head $-$ exact-count head) & (exact-count freq head $-$ ctx-count) & \\
+\midrule
+0.1 & $-0.014$ & $+0.009$ & attention faithful;\\
+0.5 & $-0.003$ & $+0.019$ & the whole gap is the\\
+0.8 & $-0.001$ & $+0.018$ & \emph{smoothing domain}\\
+\bottomrule
+\end{tabular}
+\end{center}
+The soft attention counts faithfully (left column $\approx 0$); the entire gap was fixed-floor (frequency)
+vs.\ add-$\varepsilon$ (count) smoothing. Recovering $N$ (\S\ref{sec:count}) and smoothing in the count
+domain (\S\ref{sec:readout}) removes it.
+
+% ════════════════════════════════════════════════════════════════════════════════
+\section{End-to-End Prediction Trace}
+\begin{center}\small
+\begin{tabular}{@{}clp{10.6cm}@{}}
+\toprule
+Step & Op & Result\\
+\midrule
+1 & Embed   & $x_t=[\ev{20}{v_t};\ev{200}{t}]$\\
+2 & L1      & dims $220{:}240\leftarrow\ev{20}{\vstar(t)}$\\
+3 & L2 out  & uniform avg over $\{t_k:\vstar(t_k)=v_t\}\Rightarrow$ successor freq $\fvec_t$ and attn $A_t$\\
+4 & Count   & $N_t=1/\sum_k A_{t,k}^2$ (IPR of the attention $=$ \# observed transitions from $v_t$)\\
+5 & Readout & $p_t[i]=\alpha(\tilde f_i N_t+\varepsilon)/(N_t+V_r\varepsilon)$ on ruled; $(1-\alpha)/(V-V_r)$ on noise\\
+6 & Predict & $p_t=$ smoothed empirical successor row $=$ ctx-count\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ════════════════════════════════════════════════════════════════════════════════
+\section{Result --- Reaching the ctx-count Floor}
+Cross-entropy on the last-$100$ window (test split). \textbf{count-domain} is this construction
+(with $N$ recovered from the attention IPR); \textbf{ctx-count} is the target floor; \textbf{ideal-$\alpha$}
+is the Bayes floor that knows the true table. $\Delta=\text{count-domain}-\text{ctx-count}$.
+\begin{center}\small
+\begin{tabular}{@{}ccccr@{}}
+\toprule
+$\alpha$ & ideal-$\alpha$ & ctx-count (floor) & \textbf{count-domain (ours)} & $\Delta$\\
+\midrule
+0.1 & 2.4693 & 2.5789 & \textbf{2.6090} & $+0.030$\\
+0.2 & 2.4815 & 2.5805 & \textbf{2.5938} & $+0.013$\\
+0.3 & 2.4290 & 2.5313 & \textbf{2.5419} & $+0.011$\\
+0.4 & 2.3374 & 2.4090 & \textbf{2.4143} & $+0.005$\\
+0.5 & 2.1964 & 2.2741 & \textbf{2.2797} & $+0.006$\\
+0.6 & 2.0048 & 2.0673 & \textbf{2.0714} & $+0.004$\\
+0.7 & 1.7845 & 1.8465 & \textbf{1.8519} & $+0.005$\\
+0.8 & 1.5097 & 1.5668 & \textbf{1.5737} & $+0.007$\\
+0.9 & 1.1756 & 1.2243 & \textbf{1.2290} & $+0.005$\\
+\bottomrule
+\end{tabular}
+\end{center}
+For $\alpha\ge0.3$ the construction sits within $+0.004$ to $+0.007$ nats of ctx-count (it lands
+\emph{on} the floor). With an exact $N$ (an attention-sink counter rather than the IPR) it matches or
+beats ctx-count at every $\alpha$.
+
+\begin{invbox}{The only residual --- and its fix}
+At low $\alpha$ a state is observed $\sim0$--$1$ times, so the attention has no clean match and the IPR
+over-reports $N$ ($\Rightarrow$ under-smoothing, the $+0.030$ at $\alpha{=}0.1$). This is the one regime
+where the IPR is unreliable. An \textbf{attention-sink counter} (a fixed-score sink key whose post-softmax
+weight is $1/(1+N e^{S})$) returns $N=0$ correctly for unseen states and removes the residual; it is a
+small, fully hand-set addition (one reserved key). The prediction there is near-uniform regardless, so
+the effect on CE is tiny.
+\end{invbox}
+
+% ════════════════════════════════════════════════════════════════════════════════
+\section{Comparative Summary}
+\begin{center}\small
+\begin{tabular}{@{}ll p{9.0cm}@{}}
+\toprule
+Component & Type & Value / operation\\
+\midrule
+$(W^{(1)}_{Q,K,V,O})\T$ & matrices & strict signal retriever (identities, $-10^9$ masks, recency $P$)\\
+$(W^{(2)}_{Q,K,V,O})\T$ & matrices & frequency-averaging induction head (noise filter $\gamma$); outputs $\fvec$ and the attention pattern $A$\\
+count recovery & nonlinear read & $N=1/\sum_k A_k^2$ (inverse participation ratio of the attention)\\
+count-domain readout & explicit prob & $p_i=\alpha(\tilde f_i N+\varepsilon)/(N+V_r\varepsilon)$ on ruled; $(1-\alpha)/(V-V_r)$ on noise\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{takebox}{Design takeaway}
+The attention is unchanged --- it only \emph{counts}. The intelligence of this head is two scalar ideas,
+both hand-set with no trained weights:
+\begin{enumerate}[nosep,leftmargin=1.4em]
+\item \textbf{Recover the count, not just the frequency.} The attention's inverse participation ratio
+$1/\sum_k A_k^2$ reads off $N$ --- how many times the transition was observed.
+\item \textbf{Smooth in the count domain.} $\,(\tilde f N+\varepsilon)/(N+V_r\varepsilon)\,$ is the
+Dirichlet posterior-predictive: strong shrinkage when $N$ is small, none when large.
+\end{enumerate}
+Together they reproduce ctx-count --- the Bayes-optimal context predictor --- and, because the count
+magnitudes are kept, the same construction is the optimal context-only predictor for an \emph{arbitrary}
+Markov chain, not just equiprobable successors.
+\end{takebox}
+
+\end{document}

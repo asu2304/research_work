@@ -1,0 +1,722 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,bm,mathtools}
+\usepackage[margin=1in,a4paper]{geometry}
+\usepackage{booktabs,array,multirow}
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage[colorlinks=true,linkcolor=blue!70!black,urlcolor=blue!70!black]{hyperref}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage{microtype}
+
+\definecolor{myblue}{RGB}{0,0,180}
+\definecolor{lightblue}{RGB}{214,234,255}
+\definecolor{darkblue}{RGB}{10,40,120}
+\definecolor{darkorange}{RGB}{180,90,0}
+\definecolor{lightorange}{RGB}{255,237,200}
+
+\titleformat{\section}{\large\bfseries\color{myblue}}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{myblue}}{\thesubsection}{0.8em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{myblue}}{\thesubsubsection}{0.8em}{}
+
+\newtcolorbox{conventionbox}{
+  colback=lightblue, colframe=darkblue,
+  title={\textbf{Convention --- read this first}},
+  fonttitle=\bfseries, coltitle=white, colbacktitle=darkblue,
+  boxrule=0.8pt, arc=2pt
+}
+\newtcolorbox{notebox}[1]{
+  colback=lightblue, colframe=darkblue,
+  title={\textbf{#1}},
+  fonttitle=\bfseries, coltitle=white, colbacktitle=darkblue,
+  boxrule=0.8pt, arc=2pt
+}
+\newtcolorbox{warningbox}[1]{
+  colback=lightorange, colframe=darkorange,
+  title={\textbf{#1}},
+  fonttitle=\bfseries, coltitle=white, colbacktitle=darkorange,
+  boxrule=0.8pt, arc=2pt
+}
+
+\lstset{
+  language=Python, basicstyle=\small\ttfamily,
+  commentstyle=\color{green!60!black}, keywordstyle=\color{blue},
+  showstringspaces=false, columns=flexible, breaklines=true
+}
+
+\newcommand{\R}{\mathbb{R}}
+
+\begin{document}
+
+\begin{center}{\LARGE\bfseries Weight Matrix Construction}\end{center}
+\vspace{1em}
+
+\begin{conventionbox}
+PyTorch's \texttt{nn.Linear(in, out)} stores weight $W \in \R^{\text{out}\times\text{in}}$ and computes
+$y = xW^\top$, $x$ row-vector. \textbf{Every matrix in this document is shown as $W^\top$ (shape
+$\R^{\text{in}\times\text{out}}$)} --- the matrix that $x$ multiplies \emph{from the left}.
+Rows = input dimensions; columns = output dimensions.
+Circuit matrices are $M_{QK}=(W_Q^\top)(W_K^\top)^\top$ and $M_{OV}=(W_V^\top)(W_O^\top)^\top$.
+
+\medskip
+\textbf{On the $\sqrt{D}$ factors.} The forward pass always divides by $1/\sqrt{D}$. Every $\sqrt{D}$
+written into a weight is \emph{only} there to cancel that denominator. After cancellation the effective
+score coefficient equals the plain integer multiplier (50, 1000, 10, \ldots).
+\end{conventionbox}
+
+\tableofcontents
+\newpage
+
+%=====================================================================
+\section{Configuration and Dimension Map}
+%=====================================================================
+
+\begin{lstlisting}
+CONFIG = {
+    'total_vocab':   20,      # V   : token IDs 0..19
+    'vocab_set1':    10,      # V_r : ruled tokens 0..9, noise tokens 10..19
+    'seq_len':       200,     # T   : context / sequence length
+    'attn_dim':      64,      # only the *trained* DisentangledTransformer uses this
+                              # PerfectInductionTransformer overrides: attn_dim = V+T = 220
+    'thresholds':    [0.1,...,0.9],
+    'num_test_seqs': 1000,
+    'batch_size':    250
+}
+\end{lstlisting}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+\textbf{Symbol} & \textbf{Config key / formula} & \textbf{Value} & \textbf{Meaning}\\
+\midrule
+$V$      & \texttt{total\_vocab} & 20             & full alphabet; IDs 0:10 ruled, 10:20 noise\\
+$V_r$    & \texttt{vocab\_set1}  & 10             & ruled token count\\
+$T$      & \texttt{seq\_len}     & 200            & context length\\
+$D$      & $V+T$                 & 220            & input/attention dimension in perfect model\\
+$\alpha$ & recency slope         & 20             & Layer-1 position weighting coefficient\\
+$\gamma$ & noise kill weight     & $-5\times10^4$ & Layer-2 key noise filter\\
+$\sigma$ & logit scale           & 50             & unembedding amplifier\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Stream layout after each layer}
+
+\[
+\underbrace{x_t}_{\R^{\times 220}}
+\xrightarrow{\text{L1 concat}}
+\underbrace{x_t^{(1)}}_{\R^{\times 440}}
+\xrightarrow{\text{L2 concat}}
+\underbrace{h_t}_{\R^{\times 660}}
+\xrightarrow{W_{\mathrm{fc}}^\top}
+\underbrace{z_t}_{\R^{\times V=20}}
+\]
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Stream} & \textbf{Dims} & \textbf{Content}\\
+\midrule
+$x_t$ & 0:20   & token one-hot $e_{v_t}^{(V)}$\\
+      & 20:220 & position one-hot $e_t^{(T)}$\\
+\midrule
+$x_t^{(1)}$ & 0:220   & unchanged $x_t$\\
+            & 220:440 & L1 attention output $a_t^{(1)}\approx[e_{v^*}^{(V)};\mathbf{0}_{200}]$\\
+\midrule
+$h_t$ & 0:440   & unchanged $x_t^{(1)}$\\
+      & 440:660 & L2 attention output $a_t^{(2)}$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%=====================================================================
+\section{Input Embedding}
+%=====================================================================
+
+Each token $v_t\in\{0,\ldots,19\}$ at position $t\in\{0,\ldots,199\}$ is embedded as a concatenated one-hot:
+\[
+x_t = \Bigl[\;\underbrace{e_{v_t}^{(20)}}_{\text{token, dims }0\text{:}20}\;;\;
+             \underbrace{e_t^{(200)}}_{\text{position, dims }20\text{:}220}\;\Bigr]
+\in\R^{\times 220}
+\tag{1}
+\]
+
+No learnable embedding. The causal mask added before softmax is
+$M_{t_q,t_k}=-\infty\cdot\mathbf{1}[t_k>t_q]$.
+
+%=====================================================================
+\section{Layer 1 --- The Strict Signal Retriever}
+%=====================================================================
+
+\textbf{Purpose.} Read the causal past; suppress all noise tokens; write the identity of the
+\emph{most recent ruled token strictly before} $t$ into dims 220:240 of the stream.
+Identical across all three strategies.
+
+All four Layer-1 matrices have display shape $\R^{220\times 220}$.
+
+\subsection{$(W_Q^{(1)})^\top\in\R^{220\times 220}$}
+
+\begin{equation}
+\boxed{(W_Q^{(1)})^\top = \sqrt{220}\cdot I_{220}}
+\tag{2}
+\end{equation}
+
+\[
+(W_Q^{(1)})^\top =
+\begin{bmatrix}\sqrt{220}\,I_{20} & \mathbf{0}_{20\times200}\\
+               \mathbf{0}_{200\times20} & \sqrt{220}\,I_{200}\end{bmatrix}
+\begin{array}{l}\leftarrow\text{token dims }0\text{:}20\\\leftarrow\text{pos dims }20\text{:}220\end{array}
+\]
+
+\begin{notebox}{No-op scaling}
+Score $=\dfrac{(\sqrt{D}\,x_q)(W_K^\top\,x_k^\top)^\top}{\sqrt{D}}=x_q(W_K^\top\,x_k^\top)^\top$.
+The $\sqrt{D}$ cancels exactly; the entire attention pattern is determined by $W_K$ alone.
+\end{notebox}
+
+\subsection{$(W_K^{(1)})^\top\in\R^{220\times 220}$}
+
+Defined via an intermediate matrix $\boldsymbol{T}_1\in\R^{220\times220}$ set as
+\texttt{W\_k.weight.data~=~T1.t()}, so $(W_K^{(1)})^\top=\boldsymbol{T}_1^\top$.
+
+\medskip
+\textbf{Definition of $\boldsymbol{T}_1$ $\bigl(=((W_K^{(1)})^\top)^\top\bigr)$.}
+
+\[
+[\boldsymbol{T}_1]_{i,j}=\begin{cases}
+-10^9 & i\in\{10,\ldots,19\},\;\forall j
+        \quad\text{(noise-token input rows --- kill any noise key)}\\
+-10^9 & i=20{+}t_k,\;j=20{+}t_q,\;t_k=t_q
+        \quad\text{(self-position block --- prevent attending to self)}\\
+-\alpha(t_q-t_k) & i=20{+}t_k,\;j=20{+}t_q,\;t_k\neq t_q
+        \quad\text{(recency score; }\alpha=20\text{)}\\
+0 & \text{otherwise}
+\end{cases}
+\tag{3}
+\]
+
+\textbf{Block form.}\quad Let $P\in\R^{200\times200}$ be the position-recency sub-block:
+\[
+P_{t_k,t_q}=\begin{cases}-10^9 & t_k=t_q\\-20\,(t_q-t_k) & t_k\neq t_q\end{cases}
+\tag{4}
+\]
+
+The display matrix $(W_K^{(1)})^\top=\boldsymbol{T}_1^\top$ is the transpose of $\boldsymbol{T}_1$:
+
+\begin{equation}
+\boxed{
+(W_K^{(1)})^\top = \boldsymbol{T}_1^\top =
+\begin{bmatrix}
+\mathbf{0}_{20\times10}   & -10^9\cdot\mathbf{1}_{20\times10}   & \mathbf{0}_{20\times200}\\[4pt]
+\mathbf{0}_{200\times10}  & -10^9\cdot\mathbf{1}_{200\times10}  & P^\top_{200\times200}
+\end{bmatrix}
+}
+\begin{array}{l}
+\leftarrow\text{token input rows }0\text{:}20\\[4pt]
+\leftarrow\text{position input rows }20\text{:}220
+\end{array}
+\tag{5}
+\end{equation}
+
+Columns are partitioned as: ruled key token dims $0$:$10$ (zeros), noise key token dims $10$:$20$
+(all $-10^9$, suppressing any noise-token key), key position dims $20$:$220$ (recency via
+$P^\top$).
+
+\medskip
+\textbf{Score decomposition.}\quad For query at $t_q$ (token $v_q$) and key at $t_k$ (token $v_k$):
+
+\begin{align}
+s_{t_q,t_k}
+&= x_{t_q}\,\boldsymbol{T}_1^\top\,x_{t_k}^\top\notag\\
+&= \underbrace{-10^9\cdot\mathbf{1}[v_k\in\{10\text{..}19\}]}_{\text{suppress noise keys}}
+  +\underbrace{-10^9\cdot\mathbf{1}[t_k=t_q]}_{\text{no self-attention}}
+  +\underbrace{-20\,(t_q-t_k)\cdot\mathbf{1}[v_k<10,\,t_k\neq t_q]}_{\text{recency score for valid ruled keys}}
+\tag{6}
+\end{align}
+
+Among all valid keys ($v_k<10$, $t_k<t_q$), the most recent one minimises $(t_q-t_k)$ and hence
+maximises the score --- a near-hard argmax.
+
+\subsection{$(W_V^{(1)})^\top\in\R^{220\times220}$}
+
+\begin{equation}
+\boxed{
+(W_V^{(1)})^\top=\begin{bmatrix}I_{20} & \mathbf{0}_{20\times200}\\
+\mathbf{0}_{200\times20} & \mathbf{0}_{200\times200}\end{bmatrix}
+}
+\begin{array}{l}\leftarrow\text{token dims }0\text{:}20\\\leftarrow\text{position dims }20\text{:}220\end{array}
+\tag{7}
+\end{equation}
+
+Only the token one-hot passes; all position information is zeroed. The value read from position $t_k$
+is $[e_{v_{t_k}}^{(20)};\mathbf{0}_{200}]$.
+
+\subsection{$(W_O^{(1)})^\top\in\R^{220\times220}$}
+
+\begin{equation}
+\boxed{(W_O^{(1)})^\top=I_{220}}
+\tag{8}
+\end{equation}
+
+\subsection{Effective Circuit Matrices --- Layer 1}
+
+\[
+M_{QK}^{(1)}=(W_Q^{(1)})^\top\bigl((W_K^{(1)})^\top\bigr)^\top
+=\sqrt{220}\,\boldsymbol{T}_1^\top
+\;\xrightarrow{\;\div\sqrt{D}\;}\;\boldsymbol{T}_1^\top
+\tag{9}
+\]
+\[
+M_{OV}^{(1)}=(W_V^{(1)})^\top\bigl((W_O^{(1)})^\top\bigr)^\top
+=(W_V^{(1)})^\top
+=\begin{bmatrix}I_{20}&\mathbf{0}\\\mathbf{0}&\mathbf{0}\end{bmatrix}
+\tag{10}
+\]
+
+\subsection{What Layer 1 Writes into the Stream}
+
+Let $v^*(t)=v_{t^*}$ where $t^*=\arg\max\{t_k<t:v_{t_k}<10\}$ (most recent ruled token before $t$).
+
+\[
+x_t^{(1)}=\Bigl[
+\underbrace{e_{v_t}^{(20)}}_{0\text{:}20};\;
+\underbrace{e_t^{(200)}}_{20\text{:}220};\;
+\underbrace{e_{v^*(t)}^{(20)}}_{220\text{:}240};\;
+\underbrace{\mathbf{0}_{200}}_{240\text{:}440}
+\Bigr]\in\R^{\times440}
+\tag{11}
+\]
+
+\begin{warningbox}{Layer-1 key invariant}
+For \emph{every} position $t$, regardless of whether the current token is ruled or noise, dims 220:240
+of the stream hold $e_{v^*(t)}^{(20)}$ --- the identity of the most recent preceding ruled token.
+\end{warningbox}
+
+%=====================================================================
+\section{Layer 2 --- The Configurable Induction Head}
+%=====================================================================
+
+Layer 2 reads the 440-dim stream $x_t^{(1)}$. $W_K$, $W_V$, $W_O$ are shared; only $W_Q$ varies
+by strategy.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Dims} & \textbf{Content} & \textbf{Written by}\\
+\midrule
+0:20    & own token one-hot $e_{v_t}^{(20)}$             & embedding\\
+20:220  & own position one-hot $e_t^{(200)}$             & embedding\\
+220:240 & prev-ruled token one-hot $e_{v^*(t)}^{(20)}$   & L1\\
+240:440 & zeros                                           & L1 (zeroed by $W_V^{(1)}$)\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Shared Matrices}
+
+\subsubsection{$(W_K^{(2)})^\top\in\R^{440\times220}$}
+
+\begin{equation}
+(W_K^{(2)})^\top=
+\begin{bmatrix}
+\mathbf{0}_{10\times20}           & \mathbf{0}_{10\times200}\\
+\gamma\,\boldsymbol{n}_{10\times20} & \mathbf{0}_{10\times200}\\
+\mathbf{0}_{200\times20}          & \mathbf{0}_{200\times200}\\
+I_{20}                            & \mathbf{0}_{20\times200}\\
+\mathbf{0}_{200\times20}          & \mathbf{0}_{200\times200}
+\end{bmatrix}
+\begin{array}{l}
+\leftarrow\text{ruled token dims }0\text{:}10\\
+\leftarrow\text{noise token dims }10\text{:}20\;(\gamma=-5\times10^4)\\
+\leftarrow\text{position dims }20\text{:}220\\
+\leftarrow\text{L1 output token dims }220\text{:}240\\
+\leftarrow\text{L1 output position dims }240\text{:}440
+\end{array}
+\tag{12}
+\end{equation}
+
+where $\boldsymbol{n}_{10\times20}$ is the row-10 noise filter: $[\boldsymbol{n}]_{0,10:20}=\mathbf{1}_{10}^\top$,
+all other rows zero --- i.e.\ a single row of ones in columns 10:20.
+
+\medskip
+\textbf{Key vector at position $t_k$.}
+\[
+k_{t_k}=x_{t_k}^{(1)}\,(W_K^{(2)})^\top
+=\underbrace{e_{v^*(t_k)}^{(20)}}_{\text{prev-ruled token of }t_k,\;\text{dims }0\text{:}20}
++\gamma\cdot\mathbf{1}[v_{t_k}\in\{10\text{..}19\}]\cdot e_{10}^{(220)}
+\tag{13}
+\]
+
+The first term is the \textbf{identity of the predecessor ruled token} stored at $t_k$ by L1.
+The second term \textbf{annihilates} any position where the current token is noise
+(adds $-5\times10^4$ to that score component), preventing L2 from attending to noise positions.
+
+\subsubsection{$(W_V^{(2)})^\top\in\R^{440\times220}$}
+
+\begin{equation}
+\boxed{
+(W_V^{(2)})^\top=\begin{bmatrix}I_{20} & \mathbf{0}_{20\times200}\\
+\mathbf{0}_{420\times20} & \mathbf{0}_{420\times200}\end{bmatrix}
+}
+\begin{array}{l}\leftarrow\text{token dims }0\text{:}20\\\leftarrow\text{all other dims }20\text{:}440\end{array}
+\tag{14}
+\end{equation}
+
+Copies \textbf{the original current-token one-hot} of the attended position (dims 0:20, \emph{not} the
+L1 output). This is the token whose identity will be propagated as the prediction.
+
+\subsubsection{$(W_O^{(2)})^\top\in\R^{220\times220}$}
+
+\begin{equation}
+\boxed{(W_O^{(2)})^\top=I_{220}}
+\tag{15}
+\end{equation}
+
+\subsubsection{OV Circuit --- Layer 2}
+
+\[
+M_{OV}^{(2)}=(W_V^{(2)})^\top\bigl((W_O^{(2)})^\top\bigr)^\top
+=(W_V^{(2)})^\top
+=\begin{bmatrix}I_{20}&\mathbf{0}\\\mathbf{0}&\mathbf{0}\end{bmatrix}
+\in\R^{440\times220}
+\tag{16}
+\]
+
+Whatever position $t^*$ wins Layer-2 attention, its \textbf{original token identity}
+$e_{v_{t^*}}^{(20)}$ is written into the output (dims 440:460 of $h_t$).
+
+\subsection{Query Matrices --- Strategy-Specific}
+
+All three query matrices have display shape $(W_Q^{(2)})^\top\in\R^{440\times220}$, with output
+columns indexed 0:220. Only the first 220 output dims matter (matching $W_K^{(2)}$'s output).
+
+\subsubsection{Strategy 1 --- \texttt{query\_type = 'input'} (Gold)}
+
+\begin{lstlisting}
+W_q2[0:V,    0:V]      = torch.eye(V) * (D**0.5) * 50.0
+for v in range(V_rule): W_q2[V_rule, v] = (D**0.5) * 10.0
+\end{lstlisting}
+
+\begin{equation}
+\left.(W_Q^{(2)})^\top\right|_{\text{gold}}=
+\begin{bmatrix}
+50\sqrt{D}\cdot I_{20} & \mathbf{0}_{20\times200}\\
+\mathbf{0}_{200\times20} & \mathbf{0}_{200\times200}\\
+\mathbf{0}_{220\times20} & \mathbf{0}_{220\times200}
+\end{bmatrix}
+\begin{array}{l}
+\leftarrow\text{own token dims }0\text{:}20\\
+\leftarrow\text{position dims }20\text{:}220\\
+\leftarrow\text{L1 output dims }220\text{:}440
+\end{array}
+\tag{17}
+\end{equation}
+
+with row 10 (noise-trigger row) additionally having
+$[(W_Q^{(2)})^\top]_{10,0:20}=10\sqrt{D}\cdot\mathbf{1}_{20}^\top$.
+
+\medskip
+\textbf{Effective query.}\quad After $\div\sqrt{D}$ the contribution per matched dimension is:
+\[
+q_{t_q}\big|_{\text{gold}}\propto
+\begin{cases}
+50\cdot e_{v_{t_q}}^{(20)}+10\cdot e_{10}^{(220)} & v_{t_q}<10\;\text{(ruled)}\\
+50\cdot e_{v_{t_q}}^{(20)} & v_{t_q}\geq10\;\text{(noise)}
+\end{cases}
+\tag{18}
+\]
+
+\textbf{QK score (Gold).}
+\[
+s_{t_q,t_k}^{\text{gold}}\propto 50\cdot\mathbf{1}[v_{t_q}=v^*(t_k)]+\text{noise filter}
+\tag{19}
+\]
+
+\begin{warningbox}{Failure mode --- Gold}
+When $v_{t_q}\geq10$ (noise), the query has mass only on dims 10:20, but keys carry their prev-ruled
+identity on dims 0:10. Inner product $=0\Rightarrow$ uniform softmax $\Rightarrow$
+\textbf{no induction at noise positions}.
+\end{warningbox}
+
+\subsubsection{Strategy 2 --- \texttt{query\_type = 'l1\_out'} (Blue)}
+
+\begin{lstlisting}
+W_q2[0:V,    D:D+V]    = torch.eye(V) * (D**0.5) * 50.0
+for v in range(V_rule): W_q2[V_rule, D + v] = (D**0.5) * 10.0
+\end{lstlisting}
+
+\begin{equation}
+\left.(W_Q^{(2)})^\top\right|_{\text{blue}}=
+\begin{bmatrix}
+\mathbf{0}_{20\times20}   & \mathbf{0}_{20\times200}\\
+\mathbf{0}_{200\times20}  & \mathbf{0}_{200\times200}\\
+50\sqrt{D}\cdot I_{20}    & \mathbf{0}_{20\times200}\\
+\mathbf{0}_{200\times20}  & \mathbf{0}_{200\times200}
+\end{bmatrix}
+\begin{array}{l}
+\leftarrow\text{own token dims }0\text{:}20\\
+\leftarrow\text{position dims }20\text{:}220\\
+\leftarrow\text{L1 output token dims }220\text{:}240\\
+\leftarrow\text{L1 output pos dims }240\text{:}440
+\end{array}
+\tag{20}
+\end{equation}
+
+with row $(220{+}10)$ additionally having $10\sqrt{D}\cdot\mathbf{1}_{10}^\top$ on cols 0:10.
+
+\medskip
+\textbf{Effective query.}
+\[
+q_{t_q}\big|_{\text{blue}}\propto 50\cdot e_{v^*(t_q)}^{(20)}
+\qquad\text{(same for ruled and noise)}
+\tag{21}
+\]
+
+\textbf{QK score (Blue).}
+\[
+s_{t_q,t_k}^{\text{blue}}\propto 50\cdot\mathbf{1}[v^*(t_q)=v^*(t_k)]+\text{noise filter}
+\tag{22}
+\]
+
+\begin{warningbox}{Failure mode --- Blue}
+At the position immediately after a ruled token $R_j$ (i.e.\ $t=p_j{+}1$), Layer-1 writes
+$v^*(t)=R_j$ itself. The Blue model then queries ``find me a position whose predecessor was $R_j$'',
+which points \emph{back} to positions \emph{before} $R_j$, missing the transition $R_j\!\to\!?$.
+Ruled$\to$ruled transitions are broken; noise positions are handled correctly.
+\end{warningbox}
+
+\subsubsection{Strategy 3 --- \texttt{query\_type = 'ultimate'} (Green) --- THE FIX}
+
+\begin{lstlisting}
+# Priority 1: current input --- dominant signal
+W_q2[0:V_rule, 0:V_rule]    = torch.eye(V_rule) * (D**0.5) * 1000.0
+# Priority 2: L1 output --- fallback for noise positions
+W_q2[0:V_rule, D:D+V_rule]  = torch.eye(V_rule) * (D**0.5) * 50.0
+# Noise filter trigger row
+for v in range(V): W_q2[V_rule, v] = (D**0.5) * 10.0
+\end{lstlisting}
+
+\begin{equation}
+\left.(W_Q^{(2)})^\top\right|_{\text{green}}=
+\begin{bmatrix}
+1000\sqrt{D}\cdot I_{10} & \mathbf{0}_{10\times210}\\
+\mathbf{0}_{10\times10}  & \mathbf{0}_{10\times210}\\
+\mathbf{0}_{200\times10} & \mathbf{0}_{200\times210}\\
+50\sqrt{D}\cdot I_{10}   & \mathbf{0}_{10\times210}\\
+\mathbf{0}_{210\times10} & \mathbf{0}_{210\times210}
+\end{bmatrix}
+\begin{array}{l}
+\leftarrow\text{ruled token dims }0\text{:}10\;(\mathbf{P1})\\
+\leftarrow\text{noise token dims }10\text{:}20\\
+\leftarrow\text{position dims }20\text{:}220\\
+\leftarrow\text{L1 out ruled dims }220\text{:}230\;(\mathbf{P2})\\
+\leftarrow\text{remaining dims }230\text{:}440
+\end{array}
+\tag{23}
+\end{equation}
+
+with row 10 additionally having $10\sqrt{D}\cdot\mathbf{1}_{20}^\top$ on cols 0:20.
+
+\medskip
+\textbf{Effective query --- the priority override.}\quad After $\div\sqrt{D}$, dims 0:10 of $q_{t_q}$
+receive:
+\[
+[q_{t_q}]_{0:10}=\begin{cases}
+\underbrace{1000\cdot e_{v_{t_q}}^{(10)}}_{\text{P1: own identity, dominant}}
++\underbrace{50\cdot e_{v^*(t_q)}^{(10)}}_{\text{P2: L1 predecessor, weak}}
+& v_{t_q}<10\;\text{(ruled)}\\[8pt]
+\underbrace{\mathbf{0}}_{\text{P1 absent}}
++\underbrace{50\cdot e_{v^*(t_q)}^{(10)}}_{\text{P2 takes over}}
+& v_{t_q}\geq10\;\text{(noise)}
+\end{cases}
+\tag{24}
+\]
+
+Ratio P1/P2 $=1000/50=20\times$. P1 dominates whenever the current token is ruled; it vanishes
+entirely for noise tokens, automatically activating P2.
+
+\medskip
+\textbf{QK score (Green).}
+\[
+s_{t_q,t_k}^{\text{green}}\propto\begin{cases}
+1000\cdot\mathbf{1}[v_{t_q}=v^*(t_k)]+50\cdot\mathbf{1}[v^*(t_q)=v^*(t_k)]+\text{noise filter}
+& v_{t_q}<10\\
+50\cdot\mathbf{1}[v^*(t_q)=v^*(t_k)]+\text{noise filter}
+& v_{t_q}\geq10
+\end{cases}
+\tag{25}
+\]
+
+%=====================================================================
+\section{Final Unembedding Matrix}
+%=====================================================================
+
+The unembedding reads from the 660-dim stream $h_t=[x_t^{(1)};a_t^{(2)}]$.
+
+\begin{equation}
+\boxed{
+(W_{\mathrm{fc}})^\top=
+\begin{bmatrix}\mathbf{0}_{440\times20}\\50\cdot I_{20}\\\mathbf{0}_{200\times20}\end{bmatrix}
+}
+\begin{array}{l}
+\leftarrow\text{input + L1 stream, dims }0\text{:}440\\
+\leftarrow\text{L2 output token dims }440\text{:}460\;(\textbf{active})\\
+\leftarrow\text{L2 output pos dims }460\text{:}660
+\end{array}
+\tag{26}
+\end{equation}
+
+\medskip
+\textbf{Logit vector.}
+\[
+z_t=h_t\,(W_{\mathrm{fc}})^\top=50\cdot[a_t^{(2)}]_{0:20}=50\cdot e_{v_{t^*}}^{(20)}
+\tag{27}
+\]
+where $t^*=\arg\max_{t_k\leq t}\alpha_{t,t_k}^{(2)}$ is the position most attended by L2.
+
+\medskip
+\textbf{Softmax probability.}
+\[
+P(\hat{v}=v_{t^*})=\frac{e^{50}}{e^{50}+19}\approx 1-19\,e^{-50}\approx 1.0
+\tag{28}
+\]
+
+The prediction is essentially deterministic.
+
+%=====================================================================
+\section{End-to-End Prediction Trace}
+%=====================================================================
+
+For position $t$ with current token $v_t$ and prev-ruled token $v^*(t)$:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Step} & \textbf{Op} & \textbf{Result}\\
+\midrule
+1 & Embed
+  & $x_t=[e_{v_t}^{(20)};\,e_t^{(200)}]\in\R^{\times220}$\\
+2 & L1 score
+  & $s_{t,t_k}=-20(t-t_k)\cdot\mathbf{1}[v_{t_k}<10]
+    -{10^9}\cdot\mathbf{1}[v_{t_k}\geq10]-{10^9}\cdot\mathbf{1}[t_k=t]$\\
+3 & L1 output
+  & $a_t^{(1)}\approx[e_{v^*(t)}^{(20)};\mathbf{0}_{200}]$;
+    stream $\to x_t^{(1)}\in\R^{\times440}$\\
+4 & L2 key
+  & $k_{t_k}=e_{v^*(t_k)}^{(20)}$ (prev-ruled identity at $t_k$)\\
+5 & L2 score
+  & \emph{Green:} dominated by $\mathbf{1}[v_{t_q}=v^*(t_k)]$ if ruled;
+    falls back to $\mathbf{1}[v^*(t_q)=v^*(t_k)]$ if noise\\
+6 & L2 output
+  & $[a_t^{(2)}]_{0:20}=e_{v_{t^*}}^{(20)}$ (original token at attended position)\\
+7 & Unembed
+  & $z_t=50\cdot e_{v_{t^*}}^{(20)}$;\quad$\hat{v}=v_{t^*}$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{warningbox}{Broadcast Invariant --- Green model}
+Let $R_j$ be the $j$-th ruled token at position $p_j$, and $R_{j+1}$ the next ruled token at
+$p_{j+1}$. For every noise position $t\in(p_j,p_{j+1})$:
+\[
+\hat{v}_t=\hat{v}_{p_j}=\mathrm{transition}(R_j)
+\]
+Because priority-override makes noise positions issue the same effective query as $R_j$ (both use
+$v^*(t)=R_j$ with weight 50), they attend to the same historical context and produce the same
+prediction.
+\end{warningbox}
+
+%=====================================================================
+\section{Comparative Summary --- All Weight Matrices}
+%=====================================================================
+
+\subsection{Layer 1 (identical across all strategies)}
+
+\begin{center}
+\begin{tabular}{llp{8.5cm}}
+\toprule
+\textbf{Display matrix} & \textbf{Shape} & \textbf{Value / non-zero blocks}\\
+\midrule
+$(W_Q^{(1)})^\top$ & $220\times220$
+  & $\sqrt{220}\cdot I_{220}$ --- scale cancels exactly in score\\
+$(W_K^{(1)})^\top$ & $220\times220$
+  & $\boldsymbol{T}_1^\top$: token rows 0:20 zero in ruled-key cols, $-10^9$ in noise-key cols 10:20;
+    position rows 20:220 have $P^\top$ (diag $-10^9$, off-diag $-20(t_q{-}t_k)$)\\
+$(W_V^{(1)})^\top$ & $220\times220$
+  & $I_{20}$ in top-left $[0\text{:}20,0\text{:}20]$; zero elsewhere\\
+$(W_O^{(1)})^\top$ & $220\times220$ & $I_{220}$\\
+\midrule
+$M_{QK}^{(1)}$ & $220\times220$
+  & $\sqrt{220}\cdot\boldsymbol{T}_1^\top$ (effective after $\div\sqrt{D}$: $\boldsymbol{T}_1^\top$)\\
+$M_{OV}^{(1)}$ & $220\times220$
+  & $(W_V^{(1)})^\top$: $I_{20}$ in $[0\text{:}20,0\text{:}20]$; zero elsewhere\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Layer 2 --- shared matrices}
+
+\begin{center}
+\begin{tabular}{llp{8.5cm}}
+\toprule
+\textbf{Display matrix} & \textbf{Shape} & \textbf{Value / non-zero blocks}\\
+\midrule
+$(W_K^{(2)})^\top$ & $440\times220$
+  & $I_{20}$ at rows 220:240, cols 0:20 (reads L1 output prev-ruled identity);
+    $-5\times10^4$ at row 10, cols 10:20 (noise filter)\\
+$(W_V^{(2)})^\top$ & $440\times220$
+  & $I_{20}$ at rows 0:20, cols 0:20 (copies own token identity of attended position)\\
+$(W_O^{(2)})^\top$ & $220\times220$ & $I_{220}$\\
+$M_{OV}^{(2)}$     & $440\times220$
+  & $(W_V^{(2)})^\top$: $I_{20}$ at $[0\text{:}20,0\text{:}20]$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Layer 2 --- query matrices (strategy-specific)}
+
+\begin{center}
+\begin{tabular}{lllll}
+\toprule
+\textbf{Strategy} & \textbf{Active block} & \textbf{Rows (input)} & \textbf{Cols (output)} & \textbf{Value}\\
+\midrule
+\multirow{2}{*}{Gold (\texttt{input})}
+  & P1 & 0:20 (own token) & 0:20 & $50\sqrt{D}\cdot I_{20}$\\
+  & NF & row 10           & 0:20 & $10\sqrt{D}\cdot\mathbf{1}_{20}^\top$\\
+\midrule
+\multirow{2}{*}{Blue (\texttt{l1\_out})}
+  & P1 & 220:240 (L1 out) & 0:20 & $50\sqrt{D}\cdot I_{20}$\\
+  & NF & row 230          & 0:10 & $10\sqrt{D}\cdot\mathbf{1}_{10}^\top$\\
+\midrule
+\multirow{3}{*}{\textbf{Green} (\texttt{ultimate})}
+  & \textbf{P1} & 0:10 (own ruled)  & 0:10 & $\mathbf{1000}\sqrt{D}\cdot I_{10}$\\
+  & \textbf{P2} & 220:230 (L1 out)  & 0:10 & $50\sqrt{D}\cdot I_{10}$\\
+  & NF          & row 10            & 0:20 & $10\sqrt{D}\cdot\mathbf{1}_{20}^\top$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Unembedding matrix (identical across all strategies)}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Display matrix} & \textbf{Shape} & \textbf{Value}\\
+\midrule
+$(W_{\mathrm{fc}})^\top$ & $660\times20$
+  & $50\cdot I_{20}$ at rows 440:460, cols 0:20; zero elsewhere\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{warningbox}{Design takeaway}
+Every weight matrix is either an identity, a scaled identity, or zero --- no matrix performs a
+non-trivial linear mixing. The architecture's ``intelligence'' lives entirely in two properties:
+\begin{enumerate}
+  \item \textbf{Structured sparsity}: which rows of $W^\top$ read which input dims, enforcing strict
+        information routing.
+  \item \textbf{Scale ratios}: 1000 vs 50 in the Green model creates a hard two-level priority;
+        $-5\times10^4$ and $-10^9$ create effectively infinite suppression of unwanted positions.
+\end{enumerate}
+\end{warningbox}
+
+\end{document}

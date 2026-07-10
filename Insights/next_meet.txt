@@ -1,0 +1,8 @@
+22 june, monday: 
+
+- tyeing parameterizing in the combined way, ie Wqk and Wov, doesn't properly converge than tying them seperately. 
+- so seperated them to analyse. 
+- FFD head is required for log implementation
+- FFD heas was overfitting to the data where both states are eqvuiprobable.
+- we got a perfect fit as ctx-count with our full construction with altered dataset where ffd has no way but to memorize.
+- 

@@ -1,0 +1,220 @@
+\begin{thebibliography}{29}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Agarwal et~al.(2025)]{agarwal2025bayesian}
+Naman Agarwal et~al.
+\newblock The {B}ayesian geometry of transformer attention.
+\newblock \emph{arXiv preprint arXiv:2512.22471}, 2025.
+
+\bibitem[Aky{\"u}rek et~al.(2024)Aky{\"u}rek, Wang, Kim, and
+  Andreas]{akyurek2024incontext}
+Ekin Aky{\"u}rek, Bailin Wang, Yoon Kim, and Jacob Andreas.
+\newblock In-context language learning: Architectures and algorithms.
+\newblock In \emph{International Conference on Machine Learning}, 2024.
+\newblock arXiv:2401.12973.
+
+\bibitem[Arora et~al.(2018)Arora, Cohen, and Hazan]{arora2018optimization}
+Sanjeev Arora, Nadav Cohen, and Elad Hazan.
+\newblock On the optimization of deep networks: Implicit acceleration by
+  overparameterization.
+\newblock In \emph{International Conference on Machine Learning}, pp.\
+  244--253, 2018.
+
+\bibitem[Bietti et~al.(2023)Bietti, Cabannes, Bouchacourt, Jegou, and
+  Bottou]{bietti2023birth}
+Alberto Bietti, Vivien Cabannes, Diane Bouchacourt, Herve Jegou, and Leon
+  Bottou.
+\newblock Birth of a transformer: A memory viewpoint.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~36, 2023.
+\newblock arXiv:2306.00802.
+
+\bibitem[Brown et~al.(2020)Brown, Mann, Ryder, Subbiah, Kaplan, Dhariwal,
+  Neelakantan, Shyam, Sastry, Askell, et~al.]{brown2020language}
+Tom Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared~D Kaplan, Prafulla
+  Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell,
+  et~al.
+\newblock Language models are few-shot learners.
+\newblock \emph{Advances in Neural Information Processing Systems},
+  33:\penalty0 1877--1901, 2020.
+
+\bibitem[Chen et~al.(2024)Chen, Sheen, Wang, and Yang]{chen2024unveiling}
+Siyu Chen, Heejune Sheen, Tianhao Wang, and Zhuoran Yang.
+\newblock Unveiling induction heads: Provable training dynamics and feature
+  learning in transformers.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~37, 2024.
+\newblock arXiv:2409.10559.
+
+\bibitem[Dai et~al.(2025)]{dai2025pretrained}
+Yijia Dai et~al.
+\newblock Pre-trained large language models learn hidden {M}arkov models
+  in-context.
+\newblock \emph{arXiv preprint arXiv:2506.07298}, 2025.
+
+\bibitem[D'Angelo et~al.(2025)D'Angelo, Croce, and
+  Flammarion]{dangelo2025selective}
+Francesco D'Angelo, Francesco Croce, and Nicolas Flammarion.
+\newblock Selective induction heads: How transformers select causal structures
+  in context.
+\newblock \emph{arXiv preprint arXiv:2509.08184}, 2025.
+
+\bibitem[Edelman et~al.(2024)Edelman, Edelman, Goel, Malach, and
+  Tsilivis]{edelman2024evolution}
+Benjamin~L Edelman, Ezra Edelman, Surbhi Goel, Eran Malach, and Nikolaos
+  Tsilivis.
+\newblock The evolution of statistical induction heads: In-context learning
+  {M}arkov chains.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~37, 2024.
+\newblock arXiv:2402.11004.
+
+\bibitem[Ekbote et~al.(2025)Ekbote, Bondaschi, Rajaraman, Lee, Gastpar,
+  Makkuva, and Liang]{ekbote2025what}
+Chanakya Ekbote, Marco Bondaschi, Nived Rajaraman, Jason~D Lee, Michael
+  Gastpar, Ashok~Vardhan Makkuva, and Paul~Pu Liang.
+\newblock What one cannot, two can: Two-layer transformers provably represent
+  induction heads on any-order {M}arkov chains.
+\newblock In \emph{Advances in Neural Information Processing Systems}, 2025.
+\newblock arXiv:2508.07208.
+
+\bibitem[Elhage et~al.(2021)Elhage, Nanda, Olsson, Henighan, Joseph, Mann,
+  Askell, Bai, Chen, Conerly, et~al.]{elhage2021mathematical}
+Nelson Elhage, Neel Nanda, Catherine Olsson, Tom Henighan, Nicholas Joseph, Ben
+  Mann, Amanda Askell, Yuntao Bai, Anna Chen, Tom Conerly, et~al.
+\newblock A mathematical framework for transformer circuits.
+\newblock \emph{Transformer Circuits Thread}, 2021.
+\newblock \url{https://transformer-circuits.pub/2021/framework/index.html}.
+
+\bibitem[Kawata et~al.(2025)]{kawata2025shortcut}
+Ryotaro Kawata et~al.
+\newblock From shortcut to induction head: How data diversity shapes algorithm
+  selection in transformers.
+\newblock In \emph{Advances in Neural Information Processing Systems}, 2025.
+\newblock arXiv:2512.18634.
+
+\bibitem[Kobayashi et~al.(2024)]{kobayashi2024weight}
+Seijin Kobayashi et~al.
+\newblock Weight decay induces low-rank attention layers.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~37, 2024.
+\newblock arXiv:2410.23819.
+
+\bibitem[Lavie et~al.(2026)]{lavie2026phase}
+Itay Lavie et~al.
+\newblock Phase transitions in attention: A {B}ayesian theory of copy head
+  emergence.
+\newblock \emph{arXiv preprint arXiv:2606.12058}, 2026.
+
+\bibitem[Makkuva et~al.(2024)Makkuva, Bondaschi, Ekbote, Girish, Nagle, Kim,
+  and Gastpar]{makkuva2024local}
+Ashok~Vardhan Makkuva, Marco Bondaschi, Chanakya Ekbote, Adway Girish, Alliot
+  Nagle, Hyeji Kim, and Michael Gastpar.
+\newblock Local to global: Learning dynamics and effect of initialization for
+  transformers.
+\newblock In \emph{Advances in Neural Information Processing Systems},
+  volume~37, 2024.
+\newblock arXiv:2406.03072.
+
+\bibitem[Makkuva et~al.(2025)Makkuva, Bondaschi, Girish, Nagle, Jaggi, Kim, and
+  Gastpar]{makkuva2024attention}
+Ashok~Vardhan Makkuva, Marco Bondaschi, Adway Girish, Alliot Nagle, Martin
+  Jaggi, Hyeji Kim, and Michael Gastpar.
+\newblock Attention with {M}arkov: A framework for principled analysis of
+  transformers via {M}arkov chains.
+\newblock In \emph{International Conference on Learning Representations}, 2025.
+\newblock arXiv:2402.04161.
+
+\bibitem[Musat et~al.(2025)]{musat2025emergence}
+Tiberiu Musat et~al.
+\newblock On the emergence of induction heads for in-context learning.
+\newblock \emph{arXiv preprint arXiv:2511.01033}, 2025.
+
+\bibitem[Nichani et~al.(2024)Nichani, Damian, and Lee]{nichani2024transformers}
+Eshaan Nichani, Alex Damian, and Jason~D Lee.
+\newblock How transformers learn causal structure with gradient descent.
+\newblock In \emph{International Conference on Machine Learning}, 2024.
+\newblock arXiv:2402.14735.
+
+\bibitem[Olsson et~al.(2022)Olsson, Elhage, Nanda, Joseph, DasSarma, Henighan,
+  Mann, Askell, Bai, Chen, et~al.]{olsson2022context}
+Catherine Olsson, Nelson Elhage, Neel Nanda, Nicholas Joseph, Nova DasSarma,
+  Tom Henighan, Ben Mann, Amanda Askell, Yuntao Bai, Anna Chen, et~al.
+\newblock In-context learning and induction heads.
+\newblock \emph{Transformer Circuits Thread}, 2022.
+\newblock
+  \url{https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html}.
+
+\bibitem[Rajaraman et~al.(2024)Rajaraman, Bondaschi, Ramchandran, Gastpar, and
+  Makkuva]{rajaraman2024transformers}
+Nived Rajaraman, Marco Bondaschi, Kannan Ramchandran, Michael Gastpar, and
+  Ashok~Vardhan Makkuva.
+\newblock Transformers on {M}arkov data: Constant depth suffices.
+\newblock \emph{arXiv preprint arXiv:2407.17686}, 2024.
+
+\bibitem[Reddy(2024)]{reddy2024mechanistic}
+Gautam Reddy.
+\newblock The mechanistic basis of data dependence and abrupt learning in an
+  in-context classification task.
+\newblock In \emph{International Conference on Learning Representations}, 2024.
+\newblock arXiv:2312.03002.
+
+\bibitem[Singh et~al.(2024)Singh, Moskovitz, Hill, Chan, and
+  Saxe]{singh2024what}
+Aaditya~K Singh, Ted Moskovitz, Felix Hill, Stephanie C~Y Chan, and Andrew~M
+  Saxe.
+\newblock What needs to go right for an induction head? {A} mechanistic study
+  of in-context learning circuits and their formation.
+\newblock In \emph{International Conference on Machine Learning}, 2024.
+\newblock arXiv:2404.07129.
+
+\bibitem[Smart et~al.(2025)]{smart2025incontext}
+Matthew Smart et~al.
+\newblock In-context denoising with one-layer transformers: Connections between
+  attention and associative memory retrieval.
+\newblock In \emph{International Conference on Machine Learning}, 2025.
+\newblock arXiv:2502.05164.
+
+\bibitem[Sun et~al.(2025)]{sun2025role}
+Haoyuan Sun et~al.
+\newblock On the role of transformer feed-forward layers in nonlinear
+  in-context learning.
+\newblock \emph{arXiv preprint arXiv:2501.18187}, 2025.
+
+\bibitem[van Nierop(2024)]{vannierop2024transformer}
+Leo van Nierop.
+\newblock Transformer models are gauge invariant: A mathematical connection
+  between {AI} and particle physics.
+\newblock \emph{arXiv preprint arXiv:2412.14543}, 2024.
+
+\bibitem[Varre et~al.(2025)Varre, Aggarwal, and Cevher]{varre2025learning}
+Aditya Varre, Gizem Aggarwal, and Volkan Cevher.
+\newblock Learning in-context $n$-grams with transformers: Sub-$n$-grams are
+  near-stationary points.
+\newblock \emph{arXiv preprint arXiv:2508.12837}, 2025.
+
+\bibitem[Wakayama \& Imaizumi(2025)Wakayama and
+  Imaizumi]{wakayama2025incontext}
+Tomoya Wakayama and Masaaki Imaizumi.
+\newblock In-context learning is provably {B}ayesian inference: A
+  generalization theory for meta-learning.
+\newblock \emph{arXiv preprint arXiv:2510.10981}, 2025.
+
+\bibitem[Wang et~al.(2024)Wang, Wang, E, and Wu]{wang2024how}
+Mingze Wang, Ruoxuan Wang, Weinan E, and Lei Wu.
+\newblock How transformers get rich: Approximation and dynamics analysis.
+\newblock \emph{arXiv preprint arXiv:2410.11474}, 2024.
+
+\bibitem[Zucchet et~al.(2025)Zucchet, Bornschein, Chan, and
+  Lampinen]{zucchet2025emergence}
+Nicolas Zucchet, J{\"o}rg Bornschein, Stephanie Chan, and Andrew Lampinen.
+\newblock The emergence of sparse attention: Impact of data distribution and
+  benefits of repetition.
+\newblock \emph{arXiv preprint arXiv:2505.17863}, 2025.
+\newblock NeurIPS 2025.
+
+\end{thebibliography}

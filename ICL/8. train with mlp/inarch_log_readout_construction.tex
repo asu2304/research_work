@@ -1,0 +1,266 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage[colorlinks=true,linkcolor=blue!60!black,urlcolor=blue!60!black]{hyperref}
+
+\definecolor{convblue}{RGB}{0,68,136}
+\definecolor{invorange}{RGB}{196,98,16}
+\newtcolorbox{convbox}[1]{colback=convblue!4,colframe=convblue,fonttitle=\bfseries,title=#1,boxrule=0.6pt,left=6pt,right=6pt,top=4pt,bottom=4pt}
+\newtcolorbox{keybox}[1]{colback=convblue!6,colframe=convblue!80,fonttitle=\bfseries,title=#1,boxrule=0.6pt,left=6pt,right=6pt,top=4pt,bottom=4pt}
+\newtcolorbox{invbox}[1]{colback=invorange!8,colframe=invorange,fonttitle=\bfseries,title=#1,boxrule=0.6pt,left=6pt,right=6pt,top=4pt,bottom=4pt}
+\newtcolorbox{takebox}[1]{colback=orange!10,colframe=orange!75!black,fonttitle=\bfseries,title=#1,boxrule=0.6pt,left=6pt,right=6pt,top=4pt,bottom=4pt}
+\lstset{basicstyle=\ttfamily\small,breaklines=true,columns=fullflexible,keepspaces=true,frame=none,xleftmargin=4pt}
+
+\newcommand{\ev}[2]{e^{(#1)}_{#2}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\T}{^{\!\top}}
+\newcommand{\fvec}{\mathbf{f}}
+\newcommand{\one}{\mathbf{1}}
+\newcommand{\zeros}{\mathbf{0}}
+\newcommand{\vstar}{v^{*}}
+\newcommand{\relu}{\operatorname{ReLU}}
+\newcommand{\gelu}{\operatorname{GELU}}
+\newcommand{\sm}{\operatorname{softmax}}
+
+\title{\textbf{Weight Matrix Construction\\[2pt]\large The In-Architecture Log-Readout Head}}
+\author{}\date{}
+\begin{document}
+\maketitle
+\vspace{-3.2em}
+
+\begin{convbox}{Convention --- read this first}
+Matrices are shown as $W\T$ (shape $\R^{\text{in}\times\text{out}}$): $x$ multiplies from the left, rows
+$=$ input dims, columns $=$ output dims. \textbf{The whole point of this construction:} it uses
+\emph{only} the operations the trained model actually has --- attention, a GELU feed-forward block
+($\text{Linear}\!\to\!\gelu\!\to\!\text{Linear}$), a linear unembedding, and a final softmax. No new
+operation is invented. Within that box, it is the best hand-set weight assignment we found, and it
+lands on the in-context frequency predictor (\textbf{ctx-count}) up to one unavoidable term.
+
+\smallskip
+\textbf{One idea does all the work:} $\;\sm(\log u)=\dfrac{u}{\sum u}$. If the feed-forward block
+outputs the \emph{logarithm} of the in-context counts, the model's own softmax turns those logs back
+into \emph{normalised counts} --- which is exactly ctx-count. So the only thing the FFN has to learn
+to compute is a logarithm, and a $\gelu$ network does that with a handful of hinges.
+\end{convbox}
+
+\tableofcontents
+\newpage
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Configuration and Dimension Map}
+\begin{center}\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+Symbol & meaning & value & \\
+\midrule
+$V$ & vocabulary & $20$ & ruled $0{:}10$, noise $10{:}20$\\
+$V_r$ & ruled tokens & $10$ & $=$ \# noise tokens $n=V-V_r=10$\\
+$T$ & context length & $200$ &\\
+$\alpha$ & signal rate & $0.1$–$0.9$ & $P(\text{next token is a ruled successor})$\\
+$\fvec\in\R^{V}$ & layer-2 output & --- & in-context empirical successor frequency\\
+$\delta$ & smoothing floor & per-$\alpha$ & added to $\fvec$ before the log (a hyperparameter)\\
+$G$ & GELU input gain & $200$ & hardens $\gelu$ into a $\relu$ hinge\\
+$K$ & \# log knots & $7$ & line-segments used to approximate $\log$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The pipeline is exactly the trained model's:
+$$
+x_t \xrightarrow{\text{L1}} x^{(1)}_t \xrightarrow{\text{L2}} \underbrace{\fvec_t}_{\text{successor freq}}
+\xrightarrow{\;+\,\mathrm{FFN}(\cdot)\;} z_t \xrightarrow{\;\sm\;} p_t .
+$$
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Input Embedding and the Attention (inherited)}
+Each token is a one-hot pair $x_t=[\ev{20}{v_t};\ev{200}{t}]$. The two attention layers are the same
+induction circuit used by all the hand constructions:
+
+\begin{itemize}[nosep,leftmargin=1.4em]
+\item \textbf{Layer 1} writes, into every position, the identity of the most recent ruled token before
+it, $\ev{20}{\vstar(t)}$ (a strict ``what was the last state'' retriever; built from an identity query,
+$-10^9$ masks on noise/self, and a recency band).
+\item \textbf{Layer 2} attends to every past position whose predecessor-state equals the current token
+$s=v_t$, and \emph{averages} the tokens emitted there. That average is the in-context successor
+frequency:
+$$
+[\fvec_t]_i=\frac{\#\{\text{times } s \text{ was followed by token } i\}}{\#\{\text{times } s \text{ occurred}\}}
+=\widehat{P}(\text{next}=i\mid s).
+$$
+\end{itemize}
+
+\begin{invbox}{What we start from}
+After the attention we hold $\fvec_t\in\R^{V}$: on the ruled coordinates it is the empirical successor
+distribution of the current state; on the noise coordinates it is the empirical noise frequencies. Our
+job is only to \emph{read this out} into a calibrated probability with the FFN $+$ softmax.
+\end{invbox}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{The One Trick: $\sm(\log u)=u/\sum u$}
+The model finishes with a softmax over logits $z$:
+$$
+\sm(z)_i=\frac{e^{z_i}}{\sum_j e^{z_j}}.
+$$
+Softmax exponentiates. So if we feed it $z_i=\log u_i$ for some positive numbers $u_i$, the exponential
+\emph{cancels the logarithm} and softmax becomes plain division (normalisation):
+$$
+\boxed{\;\sm(\log u)_i=\frac{e^{\log u_i}}{\sum_j e^{\log u_j}}=\frac{u_i}{\sum_j u_j}\;}
+$$
+
+\begin{keybox}{Intuition}
+Softmax is ``exponentiate, then normalise''. We do not want the exponentiate part --- we want the raw
+counts, just normalised. So we put a $\log$ in front; $e^{\log(\cdot)}$ is the identity, and softmax is
+left doing nothing but the division. \emph{Therefore, to make the network output normalised counts, the
+feed-forward block only needs to compute a logarithm.} That is the entire design.
+\end{keybox}
+
+Concretely we will choose $u_i=f_i+\delta$ (the frequency with a tiny floor), so that
+$\sm(\log u)_i = (f_i+\delta)/\sum_j(f_j+\delta)$ --- the smoothed normalised frequency, i.e.\ ctx-count.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Building $\log$ out of GELU (the FFN)}
+The FFN is $\text{Linear}\to\gelu\to\text{Linear}$. We only need it to compute $g(c)\approx\log(c+\delta)$
+on each coordinate $c=[\fvec_t]_i\in[0,1]$. A $\gelu$ network does this by \textbf{approximating the log
+curve with a few straight line segments} --- each kink is one hidden unit.
+
+\paragraph{Step 1 --- a hinge is a $\gelu$ unit.} For large gain $G$,
+$$
+\tfrac1G\,\gelu(G\,u)\;\xrightarrow[G\to\infty]{}\;\relu(u)=\max(u,0),
+$$
+so with $G=200$ each hidden unit is effectively a ReLU hinge $\relu(c-t)$ placed at a knot $t$.
+
+\paragraph{Step 2 --- a sum of hinges is any piecewise-linear curve.} Pick knots
+$0=t_0<t_1<\dots<t_{K-1}$. Any continuous piecewise-linear function with kinks at the $t_j$ can be written
+$$
+g(c)=h_0+\sum_{j=0}^{K-2} a_j\,\relu(c-t_j),
+$$
+where $h_0$ is the value at $c=0$ and $a_j$ is the \emph{change of slope} at knot $t_j$.
+
+\paragraph{Step 3 --- match it to the log.} Set the values/slopes to those of $\log(c+\delta)$:
+$$
+h_0=\log(\delta),\qquad
+m_j=\frac{\log(t_{j+1}+\delta)-\log(t_j+\delta)}{t_{j+1}-t_j}\ \ (\text{secant slope}),\qquad
+a_j=m_j-m_{j-1}\ \ (a_0=m_0).
+$$
+That is exactly $\log(c+\delta)$ read off at $K$ points and connected by straight lines.
+
+\begin{keybox}{Intuition}
+$\log$ is a smooth curve. Draw $K$ dots on it and connect them with rulers --- that broken line is your
+approximation. Each ``bend'' in the broken line is produced by one $\gelu$ unit (a hinge). Seven bends
+($K=7$) already trace $\log$ closely on $[0,1]$. The first Linear places the hinges (weights $=G$, biases
+$=-G\,t_j$); the second Linear adds them with coefficients $a_j$.
+\end{keybox}
+
+\paragraph{The FFN matrices (per ruled coordinate $i$, hidden units $j=0,\dots,K-2$).}
+$$
+[(W_1^{\mathrm{ff}})\T]_{\,i,\;(i,j)}=G,\quad [b_1]_{(i,j)}=-G\,t_j;\qquad
+[(W_2^{\mathrm{ff}})\T]_{\,(i,j),\;i}=\frac{a_j}{G};\quad [b_2]_i=h_0 .
+$$
+Output of the block: $g\big([\fvec_t]_i\big)\approx\log([\fvec_t]_i+\delta)$ for each ruled $i$.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{The Full Read-Out}
+We need three things in the logits $z$: (i) $\log(f_i+\delta)$ on ruled tokens, (ii) a per-query constant
+so the ruled mass comes out to exactly $\alpha$, and (iii) the exact noise floor. All are linear-or-log
+operations the FFN can produce:
+$$
+z_i=
+\begin{cases}
+\log(f_i+\delta)\;-\;\log\!\big(\textstyle\sum_{k\in\text{sig}}(f_k+\delta)\big)\;+\;\log\alpha, & i\ \text{ruled},\\[4pt]
+\log\!\dfrac{1-\alpha}{\,V-V_r\,}, & i\ \text{noise}.
+\end{cases}
+$$
+\begin{itemize}[nosep,leftmargin=1.4em]
+\item the first term is the per-coordinate log (Step 3 above);
+\item the second term $-\log\sum_k(f_k+\delta)$ is a \emph{single shared} number: take the linear sum of
+the floored ruled frequencies (a row of ones in $W_1^{\mathrm{ff}}$), then feed it through the \emph{same}
+hinge-log; subtract it from every ruled logit;
+\item the noise logit is a \emph{constant} $\log\frac{1-\alpha}{V-V_r}$ --- just a bias entry.
+\end{itemize}
+
+Now apply the trick. Because $\sm(\log u)=u/\sum u$,
+$$
+\boxed{\;
+\sm(z)_i=
+\begin{cases}
+\alpha\,\dfrac{f_i+\delta}{\sum_{k\in\text{sig}}(f_k+\delta)}, & i\ \text{ruled},\\[10pt]
+\dfrac{1-\alpha}{V-V_r}, & i\ \text{noise}.
+\end{cases}\;}
+$$
+The ruled mass sums to $\alpha$ and the noise mass to $1-\alpha$, so $\sum_i\sm(z)_i=1$ automatically.
+This is precisely the smoothed, normalised in-context successor distribution --- \textbf{ctx-count}.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{How Close It Gets --- and the One Term It Cannot Reach}
+Write the genuine ctx-count and our construction side by side, on the ruled tokens. Let $c_i$ be the
+integer count of successor $i$ and $N=\sum_k c_k$ the number of times the state was seen, so the attention
+gives $f_i=c_i/N$:
+$$
+\text{ctx-count: } \alpha\,\frac{c_i+\varepsilon}{\,N+V_r\varepsilon\,}
+\qquad\text{vs.}\qquad
+\text{ours: } \alpha\,\frac{f_i+\delta}{\,1+V_r\delta\,}
+=\alpha\,\frac{c_i+N\delta}{\,N+V_r N\delta\,}.
+$$
+They are \emph{identical} except for the floor: ctx-count adds the constant $\varepsilon$ to the
+\textbf{count} $c_i$, while we add $\delta$ to the \textbf{frequency} $f_i$, i.e.\ effectively $N\delta$ to
+the count. To match exactly we would need $\delta=\varepsilon/N$ --- a floor that \emph{shrinks as the
+state is seen more often}.
+
+\begin{invbox}{Why a hand construction stops here}
+The right amount of smoothing depends on $N$ (few observations $\Rightarrow$ shrink hard; many
+$\Rightarrow$ trust the data). But the attention \emph{averaged} the successors, so its output $\fvec$ is a
+frequency that has \emph{already divided $N$ away} --- and a position-wise FFN cannot re-count occurrences
+across the context. So $N$ is simply not available to read, and we are forced to pick \emph{one} fixed
+$\delta$. That single compromise floor is the entire residual: $\approx +0.012$ nats above ctx-count.
+Recovering $N$ would require a non-softmax / multiplicative operation (a normaliser read or
+$1/\!\sum_k A_k^2$), which is \emph{outside this architecture} --- so we do not use it here.
+\end{invbox}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Result}
+Cross-entropy on the last-$100$ window (test split); $\delta$ is the best fixed floor per $\alpha$.
+\textbf{in-arch} is this construction; \textbf{ctx-count} is the target; \textbf{ideal-$\alpha$} is the
+Bayes floor; \textbf{GD-MLP} is the trained model in the \emph{same} architecture.
+\begin{center}\small
+\begin{tabular}{@{}cccccrr@{}}
+\toprule
+$\alpha$ & $\delta$ & ideal-$\alpha$ & ctx-count & \textbf{in-arch (ours)} & GD-MLP & ours$-$ctx\\
+\midrule
+0.1 & 0.1   & 2.4693 & 2.5789 & \textbf{2.5730} & 2.5884 & $-0.006$\\
+0.2 & 0.01  & 2.4815 & 2.5805 & \textbf{2.5866} & 2.5763 & $+0.006$\\
+0.3 & 0.01  & 2.4290 & 2.5313 & \textbf{2.5426} & 2.5314 & $+0.011$\\
+0.4 & 0.003 & 2.3374 & 2.4090 & \textbf{2.4223} & 2.4045 & $+0.013$\\
+0.5 & 0.003 & 2.1964 & 2.2741 & \textbf{2.2899} & 2.2584 & $+0.016$\\
+0.6 & 0.001 & 2.0048 & 2.0673 & \textbf{2.0831} & 2.0562 & $+0.016$\\
+0.7 & 0.001 & 1.7845 & 1.8465 & \textbf{1.8634} & 1.8413 & $+0.017$\\
+0.8 & 0.001 & 1.5097 & 1.5668 & \textbf{1.5845} & 1.5692 & $+0.018$\\
+0.9 & 0.001 & 1.1756 & 1.2243 & \textbf{1.2382} & 1.2157 & $+0.014$\\
+\bottomrule
+\end{tabular}
+\end{center}
+The construction tracks ctx-count to within $\sim 0.01$–$0.02$ nats everywhere using only
+attention $+\,\gelu$-FFN $+$ softmax. Notably the \textbf{GD-MLP, in the same architecture, sits slightly
+\emph{below} ctx-count} at most $\alpha$ --- so gradient descent finds a better-than-this in-architecture
+solution (it does the $N$-dependent smoothing implicitly, through a learned, non-uniform attention), which
+a clean hand construction cannot match without leaving the architecture.
+
+\begin{takebox}{Design takeaway}
+\begin{enumerate}[nosep,leftmargin=1.4em]
+\item \textbf{Put a $\log$ before the softmax.} $\sm(\log u)=u/\sum u$, so the softmax becomes a pure
+normaliser and the network outputs \emph{normalised counts} --- ctx-count.
+\item \textbf{A $\gelu$-FFN computes that $\log$} as a broken-line approximation: $K$ knots, each a hinge
+$\tfrac1G\gelu(G(c-t_j))\approx\relu(c-t_j)$, summed with the log's slope-changes $a_j$.
+\item \textbf{One thing it cannot get: the count $N$.} The attention averaged it away and a position-wise
+FFN cannot re-count, so the smoothing floor must be a fixed $\delta$ instead of the $N$-adaptive
+$\varepsilon$. That single compromise is the whole $\approx\!+0.012$-nat gap to ctx-count --- the honest
+ceiling of a legitimate hand construction in this architecture.
+\end{enumerate}
+\end{takebox}
+
+\end{document}

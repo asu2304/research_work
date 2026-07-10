@@ -1,0 +1,225 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{bm}
+\usepackage{xcolor}
+
+\newtheorem{proposition}{Proposition}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\sm}{\operatorname{softmax}}
+\newcommand{\ve}[1]{\bm{#1}}
+
+\title{Hand-Constructed Feed-Forward Weights in the Two-Cell Induction Transformer:\\
+The \emph{Identity} and \emph{Log} Readouts, and Why the Log Readout Coincides with the $L_1$ Head}
+\author{Markov-noise ICL experiments (folder \texttt{8. train with mlp})}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We give the explicit weight settings that make the position-wise feed-forward (FFN)
+sub-blocks of the two-cell induction transformer implement (i)~the \emph{identity} map
+(used for the middle FFN) and (ii)~a \emph{log} map (used for the last FFN, immediately
+before the un-embedding and softmax). We then prove that the log readout makes the
+softmax head emit exactly the divide-by-sum (``$L_1$'') distribution over the
+in-context count vector. This is the reason the hand-constructed log-FFN curve and the
+$L_1$ curve overlap \emph{exactly} in the comparison plot: the log precisely inverts the
+softmax exponential, reducing the softmax head to linear normalization.
+\end{abstract}
+
+\section{Setup and notation}
+
+The network embeds a length-$T$ sequence ($T=200$) over a vocabulary of size $V=20$
+(signal tokens $0,\dots,V_{\mathrm{sig}}-1$ with $V_{\mathrm{sig}}=10$; the rest noise).
+Token and position one-hots are concatenated into the initial residual stream of width
+$D_0=V+T=220$. Each of the two \emph{cells} applies a concatenating attention block
+followed by a residual FFN sub-block; widths grow as
+\[
+D_0=220 \;\xrightarrow{\ \text{cell 1}\ }\; D_1=D_0+d=440
+\;\xrightarrow{\ \text{cell 2}\ }\; D_2=D_1+d=660 ,
+\qquad d=220\ \text{(attention output width)} ,
+\]
+and the FFN hidden width is $m=128$. A linear un-embedding
+$W_o\in\R^{V\times D_2}$ (with bias $b_o$) and a softmax produce the predictive
+distribution.
+
+\paragraph{The induction circuit produces a count vector.}
+The attention weights are fixed to the hand-built perfect-induction circuit $W^\star$.
+Its only property we use here is the following: at every position $t$, a designated
+block of the cell-2 residual stream,
+\[
+\ve c \;=\; \big(s_{j_1},\dots,s_{j_V}\big)\in\R^{V},\qquad J=\{j_1,\dots,j_V\}\subset\{1,\dots,D_2\},
+\]
+holds the \emph{in-context empirical next-token distribution} (the attention-weighted
+successor frequencies of the current state). Because it is a convex combination of
+one-hot vectors,
+\begin{equation}\label{eq:c}
+\ve c \ge \ve 0, \qquad \textstyle\sum_{i=1}^{V} c_i \le 1 .
+\end{equation}
+This $\ve c$ is exactly the quantity the analytic \texttt{ctx-count} predictor uses.
+
+\paragraph{Residual FFN sub-block.}
+For a residual stream $\ve s\in\R^{D}$ the FFN sub-block computes
+\begin{equation}\label{eq:ffn}
+\mathrm{FF}(\ve s) \;=\; \ve s \;+\; W_2\,\phi\!\big(W_1\ve s + \ve b_1\big) + \ve b_2 ,
+\qquad W_1\in\R^{m\times D},\ W_2\in\R^{D\times m},
+\end{equation}
+with a point-wise nonlinearity $\phi$. We write $\ve e_k$ for the $k$-th standard basis vector.
+
+\paragraph{Two readout heads.}
+Given a logit vector $\ve\ell\in\R^V$, the model uses the \emph{softmax} head
+$\sm(\ve\ell)_i = e^{\ell_i}/\sum_j e^{\ell_j}$. We will compare against the
+\emph{divide-by-sum} (``$L_1$'') head with per-class floor $\ve\beta\ge\ve0$,
+\begin{equation}\label{eq:l1}
+p^{L_1}_i \;=\; \frac{\max(z_i,0)+\beta_i}{\sum_{j}\big(\max(z_j,0)+\beta_j\big)} ,
+\end{equation}
+which is the head used by the \texttt{l1} construction; here $\ve z$ is the (non-negative)
+count readout, i.e.\ $\ve z=\ve c$.
+
+\section{Identity construction (the middle FFN)}
+
+We want cell-1's FFN to leave the stream untouched, $\mathrm{FF}(\ve s)=\ve s$.
+
+\begin{proposition}[Identity]\label{prop:id}
+Setting the output projection to zero,
+\[
+W_2 = 0,\qquad \ve b_2 = \ve 0 ,
+\]
+makes \eqref{eq:ffn} the identity map, $\mathrm{FF}(\ve s)=\ve s$, for \emph{any}
+$W_1,\ve b_1,\phi$.
+\end{proposition}
+\begin{proof}
+With $W_2=0$ and $\ve b_2=\ve 0$ the second term of \eqref{eq:ffn} vanishes identically,
+leaving $\mathrm{FF}(\ve s)=\ve s$.
+\end{proof}
+
+\noindent
+Thus the middle FFN contributes nothing to the residual stream: the two-cell
+construction collapses onto the single-FFN construction below. (Operationally one may
+also zero $W_1,\ve b_1$; zeroing the \emph{output} projection is the cleanest because it
+is independent of $\phi$.) Note this is a \emph{choice of construction}; a \emph{trained}
+middle FFN is generally not identity and does useful nonlinear work.
+
+\section{Log construction (the last FFN)}\label{sec:log}
+
+We now set cell-2's FFN and the un-embedding so that the logit of token $i$ is
+\begin{equation}\label{eq:target}
+\ell_i \;=\; \log\!\big(c_i+\beta_i\big),
+\end{equation}
+where $\ve\beta=(\beta_1,\dots,\beta_V)$ is a per-class floor (a single value
+$\beta_{\mathrm{sig}}$ on signal coordinates and $\beta_{\mathrm{noise}}$ on noise
+coordinates). The floor is supplied by the FFN \emph{bias} and prevents the
+$\log 0$ blow-up on never-observed tokens (the zero-frequency problem).
+
+Let $F=\{f_1,\dots,f_V\}\subset\{1,\dots,D_2\}$ be a block of \emph{free} coordinates of
+the cell-2 stream that are disjoint from the count block $J$ and are zero under
+$W^\star$ (the cell-2 attention block has $d=220$ coordinates of which only $V=20$ carry
+$\ve c$, so $200$ free coordinates are available). Set:
+\begin{align}
+\text{(select counts)}&& (W_1)_{i,:} &= \ve e_{j_i}^{\!\top}, & (b_1)_i &= \beta_i, & i&=1,\dots,V,\label{eq:W1}\\
+\text{(nonlinearity)}&& \phi &= \log, &&&& \label{eq:phi}\\
+\text{(write to free block)}&& (W_2)_{f_i,\,i} &= 1, & \ve b_2 &= \ve 0, & i&=1,\dots,V,\label{eq:W2}\\
+\text{(read free block)}&& (W_o)_{i,\,f_i} &= 1, & \ve b_o &= \ve 0, & i&=1,\dots,V,\label{eq:Wo}
+\end{align}
+with all unspecified entries equal to zero (hidden units $V{+}1,\dots,m$ are unused).
+
+\begin{proposition}[Log readout]\label{prop:log}
+With \eqref{eq:W1}--\eqref{eq:Wo}, the model's logits satisfy
+$\ell_i=\log(c_i+\beta_i)$, hence \eqref{eq:target} holds.
+\end{proposition}
+\begin{proof}
+By \eqref{eq:W1} the pre-activation of hidden unit $i\le V$ is
+$u_i=(W_1\ve s)_i+(b_1)_i=s_{j_i}+\beta_i=c_i+\beta_i$. By \eqref{eq:phi},
+$\phi(u_i)=\log(c_i+\beta_i)$. By \eqref{eq:W2} the residual increment
+$W_2\phi(\cdot)$ is $\log(c_i+\beta_i)$ at coordinate $f_i$ and $0$ elsewhere; since the
+free coordinates start at $0$, the updated stream obeys
+$\tilde s_{f_i}=0+\log(c_i+\beta_i)$. Finally \eqref{eq:Wo} reads exactly those
+coordinates, so $\ell_i=\tilde s_{f_i}=\log(c_i+\beta_i)$. (Routing the output to the
+free block $F$ rather than back onto $J$ avoids the residual term $+\,\ve c$; equivalently
+one may target $J$ and write $\log(c_i+\beta_i)-c_i$, undoing the skip connection.)
+\end{proof}
+
+\section{Why the log readout coincides with the $L_1$ head}
+
+\begin{proposition}[Exact equivalence]\label{prop:equiv}
+Under Proposition~\ref{prop:log} and \eqref{eq:c}, the softmax of the constructed logits
+equals the $L_1$ head \eqref{eq:l1} with the same floor $\ve\beta$:
+\[
+\sm(\ve\ell)_i
+\;=\; \frac{c_i+\beta_i}{\sum_{j=1}^{V}\big(c_j+\beta_j\big)}
+\;=\; p^{L_1}_i .
+\]
+\end{proposition}
+\begin{proof}
+Substituting $\ell_i=\log(c_i+\beta_i)$ and using $e^{\log x}=x$,
+\[
+\sm(\ve\ell)_i
+=\frac{e^{\ell_i}}{\sum_j e^{\ell_j}}
+=\frac{e^{\log(c_i+\beta_i)}}{\sum_j e^{\log(c_j+\beta_j)}}
+=\frac{c_i+\beta_i}{\sum_j (c_j+\beta_j)} .
+\]
+For the $L_1$ head, the count readout is $\ve z=\ve c\ge\ve0$ by \eqref{eq:c}, so
+$\max(z_i,0)=c_i$ and \eqref{eq:l1} gives the same expression. The two distributions
+are therefore identical.
+\end{proof}
+
+\begin{remark}[The log cancels the softmax exponential]
+Softmax is ``exponentiate, then normalize''. The natural log is the inverse of the
+exponential, so $\sm\circ\log$ is just \emph{normalization}:
+\[
+\sm\!\big(\log \ve u\big)_i=\frac{u_i}{\sum_j u_j}\qquad(\ve u>\ve0).
+\]
+Inserting a log-FFN before the softmax therefore \emph{removes} the softmax
+nonlinearity, turning the softmax head into the linear divide-by-sum ($L_1$) head. With
+identical floors $\ve\beta$ the two constructions are the \emph{same function} of the
+context, so they produce identical predictive distributions and hence identical
+cross-entropy at \emph{every} threshold $\alpha$. This is exactly why the
+hand-constructed log-FFN curve and the \texttt{l1} curve lie on top of one another in the
+comparison plot.
+\end{remark}
+
+\begin{remark}[Floors $=$ smoothing]
+The floor $\ve\beta$ (the FFN bias $\ve b_1$ in \eqref{eq:W1}) is the additive smoothing
+of the empirical counts. It is what avoids assigning probability $\approx 0$ to
+unobserved tokens; without it, $\log 0=-\infty$ makes the readout catastrophically
+over-confident. Choosing $\beta_{\mathrm{sig}},\beta_{\mathrm{noise}}$ (e.g.\ by a small
+grid search) makes the resulting distribution match the smoothed count predictor
+\texttt{ctx-count} to within $\approx 0.01$--$0.03$ nats.
+\end{remark}
+
+\begin{remark}[Realizability of $\phi=\log$]
+A standard $\mathrm{ReLU}$ or $\mathrm{GELU}$ FFN cannot compute $\log$ \emph{exactly}.
+However, by \eqref{eq:c} the argument lies in the compact interval
+$c_i+\beta_i\in[\beta_i,\,1+\beta_i]$, bounded away from $0$, on which $\log$ is smooth.
+A $\mathrm{ReLU}$ network with $m$ hidden units approximates a smooth scalar function on
+a compact interval uniformly with error $O(1/m^2)$ (piecewise-linear interpolation), so
+with $m=128$ the log map is realizable to high precision; the plotted curve uses
+$\phi=\log$ directly (the idealized, best-case construction).
+\end{remark}
+
+\begin{remark}[Single-FFN model]
+The minimal one-FFN model (attention followed by a single residual FFN before the
+readout) admits the \emph{same} log construction of Section~\ref{sec:log}. Combined with
+Proposition~\ref{prop:id}, the two-cell construction with middle FFN $=$ identity and last
+FFN $=$ log is functionally identical to this single-FFN construction --- which is why
+the ``FFN $\times 1$'' and ``FFN $\times 2$ (mid $=$ identity)'' curves coincide.
+\end{remark}
+
+\section{Summary}
+
+\begin{itemize}
+\item \textbf{Identity FFN} (middle): $W_2=0,\ \ve b_2=\ve0$. The block is the identity;
+the middle FFN contributes nothing.
+\item \textbf{Log FFN} (last): select the count block ($W_1$), add the floor
+($\ve b_1=\ve\beta$), apply $\phi=\log$, write to a free block ($W_2$), and read it out
+($W_o$); the logits become $\log(\ve c+\ve\beta)$.
+\item \textbf{Consequence:} $\sm(\log(\ve c+\ve\beta))=(\ve c+\ve\beta)/\!\sum(\ve c+\ve\beta)$,
+the $L_1$ head. The log exactly inverts the softmax exponential, so the log-FFN readout
+\emph{is} the divide-by-sum readout --- hence the exactly overlapping curves.
+\end{itemize}
+
+\end{document}

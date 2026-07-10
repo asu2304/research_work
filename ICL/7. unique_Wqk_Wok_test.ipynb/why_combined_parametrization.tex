@@ -1,0 +1,373 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage{mathtools}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue]{hyperref}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\vecop}{\operatorname{vec}}
+\newcommand{\Wqk}{W_{qk}}
+\newcommand{\Wov}{W_{ov}}
+\newcommand{\Wq}{W_{q}}
+\newcommand{\Wk}{W_{k}}
+\newcommand{\Wo}{W_{o}}
+\newcommand{\Wv}{W_{v}}
+\newcommand{\softmax}{\operatorname{softmax}}
+\newcommand{\Hess}{\nabla^2}
+\DeclareMathOperator{\rank}{rank}
+
+\title{\bfseries Why the Combined $(\Wqk,\Wov)$ Parametrization Has a More\\
+Favorable Loss Landscape than the Factored $(\Wq,\Wk,\Wo,\Wv)$ One}
+\author{ICL project --- folder 7 (\texttt{unique\_Wqk\_Wok\_test})}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+A disentangled attention layer can be parametrized in two functionally
+equivalent ways: \emph{combined}, directly by the circuit matrices
+$\Wqk=\Wq^{\!\top}\Wk$ (scores) and $\Wov=\Wo\Wv$ (values); or \emph{factored},
+by the four matrices $\Wq,\Wk,\Wo,\Wv$. We show that the factored
+loss is the combined loss \emph{pulled back through a bilinear map}, and that
+this pullback can only \emph{add} curvature pathologies, never remove them.
+Precisely: the factored Hessian equals a positive‑semidefinite Gauss--Newton
+pullback of the combined Hessian \emph{plus} an indefinite term whose
+eigenvalues are $\pm\sigma_\ell(\nabla_M\widetilde{L})$ --- the singular values of
+the reduced gradient. Consequently the factored landscape (i)~carries a
+$r^2{+}r'^2$‑dimensional flat \emph{gauge} null space per layer, and (ii)~develops
+strictly \emph{negative} curvature (saddles) at every non‑stationary point,
+exactly where gradient descent operates. We confirm this empirically on the
+trained models: the combined Hessian is near‑isotropic (condition number
+$\kappa\!\approx\!1.2$) and stays positive semidefinite off the optimum, whereas
+the factored Hessian is $\kappa\!\approx\!10^4$ and acquires a negative
+eigenvalue $\lambda_{\min}\!\approx\!-0.74$ off the optimum. The combined
+parametrization is therefore the more convex, better‑conditioned, and
+more gradient‑descent‑favorable coordinate system.
+\end{abstract}
+
+\section{Setup: one attention layer, two coordinate systems}\label{sec:setup}
+
+Let $X\in\R^{T\times d}$ be the (token $\oplus$ position) representation that
+enters an attention layer, with $T$ positions and width $d$. The disentangled
+attention layer used throughout this project computes, with causal mask
+$\mathcal M$ and head width $m$,
+\begin{equation}\label{eq:layer}
+S \;=\; \tfrac{1}{\sqrt m}\, X\,\Wqk\,X^{\!\top} + \mathcal M,
+\qquad
+\text{attn} \;=\; \softmax(S)\,\bigl(X\,\Wov^{\!\top}\bigr),
+\qquad
+\text{out} = [\,X \,\|\, \text{attn}\,].
+\end{equation}
+The \textbf{combined parametrization} treats the two circuit matrices as the
+free variables,
+\[
+\boxed{\;\Wqk\in\R^{d\times d}\quad(\text{score circuit}),\qquad
+        \Wov\in\R^{m\times d}\quad(\text{value circuit}).\;}
+\]
+The \textbf{factored (separate) parametrization} writes each circuit as a product
+of two matrices,
+\begin{equation}\label{eq:factor}
+\Wqk=\Wq^{\!\top}\Wk,\quad \Wq,\Wk\in\R^{r\times d},
+\qquad\qquad
+\Wov=\Wo\,\Wv,\quad \Wo\in\R^{m\times r'},\ \Wv\in\R^{r'\times d},
+\end{equation}
+so that the score becomes $S=\tfrac{1}{\sqrt m}X\Wq^{\!\top}\Wk X^{\!\top}+\mathcal M$
+and the value path becomes $\softmax(S)\,(X\Wv^{\!\top}\Wo^{\!\top})$. Both
+parametrizations realize \emph{exactly the same function} as long as the inner
+ranks are large enough ($r\ge\rank\Wqk$, $r'\ge\rank\Wov$); the standard
+attention head is the special case $r=r'=m$.
+
+Stack the combined variables into $M=(\Wqk,\Wov)$ and the factored variables into
+$\theta=(\Wq,\Wk,\Wo,\Wv)$. The map relating them,
+\begin{equation}\label{eq:phi}
+\varphi(\theta)=M,\qquad
+\varphi_{qk}(\Wq,\Wk)=\Wq^{\!\top}\Wk,\quad
+\varphi_{ov}(\Wo,\Wv)=\Wo\Wv,
+\end{equation}
+is \textbf{bilinear} (linear in each factor separately). This single algebraic
+fact is the source of everything below.
+
+Let $\widetilde L(M)=\E[\text{cross-entropy}]$ be the (suffix-$100$) training loss
+as a function of the circuits. The two landscapes are
+\begin{equation}\label{eq:losses}
+L_{\mathrm{comb}}(M)=\widetilde L(M),
+\qquad\qquad
+L_{\mathrm{sep}}(\theta)=\widetilde L\bigl(\varphi(\theta)\bigr).
+\end{equation}
+They describe the \emph{same} surface, but in different coordinates. Gradient
+descent moves along the coordinates it is given, so the geometry that matters is
+the geometry of \eqref{eq:losses} in each coordinate system.
+
+\section{The landscape is parametrization-dependent: the Hessian chain rule}
+
+Curvature is not coordinate-free. For the composition
+$L_{\mathrm{sep}}=\widetilde L\circ\varphi$, the exact first and second
+derivatives are
+\begin{align}
+\nabla_\theta L_{\mathrm{sep}}
+   &= J_\varphi^{\!\top}\,\nabla_M\widetilde L, \label{eq:grad}\\[2pt]
+\Hess_\theta L_{\mathrm{sep}}
+   &= \underbrace{J_\varphi^{\!\top}\,\bigl(\Hess_M\widetilde L\bigr)\,J_\varphi}
+        _{\textstyle \text{Gauss--Newton pullback }=:\,P}
+     \;+\;
+      \underbrace{\sum_{a}\bigl(\nabla_M\widetilde L\bigr)_a\,\Hess_\theta\varphi_a}
+        _{\textstyle \text{residual curvature }=:\,R}, \label{eq:hess}
+\end{align}
+where $J_\varphi=\partial\,\vecop(M)/\partial\,\vecop(\theta)$ is the Jacobian of
+\eqref{eq:phi} and $a$ indexes the entries of $M$. The combined Hessian is just
+$\Hess_M\widetilde L$. The two extra structures in \eqref{eq:hess} --- the
+\emph{pullback} $P$ and the \emph{residual} $R$ --- are precisely what the
+factored coordinates inject. We analyze each.
+
+\section{The curvature of a bilinear factorization}
+
+The residual term $R$ is governed entirely by the bilinearity of $\varphi$.
+
+\begin{lemma}[Curvature of $A\mapsto A^{\!\top}B$]\label{lem:bilin}
+Fix $G\in\R^{d\times d}$ and consider $\psi(A,B)=\langle G,\,A^{\!\top}B\rangle
+=\tr(G^{\!\top}A^{\!\top}B)$ with $A,B\in\R^{r\times d}$. Then $\psi$ is a quadratic
+form whose Hessian in $\theta=(\vecop A,\vecop B)$ is the block matrix
+\begin{equation}\label{eq:Rblock}
+\Hess_\theta\psi \;=\;
+\begin{bmatrix} 0 & I_r\otimes G\\[2pt] I_r\otimes G^{\!\top} & 0\end{bmatrix},
+\end{equation}
+i.e.\ the $A$--$A$ and $B$--$B$ blocks vanish and only the cross block survives.
+Its eigenvalues are
+\[
+\boxed{\;\pm\,\sigma_\ell(G),\quad \ell=1,\dots,\rank(G),\ \text{each of multiplicity }r,\;}
+\]
+together with zeros. In particular $\Hess_\theta\psi$ is \emph{indefinite}
+whenever $G\neq 0$, with smallest eigenvalue $-\sigma_{\max}(G)$.
+\end{lemma}
+
+\begin{proof}
+Writing $\psi=\sum_{i,j}G_{ij}\sum_{k}A_{ki}B_{kj}$, the first derivatives are
+$\partial\psi/\partial A = BG^{\!\top}$ and $\partial\psi/\partial B = AG$, and the
+only nonzero second derivatives are the cross terms
+$\partial^2\psi/\partial A_{ki}\,\partial B_{lj}=\delta_{kl}\,G_{ij}$, which
+assemble into \eqref{eq:Rblock}. A block matrix
+$\bigl[\begin{smallmatrix}0&C\\ C^{\!\top}&0\end{smallmatrix}\bigr]$ has
+eigenvalues $\pm\sigma(C)$; here $C=I_r\otimes G$ has singular values
+$\{\sigma_\ell(G)\}$ each repeated $r$ times.
+\end{proof}
+
+Because $\widetilde L$ depends on $\Wq,\Wk$ only through $\Wqk=\Wq^{\!\top}\Wk$, the
+QK part of the residual in \eqref{eq:hess} is exactly $\Hess_\theta\psi$ of
+Lemma~\ref{lem:bilin} with the \textbf{reduced gradient}
+\begin{equation}\label{eq:redgrad}
+G \;=\; \nabla_{\Wqk}\widetilde L \;\in\;\R^{d\times d}.
+\end{equation}
+The OV part is identical with $\varphi_{ov}(\Wo,\Wv)=\Wo\Wv$ and
+$G'=\nabla_{\Wov}\widetilde L$. Hence
+
+\begin{equation}\label{eq:Rspec}
+\text{spectrum}(R)\;=\;\{\pm\sigma_\ell(\nabla_{\Wqk}\widetilde L)\}
+                    \,\cup\,\{\pm\sigma_\ell(\nabla_{\Wov}\widetilde L)\}\,\cup\,\{0\}.
+\end{equation}
+
+\paragraph{Reading \eqref{eq:Rspec}.}
+The factored coordinates contribute a curvature term whose negative eigenvalues
+have magnitude equal to the \emph{singular values of the reduced gradient}. This
+term \emph{vanishes at stationary points} of $\widetilde L$ (where
+$\nabla_M\widetilde L=0$) and is \emph{strictly indefinite everywhere else} ---
+that is, at every point gradient descent actually visits on its way to a
+solution.
+
+\section{Gauge redundancy: flat valleys with no analogue in the combined map}
+
+The factorization \eqref{eq:factor} is not unique. For any invertible
+$P\in GL(r)$,
+\begin{equation}\label{eq:gauge}
+(\Wq,\Wk)\ \longmapsto\ (P^{-\top}\Wq,\ P\Wk)
+\qquad\Longrightarrow\qquad
+\Wq^{\!\top}\Wk \ \text{unchanged},
+\end{equation}
+and analogously $(\Wo,\Wv)\mapsto(\Wo Q^{-1},Q\Wv)$ for $Q\in GL(r')$. Along these
+\textbf{gauge orbits} the function --- and hence $L_{\mathrm{sep}}$ --- is exactly
+constant, so their tangent directions lie in the kernel of the factored Hessian:
+\begin{equation}\label{eq:nulldim}
+\dim\ker\bigl(\Hess_\theta L_{\mathrm{sep}}\bigr)\ \ge\ r^2+r'^2 \quad\text{per layer.}
+\end{equation}
+These $r^2+r'^2$ flat directions exist purely because of the
+over‑parametrization; the combined coordinates $M$ have no such redundancy.
+Gradient descent conserves the imbalance $\|\Wq\|_F^2-\|\Wk\|_F^2$ (and likewise
+for OV) \cite{DuHuLee2018}, so it lives on a fixed --- the \emph{balanced} ---
+slice of each orbit; this is the canonical point at which any fair comparison of
+the two parametrizations must be made.
+
+\section{Main result}
+
+Collecting \eqref{eq:hess}, Lemma~\ref{lem:bilin}, \eqref{eq:Rspec} and
+\eqref{eq:nulldim}:
+
+\begin{theorem}[Factoring only adds curvature pathologies]\label{thm:main}
+Let $P=J_\varphi^{\!\top}(\Hess_M\widetilde L)\,J_\varphi$ and $R$ be as in
+\eqref{eq:hess}, so that $\Hess_\theta L_{\mathrm{sep}}=P+R$.
+\begin{enumerate}
+\item[\textup{(a)}] \textbf{(PSD pullback with extra flats.)}
+If $\Hess_M\widetilde L\succeq 0$ then $P\succeq 0$. Moreover
+$\ker P\supseteq$ the gauge tangent space of \eqref{eq:gauge}, of dimension
+$\ge r^2+r'^2$ per layer.
+\item[\textup{(b)}] \textbf{(Indefinite residual off-stationarity.)}
+$R$ has spectrum \eqref{eq:Rspec}; it is symmetric about $0$, and
+\[
+\lambda_{\min}(R)\;=\;-\max\!\Bigl\{\sigma_{\max}\!\bigl(\nabla_{\Wqk}\widetilde L\bigr),\,
+                                      \sigma_{\max}\!\bigl(\nabla_{\Wov}\widetilde L\bigr)\Bigr\}\;<\;0
+\quad\text{whenever }\nabla_M\widetilde L\neq 0 .
+\]
+\item[\textup{(c)}] \textbf{(Comparison.)} The factored Hessian differs from the
+PSD pullback of the combined Hessian by exactly the indefinite operator $R$:
+\[
+\Hess_\theta L_{\mathrm{sep}} - P \;=\; R,\qquad
+\lambda_{\min}(R)<0\ \text{off every stationary point.}
+\]
+At a stationary point ($\nabla_M\widetilde L=0$) we have $R=0$, so
+$\Hess_\theta L_{\mathrm{sep}}=P$ agrees with $\Hess_M\widetilde L$ on the
+non‑gauge subspace and differs only by the flat gauge null space.
+\end{enumerate}
+\end{theorem}
+
+\begin{remark}[What the theorem says in words]
+The combined coordinates see the bare circuit curvature $\Hess_M\widetilde L$.
+The factored coordinates see (i)~a \emph{stretched, rank‑deficient} version of it
+(the Gauss--Newton pullback $P$, which also adds $r^2{+}r'^2$ flat valleys), plus
+(ii)~an \emph{extra indefinite term} $R$ that plants a saddle of depth
+$\sigma_{\max}(\nabla_M\widetilde L)$ at every non‑optimal point. Factoring can
+therefore only \emph{remove convexity, never add it}, and is strictly worse
+wherever the gradient is nonzero. This is the induction‑circuit instance of the
+classical matrix‑factorization landscape: products of parameters create saddles
+at non‑optimal points
+\cite{BaldiHornik1989,Kawaguchi2016,GeLeeMa2016,SaxeMcCGanguli2014}.
+\end{remark}
+
+\section{Intuition}\label{sec:intuition}
+
+\paragraph{Why combined is gentle.}
+In the combined coordinates the score is \emph{linear} in $\Wqk$ and the value
+output is \emph{linear} in $\Wov$ (only the $\softmax$ in between is nonlinear).
+Each circuit is a single coordinate with no internal degrees of freedom, so the
+only curvature is the irreducible curvature of the task itself. Empirically this
+makes the combined Hessian almost isotropic --- a nearly spherical bowl that
+gradient descent can roll down with a single, large step size.
+
+\paragraph{Why factoring hurts.}
+Writing a circuit as a \emph{product} $\Wq^{\!\top}\Wk$ introduces multiplicative
+coupling between the two factors, the hallmark of deep‑linear optimization. Two
+things follow immediately and are visible in \eqref{eq:gauge} and \eqref{eq:Rspec}:
+\begin{itemize}
+\item \textbf{Flat valleys (gauge).} Scaling $\Wq$ up and $\Wk$ down by a matching
+factor leaves the product --- and the loss --- unchanged. These are the
+$r^2{+}r'^2$ zero modes of \eqref{eq:nulldim}: long, flat troughs that
+ill‑condition the problem without changing the function.
+\item \textbf{Saddles (residual).} Away from the optimum the reduced gradient
+$G=\nabla_{\Wqk}\widetilde L$ is nonzero, and the move ``increase $\Wq$ along its
+top singular direction while decreasing $\Wk$'' is a direction of
+\emph{negative} curvature of depth $\sigma_{\max}(G)$ (Lemma~\ref{lem:bilin}).
+The factored surface bends \emph{down} in directions where the combined surface
+is flat or up.
+\end{itemize}
+So GD in the factored coordinates must thread between flat gauge troughs and
+strict saddles, and must use a tiny step size because the same multiplicative
+coupling also creates very sharp directions; GD in the combined coordinates sees
+none of this.
+
+\section{Empirical confirmation}\label{sec:empirics}
+
+We took the trained combined checkpoints, produced the \emph{balanced} (SVD)
+factorization that realizes the identical function, and computed the Hessian of
+the suffix‑$100$ cross‑entropy in both coordinate systems via Hessian--vector
+products and power iteration (window of $128$ test sequences). The combined
+($400{,}420$ parameters) and factored ($739{,}220$ parameters --- the extra
+$338{,}800$ are exactly the gauge redundancy) nets agree to floating‑point on the
+loss. Table~\ref{tab:hess} reports, at the trained solution and at an
+off‑solution point (all weights scaled by $0.7$, where $\nabla_M\widetilde L\neq0$).
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llrrrr}
+\toprule
+$\alpha$ & point & param. & $\lambda_{\max}$ (sharpness) & $\lambda_{\min}$ & $\kappa\approx\lambda_{\max}/\lambda^{+}$ \\
+\midrule
+$0.9$ & solution      & combined & $3.4\times10^{-5}$ & $+2.3\times10^{-5}$ (PSD) & $\mathbf{\approx 1.3}$\\
+$0.9$ & solution      & factored & $\ge 1.21$          & $+7\times10^{-5}$         & $\mathbf{\approx 1.4\times10^{4}}$\\
+$0.9$ & off‑solution  & combined & $2.1\times10^{-5}$ & $+3.8\times10^{-6}$ (PSD)  & $\approx 3.6$\\
+$0.9$ & off‑solution  & factored & ---                & $\mathbf{-0.74}$ (saddle)  & non‑convex\\
+\midrule
+$0.5$ & solution      & combined & $6.8\times10^{-5}$ & $+5.5\times10^{-5}$ (PSD) & $\mathbf{\approx 1.2}$\\
+$0.5$ & solution      & factored & $\ge 3.11$          & $+1\times10^{-4}$         & $\mathbf{\approx 3.0\times10^{4}}$\\
+\bottomrule
+\end{tabular}
+\caption{Hessian geometry of the same function in the two parametrizations.
+$\lambda^{+}$ is a gauge‑robust lower curvature scale (the $10$th percentile of
+random Rayleigh quotients), used because the factored Hessian has many exact
+gauge zeros \eqref{eq:nulldim}. The combined Hessian is near‑isotropic
+($\kappa\approx1$) and stays PSD off the optimum; the factored Hessian is
+$\sim\!10^4$ worse conditioned and develops a negative‑curvature saddle
+($\lambda_{\min}=-0.74$) off the optimum, exactly as Theorem~\ref{thm:main}(b)
+predicts.}
+\label{tab:hess}
+\end{table}
+
+The numbers match the theory point for point: (i)~at the solution
+$\nabla_M\widetilde L\approx0$, so $R\approx0$ and both forms are PSD --- but the
+factored form is already $\sim\!10^4\times$ sharper (the pullback $P$ stretches
+curvature and adds gauge flats); (ii)~off the solution $\nabla_M\widetilde L\neq0$,
+and the factored form acquires the predicted negative eigenvalue while the
+combined form remains positive.
+
+\section{Caveats}
+
+\begin{enumerate}
+\item \textbf{Gauge.} ``Condition number'' for the factored form excludes the
+exact gauge zeros of \eqref{eq:nulldim}; the comparison is made at the balanced
+point where gradient descent actually sits \cite{DuHuLee2018}.
+\item \textbf{``More convex'' $\neq$ ``always trains better.''} Over‑parametrized
+factored forms can also \emph{implicitly accelerate} and bias toward low rank
+\cite{AroraCohenHazan2018}, and the injected saddles are \emph{strict}, hence
+escapable by perturbed/stochastic GD \cite{GeHuangJinYuan2015}. The rigorous claim
+here is about \emph{conditioning and saddle‑proneness}, which is exactly what the
+folder‑7 combined parametrization buys by removing the within‑head rotation gauge.
+\end{enumerate}
+
+\begin{thebibliography}{9}
+\bibitem{BaldiHornik1989} P.~Baldi and K.~Hornik.
+\emph{Neural networks and principal component analysis: learning from examples
+without local minima.} Neural Networks, 1989.
+\bibitem{SaxeMcCGanguli2014} A.~Saxe, J.~McClelland, S.~Ganguli.
+\emph{Exact solutions to the nonlinear dynamics of learning in deep linear neural
+networks.} ICLR, 2014.
+\bibitem{Kawaguchi2016} K.~Kawaguchi.
+\emph{Deep learning without poor local minima.} NeurIPS, 2016.
+\bibitem{GeHuangJinYuan2015} R.~Ge, F.~Huang, C.~Jin, Y.~Yuan.
+\emph{Escaping from saddle points --- online stochastic gradient for tensor
+decomposition.} COLT, 2015.
+\bibitem{GeLeeMa2016} R.~Ge, J.~D.~Lee, T.~Ma.
+\emph{Matrix completion has no spurious local minimum.} NeurIPS, 2016.
+\bibitem{DuHuLee2018} S.~S.~Du, W.~Hu, J.~D.~Lee.
+\emph{Algorithmic regularization in learning deep homogeneous models: layers are
+automatically balanced.} NeurIPS, 2018.
+\bibitem{AroraCohenHazan2018} S.~Arora, N.~Cohen, E.~Hazan.
+\emph{On the optimization of deep networks: implicit acceleration by
+overparameterization.} ICML, 2018.
+\bibitem{KarimiNutiniSchmidt2016} H.~Karimi, J.~Nutini, M.~Schmidt.
+\emph{Linear convergence of gradient and proximal‑gradient methods under the
+Polyak--{\L}ojasiewicz condition.} ECML‑PKDD, 2016.
+\bibitem{Yao2020} Z.~Yao, A.~Gholami, K.~Keutzer, M.~Mahoney.
+\emph{PyHessian: neural networks through the lens of the Hessian.} IEEE BigData,
+2020.
+\end{thebibliography}
+
+\end{document}

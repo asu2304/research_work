@@ -1,0 +1,103 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\newcommand{\relu}{\operatorname{ReLU}}
+\newcommand{\sm}{\operatorname{softmax}}
+
+\title{Implementing a \texttt{log} read-out with a ReLU feed-forward layer}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-2.5em}
+
+\section{Setup}
+A block of the residual stream holds the in-context count vector
+$\mathbf c=(c_1,\dots,c_V)$, the empirical next-token frequencies, with
+$c_i\ge 0$ and $\sum_i c_i\le 1$. The feed-forward block and read-out are
+\[
+\mathrm{FF}(\mathbf s)=\mathbf s+W_2\,\relu(W_1\mathbf s+\mathbf b_1),
+\qquad
+\boldsymbol\ell = W_o\,\mathbf s+\mathbf b_o,
+\qquad
+\mathbf p=\sm(\boldsymbol\ell).
+\]
+
+\section{Goal}
+The best count-based predictor is proportional to the (floored) counts,
+\[
+p_i=\frac{c_i+\beta_i}{\sum_j (c_j+\beta_j)} \qquad(\beta_i>0\ \text{a small floor}).
+\]
+Since $\sm(\log\mathbf u)_i=u_i/\sum_j u_j$, the soft-max produces exactly this \emph{iff}
+\begin{equation}\label{eq:goal}
+\boxed{\ \ell_i=\log(c_i+\beta_i)\ }.
+\end{equation}
+So the feed-forward layer must compute $\log(c_i+\beta_i)$ --- and we build it from ReLU only.
+
+\section{ReLU makes piecewise-linear functions}
+$\relu(c-x)$ is a hinge: $0$ for $c<x$, slope $1$ for $c>x$. Pick breakpoints
+$0=x_0<x_1<\dots<x_{K-1}$ and let $m_j$ be the slope wanted on segment $[x_j,x_{j+1}]$.
+Then
+\begin{equation}\label{eq:pl}
+\hat h(c)=\log\beta+\underbrace{m_0}_{\text{slope}}\relu(c-x_0)
++\sum_{j\ge 1}\underbrace{(m_j-m_{j-1})}_{\text{slope change}}\relu(c-x_j).
+\end{equation}
+On segment $k$ the slopes telescope to $m_0+\sum_{j=1}^{k}(m_j-m_{j-1})=m_k$, so each
+piece has the chosen slope and the curve is continuous.
+
+To approximate $\log(c+\beta)$, set $m_j$ to its secant slopes:
+\begin{equation}\label{eq:slopes}
+m_j=\frac{\log(x_{j+1}+\beta)-\log(x_j+\beta)}{x_{j+1}-x_j}.
+\end{equation}
+$\log$ is concave $\Rightarrow$ the $m_j$ decrease $\Rightarrow$ the first coefficient is
+positive and the rest are negative. Error $\to 0$ as the number of knots $K$ grows.
+
+\section{The weights}
+One hidden unit per (coordinate $i$, knot $k$):
+\[
+W_1[u,\,\text{index of }c_i]=1,\qquad
+b_1[u]=-x_k,\qquad
+W_2[\text{out }i,\,u]=
+\begin{cases}m_0 & k=0\\ m_k-m_{k-1} & k\ge 1\end{cases},
+\qquad
+b_o[i]=\log\beta_i .
+\]
+Then the unit outputs $\relu(c_i-x_k)$, the output coordinate accumulates
+$\sum_k(\cdot)\,\relu(c_i-x_k)$, and adding $b_o[i]$ gives
+$\ell_i=\hat h(c_i)\approx\log(c_i+\beta_i)$. Only $W_1$ ``selects'' a coordinate (a
+single $1$ per row); $\log$ is used \emph{only} to precompute the fixed numbers
+$m_j$, never on the data.
+
+\section{Numbers ($\beta=0.01$, $K=7$, $6$ ReLU units per coordinate)}
+\[
+x_k:\ 0,\ 0.010,\ 0.025,\ 0.063,\ 0.159,\ 0.398,\ 1.0
+\qquad(\text{knots, dense near }0).
+\]
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+unit $u$ & ReLU bias $b_1=-x_k$ & $W_2$ coeff & meaning\\
+\midrule
+$0$ & $0.000$  & $+69.32$ & initial slope $m_0$\\
+$1$ & $-0.010$ & $-32.08$ & bend down\\
+$2$ & $-0.025$ & $-17.94$ & bend down\\
+$3$ & $-0.063$ & $-10.55$ & bend down\\
+$4$ & $-0.159$ & $-5.06$  & bend down\\
+$5$ & $-0.398$ & $-2.19$  & bend down\\
+\bottomrule
+\end{tabular}
+\end{center}
+Read-out bias $b_o=\log(0.01)=-4.605$. With $V=20$ coordinates this uses
+$20\times 6=120$ of the $128$ hidden units.
+
+\section{Result}
+\[
+\sm(\boldsymbol\ell)_i
+=\frac{e^{\log(c_i+\beta_i)}}{\sum_j e^{\log(c_j+\beta_j)}}
+=\frac{c_i+\beta_i}{\sum_j(c_j+\beta_j)} .
+\]
+A pure-ReLU feed-forward layer, with hand-set weights, reproduces the divide-by-sum
+(count) predictor: the $\log$ inverts the soft-max exponential. Measured cross-entropy
+matches the exact-$\log$ read-out to $\approx 0.01$ nats at $K=7$, shrinking as $K$ grows.
+\end{document}

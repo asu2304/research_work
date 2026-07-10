@@ -1,0 +1,86 @@
+>>> Running 4-Way Accuracy Comparison on cuda:1
+Evaluating x=0.1:   0%|          | 0/4 [00:00<?, ?it/s]Evaluating x=0.1:  25%|██▌       | 1/4 [00:00<00:01,  2.27it/s]Evaluating x=0.1:  50%|█████     | 2/4 [00:00<00:00,  3.66it/s]Evaluating x=0.1:  75%|███████▌  | 3/4 [00:00<00:00,  4.55it/s]Evaluating x=0.1: 100%|██████████| 4/4 [00:00<00:00,  5.13it/s]Evaluating x=0.1: 100%|██████████| 4/4 [00:00<00:00,  4.40it/s]
+Evaluating x=0.2:   0%|          | 0/4 [00:00<?, ?it/s]Evaluating x=0.2:  25%|██▌       | 1/4 [00:00<00:00,  6.48it/s]Evaluating x=0.2:  50%|█████     | 2/4 [00:00<00:00,  6.50it/s]Evaluating x=0.2:  75%|███████▌  | 3/4 [00:00<00:00,  6.45it/s]Evaluating x=0.2: 100%|██████████| 4/4 [00:00<00:00,  6.44it/s]Evaluating x=0.2: 100%|██████████| 4/4 [00:00<00:00,  6.45it/s]
+Evaluating x=0.3:   0%|          | 0/4 [00:00<?, ?it/s]Evaluating x=0.3:  25%|██▌       | 1/4 [00:00<00:00,  6.11it/s]Evaluating x=0.3:  50%|█████     | 2/4 [00:00<00:00,  6.49it/s]Evaluating x=0.3:  75%|███████▌  | 3/4 [00:00<00:00,  6.57it/s]Evaluating x=0.3: 100%|██████████| 4/4 [00:00<00:00,  6.49it/s]Evaluating x=0.3: 100%|██████████| 4/4 [00:00<00:00,  6.47it/s]
+Evaluating x=0.4:   0%|          | 0/4 [00:00<?, ?it/s]Evaluating x=0.4:  25%|██▌       | 1/4 [00:00<00:00,  6.06it/s]Evaluating x=0.4:  50%|█████     | 2/4 [00:00<00:00,  6.27it/s]Evaluating x=0.4:  75%|███████▌  | 3/4 [00:00<00:00,  6.61it/s]Evaluating x=0.4: 100%|██████████| 4/4 [00:00<00:00,  6.52it/s]Evaluating x=0.4: 100%|██████████| 4/4 [00:00<00:00,  6.46it/s]
+Evaluating x=0.5:   0%|          | 0/4 [00:00<?, ?it/s]Evaluating x=0.5:  25%|██▌       | 1/4 [00:00<00:00,  6.08it/s]Evaluating x=0.5:  50%|█████     | 2/4 [00:00<00:00,  6.26it/s]Evaluating x=0.5:  75%|███████▌  | 3/4 [00:00<00:00,  6.59it/s]Evaluating x=0.5: 100%|██████████| 4/4 [00:00<00:00,  6.50it/s]Evaluating x=0.5: 100%|██████████| 4/4 [00:00<00:00,  6.45it/s]
+Evaluating x=0.6:   0%|          | 0/4 [00:00<?, ?it/s]Evaluating x=0.6:  25%|██▌       | 1/4 [00:00<00:00,  6.06it/s]Evaluating x=0.6:  50%|█████     | 2/4 [00:00<00:00,  6.28it/s]Evaluating x=0.6:  75%|███████▌  | 3/4 [00:00<00:00,  6.33it/s]Evaluating x=0.6: 100%|██████████| 4/4 [00:00<00:00,  6.56it/s]Evaluating x=0.6: 100%|██████████| 4/4 [00:00<00:00,  6.44it/s]
+Evaluating x=0.7:   0%|          | 0/4 [00:00<?, ?it/s]Evaluating x=0.7:  25%|██▌       | 1/4 [00:00<00:00,  6.10it/s]Evaluating x=0.7:  50%|█████     | 2/4 [00:00<00:00,  6.29it/s]Evaluating x=0.7:  75%|███████▌  | 3/4 [00:00<00:00,  6.62it/s]Evaluating x=0.7: 100%|██████████| 4/4 [00:00<00:00,  6.54it/s]Evaluating x=0.7: 100%|██████████| 4/4 [00:00<00:00,  6.48it/s]
+Evaluating x=0.8:   0%|          | 0/4 [00:00<?, ?it/s]Evaluating x=0.8:  25%|██▌       | 1/4 [00:00<00:00,  6.56it/s]Evaluating x=0.8:  50%|█████     | 2/4 [00:00<00:00,  6.52it/s]Evaluating x=0.8:  75%|███████▌  | 3/4 [00:00<00:00,  6.46it/s]Evaluating x=0.8: 100%|██████████| 4/4 [00:00<00:00,  6.44it/s]Evaluating x=0.8: 100%|██████████| 4/4 [00:00<00:00,  6.46it/s]
+Evaluating x=0.9:   0%|          | 0/4 [00:00<?, ?it/s]Evaluating x=0.9:  25%|██▌       | 1/4 [00:00<00:00,  6.06it/s]Evaluating x=0.9:  50%|█████     | 2/4 [00:00<00:00,  6.27it/s]Evaluating x=0.9:  75%|███████▌  | 3/4 [00:00<00:00,  6.35it/s]Evaluating x=0.9: 100%|██████████| 4/4 [00:00<00:00,  6.38it/s]Evaluating x=0.9: 100%|██████████| 4/4 [00:00<00:00,  6.34it/s]
+<string>:328: UserWarning: This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.
+W*-better calibrated: sigma=3.0, bN=+3.0
+Sequence 0  |  threshold x=0.1  |  positions [150, 200)  |  T=200
+hedge: σ=7.0, ε=1.0
+
+Markov chain (ruled-token transitions for this sequence):
+   0 → {8, 1}
+   1 → {0, 1}
+   2 → {9, 2}
+   3 → {1, 7}
+   4 → {1, 5}
+   5 → {8, 2}
+   6 → {0, 5}
+   7 → {4, 8}
+   8 → {2, 0}
+   9 → {4, 2}
+
+   pos  x[t]  y[t]  pred   ok    p(y[t])  expected next
+  ----  ----  ----  ----  ---  ---------  ----------------------
+   150    15    17    10    ✗     0.1000  noise prefix (uniform)
+   151    17    10    10    ✓     0.1000  noise prefix (uniform)
+   152    10    16    10    ✗     0.1000  noise prefix (uniform)
+   153    16    14    10    ✗     0.1000  noise prefix (uniform)
+   154    14    16    10    ✗     0.1000  noise prefix (uniform)
+   155    16     1    10    ✗     0.0000  noise prefix (uniform)
+   156     1    14    10    ✗     0.1000  ruled → {0, 1}
+   157    14    14    10    ✗     0.1000  noise prefix (uniform)
+   158    14     1    10    ✗     0.0000  noise prefix (uniform)
+   159     1    13    10    ✗     0.1000  ruled → {0, 1}
+   160    13    19    10    ✗     0.1000  noise prefix (uniform)  ←FP
+   161    19    14    10    ✗     0.1000  noise prefix (uniform)
+   162    14    10    10    ✓     0.1000  noise prefix (uniform)
+   163    10    14    10    ✗     0.1000  noise prefix (uniform)
+   164    14    19    10    ✗     0.1000  noise prefix (uniform)
+   165    19    13    10    ✗     0.1000  noise prefix (uniform)
+   166    13     0    10    ✗     0.0000  noise prefix (uniform)
+   167     0     8    10    ✗     0.0000  ruled → {8, 1}
+   168     8    10    10    ✓     0.1000  ruled → {2, 0}
+   169    10    13    10    ✗     0.1000  noise prefix (uniform)
+   170    13    16    10    ✗     0.1000  noise prefix (uniform)
+   171    16    13    10    ✗     0.1000  noise prefix (uniform)
+   172    13    11    10    ✗     0.1000  noise prefix (uniform)
+   173    11    10    10    ✓     0.1000  noise prefix (uniform)
+   174    10    12    10    ✗     0.1000  noise prefix (uniform)
+   175    12    12    10    ✗     0.1000  noise prefix (uniform)
+   176    12    17    10    ✗     0.1000  noise prefix (uniform)
+   177    17    11    10    ✗     0.1000  noise prefix (uniform)
+   178    11     0    10    ✗     0.0000  noise prefix (uniform)
+   179     0    10    10    ✓     0.1000  ruled → {8, 1}
+   180    10    19    10    ✗     0.1000  noise prefix (uniform)
+   181    19    11    10    ✗     0.1000  noise prefix (uniform)
+   182    11    16    10    ✗     0.1000  noise prefix (uniform)
+   183    16    14    10    ✗     0.1000  noise prefix (uniform)
+   184    14    17    10    ✗     0.1000  noise prefix (uniform)
+   185    17    14    10    ✗     0.1000  noise prefix (uniform)
+   186    14    13    10    ✗     0.1000  noise prefix (uniform)
+   187    13    18    10    ✗     0.1000  noise prefix (uniform)
+   188    18    12    10    ✗     0.1000  noise prefix (uniform)
+   189    12    13    10    ✗     0.1000  noise prefix (uniform)
+   190    13    16    10    ✗     0.1000  noise prefix (uniform)
+   191    16    16    10    ✗     0.1000  noise prefix (uniform)
+   192    16    14    10    ✗     0.1000  noise prefix (uniform)
+   193    14    16    10    ✗     0.1000  noise prefix (uniform)
+   194    16    18    10    ✗     0.1000  noise prefix (uniform)
+   195    18    10    10    ✓     0.1000  noise prefix (uniform)
+   196    10    13    10    ✗     0.1000  noise prefix (uniform)
+   197    13    15    10    ✗     0.1000  noise prefix (uniform)
+   198    15    12    10    ✗     0.1000  noise prefix (uniform)
+   199    12    18    10    ✗     0.1000  noise prefix (uniform)
+
+  accuracy on shown range: 6/50 = 12.00%
+  x[FOCUS_POS=160] = 13  appeared 12× in x[0..159]
+
+Saved → artifacts_bias/wstar_inspect_compact_seq0_thr0.1_fp160.png
+subplots (axes) in final figure: 5 (expect 5 = strip + 4 bars)
+VERIFY OK

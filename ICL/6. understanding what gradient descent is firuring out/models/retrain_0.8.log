@@ -1,0 +1,13 @@
+device     : cuda:1
+attn_dim   : 220
+suffix_len : 100  (loss & eval on last 100 tokens only)
+lr         : 0.001  grad_clip=1.0  patience=25
+epochs     : 300  batch=256
+thresholds : [0.8]
+
+
+====================================================================
+  [1/1] thr=0.8  attn_dim=220  params=545,620  train=20,000  loss_suffix=100/200
+====================================================================
+  ep    1/300  loss=2.7533  tr=0.153  te=0.195  9.3s/ep  ETA=47m
+  ep    2/300  loss=2.5552  tr=0.201  te=0.199  8.9s/ep  ETA=45m

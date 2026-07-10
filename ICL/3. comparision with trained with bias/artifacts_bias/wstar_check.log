@@ -1,0 +1,23 @@
+>>> Running 4-Way Accuracy Comparison on cuda:1
+Evaluating x=0.1:   0%|          | 0/4 [00:00<?, ?it/s]Evaluating x=0.1:  25%|██▌       | 1/4 [00:00<00:01,  2.24it/s]Evaluating x=0.1:  50%|█████     | 2/4 [00:00<00:00,  3.63it/s]Evaluating x=0.1:  75%|███████▌  | 3/4 [00:00<00:00,  4.52it/s]Evaluating x=0.1: 100%|██████████| 4/4 [00:00<00:00,  5.11it/s]Evaluating x=0.1: 100%|██████████| 4/4 [00:00<00:00,  4.37it/s]
+Evaluating x=0.2:   0%|          | 0/4 [00:00<?, ?it/s]Evaluating x=0.2:  25%|██▌       | 1/4 [00:00<00:00,  6.66it/s]Evaluating x=0.2:  50%|█████     | 2/4 [00:00<00:00,  6.52it/s]Evaluating x=0.2:  75%|███████▌  | 3/4 [00:00<00:00,  6.49it/s]Evaluating x=0.2: 100%|██████████| 4/4 [00:00<00:00,  6.45it/s]Evaluating x=0.2: 100%|██████████| 4/4 [00:00<00:00,  6.48it/s]
+Evaluating x=0.3:   0%|          | 0/4 [00:00<?, ?it/s]Evaluating x=0.3:  25%|██▌       | 1/4 [00:00<00:00,  6.07it/s]Evaluating x=0.3:  50%|█████     | 2/4 [00:00<00:00,  6.55it/s]Evaluating x=0.3:  75%|███████▌  | 3/4 [00:00<00:00,  6.51it/s]Evaluating x=0.3: 100%|██████████| 4/4 [00:00<00:00,  6.45it/s]Evaluating x=0.3: 100%|██████████| 4/4 [00:00<00:00,  6.44it/s]
+Evaluating x=0.4:   0%|          | 0/4 [00:00<?, ?it/s]Evaluating x=0.4:  25%|██▌       | 1/4 [00:00<00:00,  6.06it/s]Evaluating x=0.4:  50%|█████     | 2/4 [00:00<00:00,  6.24it/s]Evaluating x=0.4:  75%|███████▌  | 3/4 [00:00<00:00,  6.57it/s]Evaluating x=0.4: 100%|██████████| 4/4 [00:00<00:00,  6.49it/s]Evaluating x=0.4: 100%|██████████| 4/4 [00:00<00:00,  6.43it/s]
+Evaluating x=0.5:   0%|          | 0/4 [00:00<?, ?it/s]Evaluating x=0.5:  25%|██▌       | 1/4 [00:00<00:00,  6.07it/s]Evaluating x=0.5:  50%|█████     | 2/4 [00:00<00:00,  6.27it/s]Evaluating x=0.5:  75%|███████▌  | 3/4 [00:00<00:00,  6.32it/s]Evaluating x=0.5: 100%|██████████| 4/4 [00:00<00:00,  6.55it/s]Evaluating x=0.5: 100%|██████████| 4/4 [00:00<00:00,  6.43it/s]
+Evaluating x=0.6:   0%|          | 0/4 [00:00<?, ?it/s]Evaluating x=0.6:  25%|██▌       | 1/4 [00:00<00:00,  6.08it/s]Evaluating x=0.6:  50%|█████     | 2/4 [00:00<00:00,  6.27it/s]Evaluating x=0.6:  75%|███████▌  | 3/4 [00:00<00:00,  6.60it/s]Evaluating x=0.6: 100%|██████████| 4/4 [00:00<00:00,  6.53it/s]Evaluating x=0.6: 100%|██████████| 4/4 [00:00<00:00,  6.47it/s]
+Evaluating x=0.7:   0%|          | 0/4 [00:00<?, ?it/s]Evaluating x=0.7:  25%|██▌       | 1/4 [00:00<00:00,  6.09it/s]Evaluating x=0.7:  50%|█████     | 2/4 [00:00<00:00,  6.26it/s]Evaluating x=0.7:  75%|███████▌  | 3/4 [00:00<00:00,  6.34it/s]Evaluating x=0.7: 100%|██████████| 4/4 [00:00<00:00,  6.37it/s]Evaluating x=0.7: 100%|██████████| 4/4 [00:00<00:00,  6.33it/s]
+Evaluating x=0.8:   0%|          | 0/4 [00:00<?, ?it/s]Evaluating x=0.8:  25%|██▌       | 1/4 [00:00<00:00,  6.06it/s]Evaluating x=0.8:  50%|█████     | 2/4 [00:00<00:00,  6.28it/s]Evaluating x=0.8:  75%|███████▌  | 3/4 [00:00<00:00,  6.36it/s]Evaluating x=0.8: 100%|██████████| 4/4 [00:00<00:00,  6.39it/s]Evaluating x=0.8: 100%|██████████| 4/4 [00:00<00:00,  6.34it/s]
+Evaluating x=0.9:   0%|          | 0/4 [00:00<?, ?it/s]Evaluating x=0.9:  25%|██▌       | 1/4 [00:00<00:00,  6.09it/s]Evaluating x=0.9:  50%|█████     | 2/4 [00:00<00:00,  6.35it/s]Evaluating x=0.9:  75%|███████▌  | 3/4 [00:00<00:00,  6.37it/s]Evaluating x=0.9: 100%|██████████| 4/4 [00:00<00:00,  6.39it/s]Evaluating x=0.9: 100%|██████████| 4/4 [00:00<00:00,  6.36it/s]
+x[fp]= 13   y[fp]= 19   last_ruled state= 1
+  expected successors of state 1 = [np.int64(0), np.int64(1)]
+  context transition counts from state 1 : {0: 3, 1: 8}
+
+W* raw logits at fp (rounded): [0.273 0.727 0.    0.    0.    0.    0.    0.    0.    0.    0.    0.
+ 0.    0.    0.    0.    0.    0.    0.    0.   ]
+W* raw softmax  top5: [1, 0, 19, 18, 16]  p= [0.097 0.061 0.047 0.047 0.047]
+W* raw argmax: 1  p(y)= 0.047
+  σ=1: argmax=1 noise_mass=0.468 signal_mass=0.532
+  σ=7: argmax=1 noise_mass=0.053 signal_mass=0.947
+  σ=50: argmax=1 noise_mass=0.000 signal_mass=1.000
+W* hedged(eps=1) = uniform noise: argmax= 10  p(y)= 0.1
+OK

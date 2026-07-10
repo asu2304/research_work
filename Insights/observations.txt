@@ -1,0 +1,4 @@
+- tieing parameterizing in the combined way, ie Wqk and Wov, doesnt properly converge than tying them seperately, better solution do exist but GD doesn't reach there.  
+- L1 head is impractical so FFD head is required for log implementation and for accurate counting. 
+- there is a non zero probabilty for next possible ruled in some cases for our most optimal constricution.
+- there was a problem with the converge for threshold = 0.8 but it did nicely when initialized with learned weights for theshold = 0.8.

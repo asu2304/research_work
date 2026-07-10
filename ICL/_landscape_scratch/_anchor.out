@@ -1,0 +1,21 @@
+device cuda:1
+
+===== alpha=0.9 =====
+/home/hariguru/miniconda3/envs/ashu_env/lib/python3.11/site-packages/torch/_utils.py:776: UserWarning: TypedStorage is deprecated. It will be removed in the future and UntypedStorage will be the only storage class. This should only matter to you if you are using storages directly.  To access UntypedStorage directly, use tensor.untyped_storage() instead of tensor.storage()
+  return self.fget.__get__(instance, owner)()
+ point c=1.0 (c=1.0 is the GD solution):
+  [COMBINED ] CE=1.6068  |grad|=5.919e-02  lam_max=+3.421e-05  lam_min=+2.336e-05  frac_neg=0.00  ray_mean=+3.25e-05  ray_p10=+2.74e-05  trace=+1.300e+01
+  [SEPARATE ] CE=1.6068  |grad|=1.379e-01  lam_max=+1.210e+00  lam_min=+7.308e-05  frac_neg=0.00  ray_mean=+9.43e-05  ray_p10=+8.38e-05  trace=+7.138e+01
+ point c=0.7 (c=1.0 is the GD solution):
+  [COMBINED ] CE=2.3239  |grad|=1.659e-01  lam_max=+2.147e-05  lam_min=+3.830e-06  frac_neg=0.00  ray_mean=+1.42e-05  ray_p10=+5.99e-06  trace=+6.044e+00
+  [SEPARATE ] CE=2.3239  |grad|=2.781e-01  lam_max=+1.686e-05  lam_min=-7.356e-01  frac_neg=0.00  ray_mean=+2.33e-05  ray_p10=+1.23e-05  trace=+1.250e+01
+
+===== alpha=0.5 =====
+ point c=1.0 (c=1.0 is the GD solution):
+  [COMBINED ] CE=2.5973  |grad|=7.051e-02  lam_max=+6.812e-05  lam_min=+5.489e-05  frac_neg=0.00  ray_mean=+6.28e-05  ray_p10=+5.59e-05  trace=+2.494e+01
+  [SEPARATE ] CE=2.5973  |grad|=1.176e-01  lam_max=+3.109e+00  lam_min=+9.680e-05  frac_neg=0.00  ray_mean=+1.14e-04  ray_p10=+1.04e-04  trace=+8.482e+01
+ point c=0.7 (c=1.0 is the GD solution):
+  [COMBINED ] CE=2.8432  |grad|=6.784e-02  lam_max=+2.221e-05  lam_min=+1.339e-05  frac_neg=0.00  ray_mean=+1.86e-05  ray_p10=+1.57e-05  trace=+7.066e+00
+  [SEPARATE ] CE=2.8432  |grad|=9.696e-02  lam_max=+1.295e-05  lam_min=+5.082e-06  frac_neg=0.00  ray_mean=+1.59e-05  ray_p10=+1.30e-05  trace=+1.144e+01
+
+DONE

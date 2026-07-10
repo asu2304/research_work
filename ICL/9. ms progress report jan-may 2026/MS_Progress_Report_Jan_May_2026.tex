@@ -1,0 +1,426 @@
+\documentclass[12pt]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{newtxtext,newtxmath}      % Times New Roman look
+\usepackage{setspace}\onehalfspacing  % 1.5 line spacing
+\usepackage{array,booktabs,longtable}
+\usepackage{enumitem}
+\usepackage[table]{xcolor}
+\usepackage{amsmath}
+\usepackage{titlesec}
+\usepackage[hidelinks]{hyperref}
+
+\setlist{nosep,leftmargin=1.6em}
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.5em}{}
+\renewcommand{\arraystretch}{1.25}
+\newcommand{\g}[1]{\cellcolor{gray!45}#1}
+
+\begin{document}
+
+% ======================================================================
+\begin{center}
+{\large\bfseries Half-Yearly Progress Report for Jan--May 2026}\\[2pt]
+{\bfseries Data sheet for MS scholars}
+\end{center}
+
+\begin{enumerate}[label=\arabic*.,leftmargin=2.2em]
+\item \textbf{Name:} Ashutosh Patidar
+\item \textbf{Registration No.:} DA24S006
+\item \textbf{Department:} Data Science and AI
+\item \textbf{Date of Joining:} 1st July 2024
+\item \textbf{Specialization / Stream:} Data Science and AI
+\item \textbf{Area of Research Work:} Interpretability (Transformers)
+\item \textbf{Category of Admission (Regular/Part Time/External/Project\ldots):} Regular
+\item \textbf{Guide:} Prof.\ Harish G.\ Ramaswamy
+\item \textbf{Co-Guide(s) (if any):} ---
+\item \textbf{Dates of GTC Meetings:}
+\end{enumerate}
+
+\begin{center}
+\begin{tabular}{|p{3.4cm}|p{7.6cm}|p{2.4cm}|}
+\hline
+\textbf{Description} & \textbf{Event} & \textbf{Date}\\
+\hline
+1$^{\text{st}}$ GTC Meeting & Progress review / Research proposal meeting (Within 18 months from the date of registration) (Mandatory) & \\
+\hline
+2$^{\text{nd}}$ GTC Meeting & Research seminar (Within 27 months from the date of registration) (Mandatory) & \\
+\hline
+3$^{\text{rd}}$ GTC meeting & Thesis submission meeting (within 30 months from the date of registration) (Mandatory) & \\
+\hline
+Subsequent GTC meetings & Every 6 months till maximum period of the program or thesis submission whichever is earlier (Mandatory) & \\
+\hline
+\end{tabular}
+\end{center}
+
+\bigskip
+\noindent\textbf{11. Details of course work}
+\begin{center}
+\begin{tabular}{|c|c|p{4.6cm}|c|c|c|}
+\hline
+\textbf{S.No} & \textbf{Course No.} & \textbf{Course Title} & \textbf{Sem.\ \& Year} & \textbf{Credit} & \textbf{Grade}\\
+\hline
+1 & DA5000 & Mathematical Foundations of Data Science & July--Nov 2024 & 12 & S\\
+\hline
+2 & DA5400 & Foundations of Machine Learning & July--Nov 2024 & 12 & B\\
+\hline
+3 & DA5401 & DA Lab & July--Nov 2024 & 6 & A\\
+\hline
+4 & DA6401 & Introduction to Deep Learning & Jan--May 2025 & 12 & A\\
+\hline
+5 & EE6180 & Advanced Topics in AI & Jan--May 2025 & 9 & A\\
+\hline
+6 & DA5402 & Machine Learning Operations Lab & Jan--May 2026 & 9 & S\\
+\hline
+\multicolumn{5}{|r|}{\textbf{OVERALL CGPA}} & 9.15\\
+\hline
+\end{tabular}
+\end{center}
+
+\bigskip
+\noindent\textbf{12. Issues affecting research progress, if any:} None.
+
+\vspace{1.4cm}
+\noindent\begin{tabular}{p{5cm}p{5cm}p{5cm}}
+\hrulefill & \hrulefill & \hrulefill\\
+\textbf{Signature of Scholar} & \textbf{Signature of Co-Guide} & \textbf{Signature of Guide}
+\end{tabular}
+
+\newpage
+% ======================================================================
+\noindent\textit{Report should be in Times New Roman, 12 point, 1.5 spacing}
+
+\section*{A. Short Summary (upto 3 pages only): Mandatory}
+
+\noindent\textbf{Title of research work:} Interpretability of In-Context Learning: Analyzing
+Causal Structure Acquisition in Minimal Transformer Models.
+
+\medskip
+\noindent\textbf{Problem Definition / Research Objectives (upto 250 words):}
+The emergence of In-Context Learning (ICL) in Large Language Models presents a significant
+interpretability challenge. Our research addresses the fundamental question: how do Transformer
+architectures physically encode and utilise the causal structure of sequential data to make
+predictions? Because analysing large models is computationally intractable, we adopt a
+``minimal model'' approach---small, attention-centric Transformers trained on synthetic data
+whose generative rules we control exactly. Our experiments confirm that such stripped-down
+models reach near-optimal accuracy on unseen sequences, indicating they learn the underlying
+transition/causal structure rather than memorising tokens; the core problem is to mathematically
+decipher \emph{how} this is realised in the weights. The primary objective is to deconstruct the
+optimisation dynamics of the Query--Key ($W_{QK}=W_Q^{\top}W_K$) and Output--Value
+($W_{OV}=W_O W_V$) circuits---explaining why gradient descent converges to specific, structured
+configurations that mirror the data's causal properties---and to compare these \emph{learned}
+solutions against exactly \emph{hand-constructed} ``ideal'' circuits, using phase-wise training
+and weight engineering to isolate each component. A second objective extends the analysis from a
+single causal structure to the realistic regime of many competing in-context structures (random
+Markov chains corrupted by noise), studying how a single model infers and applies the active rule
+from context, and how noise density and architectural choices (attention parametrisation,
+feed-forward layers) shape what gradient descent ultimately discovers---a step toward a rigorous,
+mechanistic account of general-purpose In-Context Learning.
+
+\medskip
+\noindent\textbf{Brief review of literature (upto 250 words):}
+Recent literature on Transformer interpretability has shifted from observing In-Context Learning
+(ICL) performance to understanding the circuits that enable it. Following Brown et al.'s discovery
+of ICL, Olsson et al.\ hypothesised that ``induction heads'' are the primary driving mechanism.
+While theoretical studies established the expressivity of transformers---proving they can
+implement algorithms such as gradient descent (Aky\"urek et al.; Von Oswald et al.) or Newton's
+method (Fu et al.)---these works do not address whether gradient descent actually \emph{finds}
+such solutions during training. Consequently, focus has shifted to the \emph{optimisation
+dynamics} of ``tiny''/simplified transformers. Initial dynamical analysis was limited to single
+attention layers solving simple tasks such as linear regression (Ahn et al.; Mahankali et al.).
+Concurrent research now links these dynamics to the emergence of specific mechanistic circuits:
+Bietti et al.\ and Reddy empirically demonstrate the sudden formation of induction heads during
+training, while Edelman et al.\ and Aky\"urek et al.\ show that transformers trained on synthetic
+languages undergo a sequential learning process, often mastering simpler unigram statistics before
+developing the circuitry for bigrams or more complex causal structures. This body of work
+collectively frames ICL not merely as statistical correlation, but as the learnable emergence of
+algorithmic induction heads---motivating our mechanistic, construction-grounded study of how, and
+under what conditions, these circuits form and what gradient descent converges to.
+
+\medskip
+\noindent\textbf{Research topic/gaps/tasks identified (upto 250 words):}
+\emph{Topic:} mechanistic interpretability of the optimisation dynamics of small two-layer
+``disentangled'' transformers performing in-context learning of \emph{noisy} Markov chains, and a
+precise, weight-level comparison between gradient-descent solutions and exactly hand-constructed
+induction circuits. \emph{Identified gaps:} (1) \textbf{Construction vs.\ learnability}---prior
+work proves transformers \emph{can represent} induction/count circuits but rarely checks, weight
+for weight, whether gradient descent \emph{converges} to the hand-constructible optimum, or to a
+different solution related only by symmetry. (2) \textbf{Role of noise/structure}---existing
+analyses use clean single-structure data; the effect of noise \emph{density} (a tunable signal
+vs.\ noise mixture) on circuit formation, and the resulting \emph{phase transitions}, is
+under-explored. (3) \textbf{Parametrisation and gauge}---attention is usually studied as separate
+$W_Q,W_K,W_V,W_O$; the consequences of the combined $W_{QK}/W_{OV}$ parametrisation for
+\emph{identifiability} (removing the within-head rotation gauge) and for \emph{trainability} are
+not characterised. (4) \textbf{Feed-forward role}---the precise function of the position-wise FFN
+in a near-attention-only induction model (calibration vs.\ computation) is not isolated.
+\emph{Tasks:} (i) hand-engineer the exact induction circuit and the analytic optimal predictors
+(context-count, ideal-Bayes); (ii) train GD models and compare cross-entropy/accuracy and weights
+against the construction; (iii) explain the noise-driven phase transition; (iv) characterise the
+combined parametrisation's identifiability/trainability trade-off; (v) isolate the FFN's role.
+
+\medskip
+\noindent\textbf{Summary of work done up to previous review (upto 250 words):}
+In the previous period I studied mechanistic interpretability of ICL in ``tiny'' transformers
+trained on synthetic \emph{periodic} data (e.g.\ \texttt{ABAB}, \texttt{ABCDE}). Using a
+reductionist methodology, I progressively stripped the architecture---removing feed-forward
+networks and LayerNorm, replacing learnable embeddings with one-hot (identity) embeddings, and
+reducing the model to a single attention layer and head---to expose the minimal circuit that
+solves cyclic next-token prediction. A key finding was that \textbf{positional embeddings are
+strictly necessary}: without them self-attention is permutation-invariant over the context, so the
+model cannot distinguish cyclic permutations (e.g.\ \texttt{ABC} vs.\ \texttt{BCA}) and fails to
+generalise. To analyse how gradient descent reaches the solution, I built a custom
+\emph{phase-wise} training framework that alternately freezes and updates the Query--Key
+($W_{QK}$) and Output--Value ($W_{OV}$) circuits. This revealed a consistent two-stage dynamic:
+$W_{OV}$ converges quickly to a task-optimal output map (sending each attended token to its correct
+successor) \emph{largely independently} of $W_{QK}$, after which the $W_{QK}$ gradients are
+``guided'' to place attention on the relevant previous position, driving the model to
+$100\%$ accuracy; gradient tracking showed the simplified loss landscape is benign enough for GD to
+reach the global optimum once the value map is established. Relating these findings to the
+literature (Bietti et al.; Edelman et al.) confirmed alignment with theory for \emph{single}
+causal structures and identified the central open problem---\emph{multiple competing causal
+structures}---that motivated the current period's shift to a richer, noisy in-context Markov
+setting.
+
+\medskip
+\noindent\textbf{Work done during the current review period (upto 250 words):}
+This period operationalised the multi-structure goal as a controlled in-context Markov task: each
+length-200 sequence carries its \emph{own} random transition table (each of $10$ signal states has
+two equiprobable successors), and a tunable $\alpha$ mixes signal with noise---with probability
+$\alpha$ the next token follows the in-context Markov rule, otherwise a uniform ``noise'' token
+(a separate $10$-symbol vocabulary) is emitted. I built a two-layer ``disentangled'' transformer
+(concatenating attention outputs onto a one-hot token/position stream) and, in parallel,
+\emph{hand-engineered} the exact induction circuit (``$W^{*}$'') that implements the in-context
+successor-frequency predictor, together with analytic baselines: the \emph{context-count}
+predictor and the \emph{ideal-$\alpha$} Bayes floor. I trained GD models across
+$\alpha=0.1\text{--}0.9$ under several heads (plain softmax; a learnable unembedding bias /
+noise-floor; a freeze-readout variant; an ``oracle'' pipeline; a buffer construction) and compared
+cross-entropy and accuracy against the construction and baselines. Key results: (i) GD essentially
+\emph{matches} the context-count predictor, the residual gap to the Bayes floor being a
+finite-context effect; (ii) a sharp \emph{noise-driven phase transition} governs whether GD learns
+the hard noise-skipping circuit ($\alpha\!\approx\!0.8$ is hardest); (iii) collapsing attention
+into the combined $W_{QK}/W_{OV}$ parametrisation \emph{removes the within-head gauge} (improving
+identifiability) but converges markedly \emph{slower}, traced to the loss of the implicit
+acceleration / low-rank bias of the over-parametrised factorisation; (iv) the position-wise FFN's
+role is \emph{calibration}---a log-readout plus noise floor---that lifts the construction onto the
+context-count optimum.
+
+\medskip
+\noindent\textbf{Future workplan (at least for the next 6 months), as Gantt chart or similar
+chart:}
+Over Jun--Nov 2026 I will: \textbf{T1} generalise from the two-successor toy to \emph{full} random
+Markov chains (arbitrary, unequal transition probabilities) and quantify where a feed-forward
+construction can beat plain context-counting; \textbf{T2} derive and verify when GD recovers the
+hand construction \emph{up to} the gauge and temperature symmetries; \textbf{T3} design a
+gauge-reduced yet trainable parametrisation (low-rank factored $W_{QK}/W_{OV}$) that keeps the
+implicit low-rank bias while collapsing the gauge; \textbf{T4} extend the noise-driven
+phase-transition and FFN-role analyses to multi-layer / multi-head settings; \textbf{T5}
+consolidate results and prepare a manuscript.
+
+\begin{center}
+\begin{tabular}{|p{5.6cm}|c|c|c|c|c|c|}
+\hline
+\textbf{Task \textbackslash\ Month (2026)} & Jun & Jul & Aug & Sep & Oct & Nov\\
+\hline
+T1 Full Markov-chain generalisation & \g{} & \g{} & \g{} & & & \\
+\hline
+T2 GD-vs-construction guarantees & & \g{} & \g{} & \g{} & & \\
+\hline
+T3 Gauge-reduced low-rank parametrisation & & & \g{} & \g{} & \g{} & \\
+\hline
+T4 Multi-layer / multi-head extension & & & & \g{} & \g{} & \g{} \\
+\hline
+T5 Consolidation \& manuscript & & & & & \g{} & \g{} \\
+\hline
+\end{tabular}
+\end{center}
+
+\medskip
+\noindent\textbf{Visible research output}
+\begin{itemize}
+\item Publications:
+\item Conferences:
+\item Workshops:
+\end{itemize}
+
+\newpage
+% ======================================================================
+\section*{B. Detailed Report (no page limit): Mandatory}
+
+\section{Overview and the in-context Markov-noise task}
+The previous review established, in tiny attention-only transformers on periodic data, that
+positional embeddings are necessary and that the value circuit ($W_{OV}$) leads the query circuit
+($W_{QK}$) during learning. The central open problem identified there was \emph{multiple competing
+causal structures}. During this period I made this concrete with a single, controlled benchmark
+that I use throughout (folders \texttt{ICL/1}--\texttt{ICL/8}).
+
+\paragraph{Data-generating process.} The vocabulary has $V=20$ symbols: \emph{signal} tokens
+$0\text{--}9$ and \emph{noise} tokens $10\text{--}19$. Each sequence (length $200$) draws its own
+random transition table in which every signal state has exactly two equiprobable successors. A
+threshold $\alpha$ controls the signal/noise mixture: with probability $\alpha$ the next token is a
+successor of the current state (the state then advances), and with probability $1-\alpha$ a uniform
+noise token is emitted (the state is unchanged). The model must \emph{infer the transition table
+from context} and predict the next token; loss and accuracy are measured on the last $100$ tokens.
+The table is resampled per sequence, so the task is genuine in-context learning of a fresh causal
+structure each time, and $\alpha$ provides a continuous ``difficulty / noise-density'' knob.
+
+\paragraph{Model.} A two-layer \emph{disentangled} transformer: each layer is a concat-attention
+block whose output is appended to a residual stream initialised with one-hot token and positional
+encodings; a linear unembedding (with optional bias) produces the logits. This keeps the
+representation transparent (every coordinate is interpretable) while remaining expressive enough to
+implement the induction circuit. Three reference predictors anchor every comparison: the
+exactly hand-built circuit (\emph{$W^{*}$}, below); the \emph{context-count} predictor (the
+empirical in-context successor frequencies, smoothed and $\alpha$-scaled, with the analytic noise
+floor); and the \emph{ideal-$\alpha$} predictor (the Bayes floor that knows the true table).
+
+\section{Weight engineering: the exact induction circuit ($W^{*}$) (\texttt{ICL/1})}
+I first hand-constructed the weights of a transformer (\emph{PerfectInductionTransformer}) that
+solves the task exactly, to obtain a ground-truth ``what a correct circuit looks like.'' Layer~1
+implements a previous-token / positional matcher and value copy; layer~2 implements the induction
+look-up: for the current state it attends to the positions that followed previous occurrences of
+that state and averages their (one-hot) successors, yielding the in-context successor
+\emph{frequency distribution}; the unembedding selects this block. A scalar temperature controls
+how sharply the softmax reads out the frequencies (I observed that scaling the logits makes the
+output more deterministic). This construction is the reference against which all trained models are
+measured, and it doubles as a constructive proof that the two-layer disentangled architecture can
+represent the optimal context predictor.
+
+\section{Training with an unembedding bias / noise-floor (\texttt{ICL/2})}
+The hand circuit outputs signal-token frequencies but must also place the correct mass
+$(1-\alpha)/10$ on noise tokens. I therefore trained the softmax model with a \emph{learnable bias
+at the unembedding}, giving gradient descent an explicit noise-floor degree of freedom. Using the
+canonical data generator (10 signal / 10 noise symbols, two successors per state, length $200$), I
+trained across $\alpha=0.1\text{--}0.9$ and stored per-threshold checkpoints and metrics. This
+established the trained-model baseline and confirmed that a noise-floor parameter is needed for the
+readout to represent the signal/noise split.
+
+\section{Construction vs.\ trained-with-bias: where they differ (\texttt{ICL/3})}
+I compared the hand construction against the GD-trained-with-bias model in cross-entropy. The
+informative step was to \emph{split} the cross-entropy by target type---signal (``ruled'') tokens
+vs.\ noise tokens---rather than reporting a single aggregate. This revealed that the apparent gap
+was dominated by the \emph{noise-token} CE (which can explode if the floor is mis-set), and that
+the bias indeed helps the trained model represent the floor. It also exposed a calibration error in
+my early hand construction's probability distribution (the raw frequencies were not normalised into
+a valid distribution before read-out), which I noted and later corrected. This step set the
+methodology of \emph{always decomposing error by token type and by context} that I use throughout.
+
+\section{The oracle training pipeline (\texttt{ICL/4})}
+I consolidated the experiment into a reproducible pipeline: a single \texttt{data\_generation.py}
+(canonical seeds, train/test splits, per-$\alpha$ files), a \texttt{train.py} training the
+disentangled transformer with the loss and evaluation restricted to the last $100$ tokens, and a
+\texttt{dataset/} and \texttt{models/} layout reused by all later folders. ``Oracle'' refers to
+training and measuring against the Bayes-optimal target (ideal-$\alpha$) so that every trained
+model's cross-entropy can be read as a gap to the information-theoretic floor. This pipeline (with
+the attention width matched to the one-hot construction) is the backbone for folders
+\texttt{ICL/6}--\texttt{ICL/8}.
+
+\section{Buffer construction: making the $\alpha$-predictor implementable (\texttt{ICL/5})}
+To make the $\alpha$-scaled count predictor exactly realisable inside the architecture, I
+introduced a \emph{buffer} construction---auxiliary residual capacity that holds the intermediate
+counts/normalisation so the readout can produce the $\alpha$-implementable distribution. The
+analysis verified the ``$\alpha$-implementable construction'': with the buffer, the network can
+emit the context-count distribution (signal frequencies scaled by $\alpha$ plus the noise floor)
+rather than the distorted output a bare softmax would give. This is the constructive precursor to
+the later finding that a feed-forward block can play the same calibrating role.
+
+\section{Understanding what gradient descent figures out (\texttt{ICL/6})}
+This folder is the analytical core. Across $\alpha=0.1\text{--}0.9$ and on both splits I compared,
+in one framework, the GD softmax model, the $W^{*}$ construction (at its best temperature), the
+context-count predictor, and the ideal-$\alpha$ floor.
+
+\paragraph{GD tracks context-counting.} The trained softmax model's cross-entropy closely follows
+the context-count predictor; the residual gap to ideal-$\alpha$ is a finite-context effect (the
+empirical successor frequencies are noisy estimates of the true two-successor distribution).
+
+\paragraph{A noise-driven phase transition.} The genuinely hard sub-task is predicting
+\emph{immediately after a noise token}, where the model must skip the noise and recover the state
+from the last signal token. Measuring the post-noise wrong-successor rate showed a sharp transition:
+it is essentially zero for $\alpha\le 0.7$ but jumps to $\sim 50\%$ for $\alpha\ge 0.8$. The reason
+is that the incentive to learn the costly noise-skipping circuit scales with the noise density
+$1-\alpha$; once noise is rare, gradient descent under a fixed budget does not reliably form the
+circuit, so $\alpha\approx 0.8$ is the worst case (past the transition yet still $20\%$ noise). I
+corroborated this with a freeze-readout variant (the readout pinned to $W^{*}$ with only a learnable
+noise-floor bias) and with per-position diagnostics that display, for a single query, every
+predictor's distribution alongside the in-context evidence (how many times each candidate successor
+was actually seen following the current state).
+
+\section{Combined $W_{QK}/W_{OV}$ parametrisation and gauge (\texttt{ICL/7})}
+Attention uses $W_Q,W_K$ only through the product $W_{QK}=W_Q^{\top}W_K$ and $W_V,W_O$ only through
+$W_{OV}=W_OW_V$. I therefore re-parametrised both layers directly in terms of $W_{QK}$ and $W_{OV}$
+(\texttt{train\_combined.py}, plain softmax, \emph{no} feed-forward), which removes the within-head
+$\mathrm{GL}(d)$ rotation gauge and shrinks the solution orbit---the motivation being
+\emph{identifiability}, so that trained solutions can be meaningfully compared. I then
+\emph{collapsed} the hand construction into the same parametrisation (verified to reproduce its
+logits exactly, $\max|\Delta|=0$) and asked: does GD converge to the construction? Findings:
+(i) functionally, the trained model and the collapsed construction agree only \emph{up to a
+temperature} and the residual softmax / readout gauges---so they implement the same computation in a
+different gauge rather than identical weights; (ii) crucially, the combined parametrisation, while
+more identifiable, \emph{converges substantially slower} than the separate $W_Q,W_K,W_V,W_O$ form
+(it needed several times more epochs to reach the same accuracy). I traced this to the
+\emph{implicit acceleration} of the over-parametrised factorisation: gradient descent on a product
+$M=AB$ preconditions the update on $M$ by the factor norms, descending much faster than gradient
+descent on a single matrix $M$. This is an identifiability-vs-trainability trade-off central to the
+project.
+
+\section{The role of the feed-forward block (\texttt{ICL/8})}
+Finally I studied adding position-wise feed-forward (FFN) blocks to the disentangled model: a
+minimal single-FFN model and a ``two-cell'' model with an FFN after \emph{both} attention layers,
+each in the separate and the combined parametrisation. Results: (i) a trained FFN markedly improves
+calibration and lands between context-count and the ideal floor; (ii) the FFN's essential role is a
+\emph{log-readout plus noise floor}---a plain softmax of the attention's count vector
+\emph{exponentiates} it and is distorted, whereas an FFN that computes $\log(\text{count}+\text{floor})$
+lets the softmax recover the normalised counts, i.e.\ exactly the context-count optimum. I verified
+this by hand-constructing the FFN as $\log(L+b)$ with separate signal/noise floors, which reproduces
+context-count to within $0.01\text{--}0.03$ nats and clearly beats the fixed-temperature softmax of
+the same circuit. (iii) The achievable floor for any context-only model is the
+\emph{context-Bayesian} predictor, which sits just below context-count and just above ideal-$\alpha$;
+the FFN cannot pass ideal-$\alpha$ because the true table is not fully revealed by a finite context.
+(iv) Ablation/linearisation showed that, in the \emph{trained} two-cell model, both FFNs do
+load-bearing nonlinear work (removing or linearising either one sharply raises CE), with a
+$\alpha$-dependent division of labour (the first FFN matters most in the high-noise regime, the last
+FFN dominates the final calibration). Together with \texttt{ICL/6}--\texttt{ICL/7}, this gives a
+coherent mechanistic account of \emph{what} the trained network computes, \emph{why} it sometimes
+fails to (noise-driven phase transition), and \emph{how close} it can come to the optimum (the
+log-readout calibration and the context-Bayes ceiling).
+
+\section{Summary of contributions this period}
+\begin{itemize}
+\item A controlled in-context \emph{noisy-Markov} benchmark with a tunable noise knob $\alpha$, and
+a transparent two-layer disentangled transformer for studying it.
+\item An exact hand-engineered induction circuit ($W^{*}$) plus analytic optimal predictors
+(context-count, ideal-$\alpha$, context-Bayes) used as a measuring stick for every trained model.
+\item A mechanistic explanation of a \emph{noise-driven phase transition} in circuit formation
+(why $\alpha\approx 0.8$ is hardest).
+\item A characterisation of the combined $W_{QK}/W_{OV}$ parametrisation: it removes the within-head
+gauge (better identifiability) at the cost of slower convergence (loss of the factorisation's
+implicit acceleration).
+\item An isolation of the feed-forward block's role as a log-readout + noise-floor \emph{calibrator}
+that realises the context-count optimum, together with the context-Bayes achievability ceiling.
+\end{itemize}
+
+\section*{References}
+\begin{enumerate}[label={[\arabic*]},leftmargin=2.4em]
+\item K.~Ahn, X.~Cheng, H.~Daneshmand, S.~Sra. Transformers learn to implement preconditioned
+gradient descent for in-context learning. \emph{NeurIPS}, 2023.
+\item E.~Aky\"urek, D.~Schuurmans, J.~Andreas, T.~Ma, D.~Zhou. What learning algorithm is
+in-context learning? Investigations with linear models. \emph{ICLR}, 2023.
+\item E.~Aky\"urek et al. In-context language learning: architectures and algorithms.
+\emph{ICML}, 2024.
+\item A.~Bietti, V.~Cabannes, D.~Bouchacourt, H.~J\'egou, L.~Bottou. Birth of a Transformer: a
+memory viewpoint. \emph{NeurIPS}, 2023.
+\item T.~B.~Brown et al. Language models are few-shot learners. \emph{NeurIPS}, 2020.
+\item B.~L.~Edelman, E.~Edelman, S.~Goel, E.~Malach, N.~Tsilivis. The evolution of statistical
+induction heads: in-context learning Markov chains. \emph{NeurIPS}, 2024.
+\item N.~Elhage et al. A mathematical framework for transformer circuits.
+\emph{Transformer Circuits Thread}, Anthropic, 2021.
+\item D.~Fu, T.~Chen, R.~Jia, V.~Sharan. Transformers learn higher-order optimization methods for
+in-context learning. 2023.
+\item A.~Mahankali, T.~B.~Hashimoto, T.~Ma. One step of gradient descent is provably the optimal
+in-context learner with one layer of linear self-attention. \emph{ICLR}, 2024.
+\item E.~Nichani, A.~Damian, J.~D.~Lee. How transformers learn causal structure with gradient
+descent. \emph{ICML}, 2024.
+\item C.~Olsson et al. In-context learning and induction heads.
+\emph{Transformer Circuits Thread}, Anthropic, 2022.
+\item G.~Reddy. The mechanistic basis of data dependence and abrupt learning in an in-context
+classification task. \emph{ICLR}, 2024.
+\item J.~von Oswald et al. Transformers learn in-context by gradient descent. \emph{ICML}, 2023.
+\end{enumerate}
+
+\end{document}

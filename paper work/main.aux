@@ -1,0 +1,157 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyperFirstAtBeginDocument{\AtBeginDocument}
+\HyperFirstAtBeginDocument{\ifx\hyper@anchor\@undefined
+\global\let\oldcontentsline\contentsline
+\gdef\contentsline#1#2#3#4{\oldcontentsline{#1}{#2}{#3}}
+\global\let\oldnewlabel\newlabel
+\gdef\newlabel#1#2{\newlabelxx{#1}#2}
+\gdef\newlabelxx#1#2#3#4#5#6{\oldnewlabel{#1}{{#2}{#3}}}
+\AtEndDocument{\ifx\hyper@anchor\@undefined
+\let\contentsline\oldcontentsline
+\let\newlabel\oldnewlabel
+\fi}
+\fi}
+\global\let\hyper@last\relax 
+\gdef\HyperFirstAtBeginDocument#1{#1}
+\providecommand*\HyPL@Entry[1]{}
+\citation{brown2020language}
+\citation{elhage2021mathematical,olsson2022context,bietti2023birth,reddy2024mechanistic}
+\citation{edelman2024evolution,akyurek2024incontext}
+\citation{makkuva2024attention,makkuva2024local,varre2025learning}
+\citation{rajaraman2024transformers,ekbote2025what}
+\HyPL@Entry{0<</S/D>>}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
+\newlabel{sec:intro}{{1}{1}{Introduction}{section.1}{}}
+\citation{arora2018optimization,kobayashi2024weight}
+\citation{agarwal2025bayesian}
+\citation{elhage2021mathematical}
+\citation{olsson2022context}
+\citation{edelman2024evolution}
+\citation{bietti2023birth}
+\citation{reddy2024mechanistic}
+\citation{akyurek2024incontext}
+\citation{makkuva2024attention,makkuva2024local}
+\citation{rajaraman2024transformers,ekbote2025what}
+\citation{nichani2024transformers}
+\citation{chen2024unveiling}
+\citation{wang2024how}
+\citation{dangelo2025selective}
+\citation{zucchet2025emergence}
+\citation{kawata2025shortcut}
+\citation{lavie2026phase}
+\citation{varre2025learning}
+\citation{singh2024what}
+\citation{musat2025emergence}
+\citation{wakayama2025incontext}
+\citation{dai2025pretrained}
+\citation{agarwal2025bayesian}
+\citation{sun2025role}
+\citation{smart2025incontext}
+\citation{elhage2021mathematical}
+\citation{vannierop2024transformer}
+\citation{arora2018optimization}
+\citation{kobayashi2024weight}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Related work}{3}{section.2}\protected@file@percent }
+\newlabel{sec:related}{{2}{3}{Related work}{section.2}{}}
+\citation{elhage2021mathematical,edelman2024evolution}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces \textbf  {The noisy Markov ICL task.} Each sequence draws its own transition table over the $V_{\mathrm  {sig}}=10$ signal tokens (right); every signal state has exactly two equiprobable successors. At each step, with probability $\alpha $ a successor of the current state is emitted (blue; the state advances along the orange chain), and with probability $1-\alpha $ a uniform token from the disjoint noise sub-vocabulary is emitted (grey; the state is unchanged). The model must infer the table from context; loss is evaluated on the last $100$ of $T=200$ positions.}}{4}{figure.1}\protected@file@percent }
+\newlabel{fig:task}{{1}{4}{\textbf {The noisy Markov ICL task.} Each sequence draws its own transition table over the $\Vsig =10$ signal tokens (right); every signal state has exactly two equiprobable successors. At each step, with probability $\alpha $ a successor of the current state is emitted (blue; the state advances along the orange chain), and with probability $1-\alpha $ a uniform token from the disjoint noise sub-vocabulary is emitted (grey; the state is unchanged). The model must infer the table from context; loss is evaluated on the last $100$ of $T=200$ positions}{figure.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}The noisy Markov ICL task and its exact reference predictors}{4}{section.3}\protected@file@percent }
+\newlabel{sec:task}{{3}{4}{The noisy Markov ICL task and its exact reference predictors}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}The exact predictor hierarchy}{4}{subsection.3.1}\protected@file@percent }
+\newlabel{sec:hierarchy}{{3.1}{4}{The exact predictor hierarchy}{subsection.3.1}{}}
+\newlabel{def:refs}{{1}{4}{Reference predictors}{definition.1}{}}
+\citation{elhage2021mathematical}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces \textbf  {The predictor hierarchy and trained models} (fresh evaluation data, $5{,}000$ sequences per $\alpha $; CE on positions $100$--$200$). \textbf  {(a)} absolute cross-entropy; \textbf  {(b)} excess CE over the oracle floor \textsf  {ideal-$\alpha $}{}. FFN-augmented models (GD + one FFN, two-cell) track \textsf  {ctx-count}{} and push below it toward \textsf  {context-Bayes}{} at high $\alpha $; the attention-only model carries an additional calibration gap that spikes at the $\alpha =0.8$ phase transition (\S  \ref  {sec:phase}).}}{5}{figure.2}\protected@file@percent }
+\newlabel{fig:hierarchy}{{2}{5}{\textbf {The predictor hierarchy and trained models} (fresh evaluation data, $5{,}000$ sequences per $\alpha $; CE on positions $100$--$200$). \textbf {(a)} absolute cross-entropy; \textbf {(b)} excess CE over the oracle floor \idealalpha {}. FFN-augmented models (GD + one FFN, two-cell) track \ctxcount {} and push below it toward \ctxbayes {} at high $\alpha $; the attention-only model carries an additional calibration gap that spikes at the $\alpha =0.8$ phase transition (\S \ref {sec:phase})}{figure.2}{}}
+\newlabel{prop:hierarchy}{{1}{5}{Hierarchy}{proposition.1}{}}
+\newlabel{lem:ceiling}{{1}{5}{Argmax ceiling}{lemma.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}An exact hand-constructed induction circuit}{5}{subsection.3.2}\protected@file@percent }
+\newlabel{sec:wstar}{{3.2}{5}{An exact hand-constructed induction circuit}{subsection.3.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}What attention-only gradient descent finds}{5}{section.4}\protected@file@percent }
+\newlabel{sec:gd}{{4}{5}{What attention-only gradient descent finds}{section.4}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces \textbf  {Left:} per-position KL (nats, $N{=}200$ sequences) from the trained attention-only model to \textsf  {ctx-count}{} and to the temperature-tuned construction $W^{\star }(\sigma ,b_N)$; the trained model is a calibrated count reader. \textbf  {Right:} gauge-invariant cosine similarity of trained circuits (combined-parametrisation models) to $W^{\star }$: layer-2 induction-match and copy circuits align; the layer-1 previous-token circuit is realised differently.}}{6}{table.1}\protected@file@percent }
+\newlabel{tab:kl-cos}{{1}{6}{\textbf {Left:} per-position KL (nats, $N{=}200$ sequences) from the trained attention-only model to \ctxcount {} and to the temperature-tuned construction $\Wstar (\sigma ,b_N)$; the trained model is a calibrated count reader. \textbf {Right:} gauge-invariant cosine similarity of trained circuits (combined-parametrisation models) to $\Wstar $: layer-2 induction-match and copy circuits align; the layer-1 previous-token circuit is realised differently}{table.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}A noise-driven phase transition in circuit formation}{6}{section.5}\protected@file@percent }
+\newlabel{sec:phase}{{5}{6}{A noise-driven phase transition in circuit formation}{section.5}{}}
+\citation{kawata2025shortcut}
+\citation{zucchet2025emergence}
+\citation{varre2025learning,makkuva2024local}
+\citation{edelman2024evolution,varre2025learning,singh2024what}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces \textbf  {The noise-driven phase transition.} \textbf  {(a)} Wrong-successor rate of the argmax over signal tokens, restricted to positions whose input token is noise---exactly the positions that require the noise-skipping circuit. The attention-only model matches the analytic \textsf  {ctx-count}{} argmax for $0.2\le \alpha \le 0.7$ and jumps to ${\sim }50\%$ (successor-pair chance level) for $\alpha \ge 0.8$; one FFN restores formation. \textbf  {(b)} Test accuracy normalised by the argmax ceiling $\alpha /2$ (Lemma\nobreakspace  {}\ref  {lem:ceiling}). At $\alpha =0.8$ the attention-only model plateaus at $0.90$ of its ceiling (best of seven seeds); +FFN runs reach the ceiling either immediately or through staged plateaus.}}{7}{figure.3}\protected@file@percent }
+\newlabel{fig:phase}{{3}{7}{\textbf {The noise-driven phase transition.} \textbf {(a)} Wrong-successor rate of the argmax over signal tokens, restricted to positions whose input token is noise---exactly the positions that require the noise-skipping circuit. The attention-only model matches the analytic \ctxcount {} argmax for $0.2\le \alpha \le 0.7$ and jumps to ${\sim }50\%$ (successor-pair chance level) for $\alpha \ge 0.8$; one FFN restores formation. \textbf {(b)} Test accuracy normalised by the argmax ceiling $\alpha /2$ (Lemma~\ref {lem:ceiling}). At $\alpha =0.8$ the attention-only model plateaus at $0.90$ of its ceiling (best of seven seeds); +FFN runs reach the ceiling either immediately or through staged plateaus}{figure.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}The feed-forward layer is a finite-sample Bayesian calibrator}{7}{section.6}\protected@file@percent }
+\newlabel{sec:ffn}{{6}{7}{The feed-forward layer is a finite-sample Bayesian calibrator}{section.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces \textbf  {The calibration ladder}: excess CE over \textsf  {ideal-$\alpha $}{} of five hand-set readouts on the \emph  {same} frozen $W^{\star }$ attention (bars), against the analytic references and the GD-trained single-FFN model (lines). A softmax readout of the count vector is poorly calibrated at any temperature; a $\qopname  \relax o{log}(\mathrm  {count}+\beta )$ FFN recovers \textsf  {ctx-count}{}; the GELU equalize FFN targets \textsf  {context-Bayes}{} and matches the trained model.}}{8}{figure.4}\protected@file@percent }
+\newlabel{fig:ffn}{{4}{8}{\textbf {The calibration ladder}: excess CE over \idealalpha {} of five hand-set readouts on the \emph {same} frozen $\Wstar $ attention (bars), against the analytic references and the GD-trained single-FFN model (lines). A softmax readout of the count vector is poorly calibrated at any temperature; a $\log (\mathrm {count}+\beta )$ FFN recovers \ctxcount {}; the GELU equalize FFN targets \ctxbayes {} and matches the trained model}{figure.4}{}}
+\newlabel{prop:noaffine}{{2}{8}{No affine readout suffices}{proposition.2}{}}
+\newlabel{prop:infinite}{{3}{8}{The gain is finite-sample}{proposition.3}{}}
+\citation{elhage2021mathematical,vannierop2024transformer}
+\citation{arora2018optimization,kobayashi2024weight}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces \textbf  {Separate vs.\ combined attention parametrisation.} \textbf  {(a)} Excess CE at equal (or larger) training budget: the combined $(W_{QK},W_{OV})$ models (dashed, open markers) are consistently worse than their separately-parametrised counterparts, for both attention-only and two-cell models. \textbf  {(b)} Two-cell training at $\alpha =0.5$: the separate parametrisation reaches its ceiling in ${\sim }10$ epochs; the combined one crawls for $100{+}$ and saturates lower.}}{9}{figure.5}\protected@file@percent }
+\newlabel{fig:comb}{{5}{9}{\textbf {Separate vs.\ combined attention parametrisation.} \textbf {(a)} Excess CE at equal (or larger) training budget: the combined $(\WQK ,\WOV )$ models (dashed, open markers) are consistently worse than their separately-parametrised counterparts, for both attention-only and two-cell models. \textbf {(b)} Two-cell training at $\alpha =0.5$: the separate parametrisation reaches its ceiling in ${\sim }10$ epochs; the combined one crawls for $100{+}$ and saturates lower}{figure.5}{}}
+\newlabel{prop:dirichlet}{{4}{9}{No gain without structure}{proposition.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Identifiability versus trainability of the attention parametrisation}{9}{section.7}\protected@file@percent }
+\newlabel{sec:gauge}{{7}{9}{Identifiability versus trainability of the attention parametrisation}{section.7}{}}
+\citation{varre2025learning}
+\bibdata{refs}
+\bibcite{agarwal2025bayesian}{{1}{2025}{{Agarwal et~al.}}{{}}}
+\bibcite{akyurek2024incontext}{{2}{2024}{{Aky{\"u}rek et~al.}}{{Aky{\"u}rek, Wang, Kim, and Andreas}}}
+\bibcite{arora2018optimization}{{3}{2018}{{Arora et~al.}}{{Arora, Cohen, and Hazan}}}
+\@writefile{toc}{\contentsline {section}{\numberline {8}Discussion, limitations, and outlook}{10}{section.8}\protected@file@percent }
+\newlabel{sec:discussion}{{8}{10}{Discussion, limitations, and outlook}{section.8}{}}
+\bibcite{bietti2023birth}{{4}{2023}{{Bietti et~al.}}{{Bietti, Cabannes, Bouchacourt, Jegou, and Bottou}}}
+\bibcite{brown2020language}{{5}{2020}{{Brown et~al.}}{{Brown, Mann, Ryder, Subbiah, Kaplan, Dhariwal, Neelakantan, Shyam, Sastry, Askell, et~al.}}}
+\bibcite{chen2024unveiling}{{6}{2024}{{Chen et~al.}}{{Chen, Sheen, Wang, and Yang}}}
+\bibcite{dai2025pretrained}{{7}{2025}{{Dai et~al.}}{{}}}
+\bibcite{dangelo2025selective}{{8}{2025}{{D'Angelo et~al.}}{{D'Angelo, Croce, and Flammarion}}}
+\bibcite{edelman2024evolution}{{9}{2024}{{Edelman et~al.}}{{Edelman, Edelman, Goel, Malach, and Tsilivis}}}
+\bibcite{ekbote2025what}{{10}{2025}{{Ekbote et~al.}}{{Ekbote, Bondaschi, Rajaraman, Lee, Gastpar, Makkuva, and Liang}}}
+\bibcite{elhage2021mathematical}{{11}{2021}{{Elhage et~al.}}{{Elhage, Nanda, Olsson, Henighan, Joseph, Mann, Askell, Bai, Chen, Conerly, et~al.}}}
+\bibcite{kawata2025shortcut}{{12}{2025}{{Kawata et~al.}}{{}}}
+\bibcite{kobayashi2024weight}{{13}{2024}{{Kobayashi et~al.}}{{}}}
+\bibcite{lavie2026phase}{{14}{2026}{{Lavie et~al.}}{{}}}
+\bibcite{makkuva2024local}{{15}{2024}{{Makkuva et~al.}}{{Makkuva, Bondaschi, Ekbote, Girish, Nagle, Kim, and Gastpar}}}
+\bibcite{makkuva2024attention}{{16}{2025}{{Makkuva et~al.}}{{Makkuva, Bondaschi, Girish, Nagle, Jaggi, Kim, and Gastpar}}}
+\bibcite{musat2025emergence}{{17}{2025}{{Musat et~al.}}{{}}}
+\bibcite{nichani2024transformers}{{18}{2024}{{Nichani et~al.}}{{Nichani, Damian, and Lee}}}
+\bibcite{olsson2022context}{{19}{2022}{{Olsson et~al.}}{{Olsson, Elhage, Nanda, Joseph, DasSarma, Henighan, Mann, Askell, Bai, Chen, et~al.}}}
+\bibcite{rajaraman2024transformers}{{20}{2024}{{Rajaraman et~al.}}{{Rajaraman, Bondaschi, Ramchandran, Gastpar, and Makkuva}}}
+\bibcite{reddy2024mechanistic}{{21}{2024}{{Reddy}}{{}}}
+\bibcite{singh2024what}{{22}{2024}{{Singh et~al.}}{{Singh, Moskovitz, Hill, Chan, and Saxe}}}
+\bibcite{smart2025incontext}{{23}{2025}{{Smart et~al.}}{{}}}
+\bibcite{sun2025role}{{24}{2025}{{Sun et~al.}}{{}}}
+\bibcite{vannierop2024transformer}{{25}{2024}{{van Nierop}}{{}}}
+\bibcite{varre2025learning}{{26}{2025}{{Varre et~al.}}{{Varre, Aggarwal, and Cevher}}}
+\bibcite{wakayama2025incontext}{{27}{2025}{{Wakayama \& Imaizumi}}{{Wakayama and Imaizumi}}}
+\bibcite{wang2024how}{{28}{2024}{{Wang et~al.}}{{Wang, Wang, E, and Wu}}}
+\bibcite{zucchet2025emergence}{{29}{2025}{{Zucchet et~al.}}{{Zucchet, Bornschein, Chan, and Lampinen}}}
+\bibstyle{iclr2026_conference}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Task, training, and evaluation details}{13}{appendix.A}\protected@file@percent }
+\newlabel{app:setup}{{A}{13}{Task, training, and evaluation details}{appendix.A}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B}The context-Bayes posterior predictive}{13}{appendix.B}\protected@file@percent }
+\newlabel{app:bayes}{{B}{13}{The context-Bayes posterior predictive}{appendix.B}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {C}Proofs}{13}{appendix.C}\protected@file@percent }
+\newlabel{app:proofs}{{C}{13}{Proofs}{appendix.C}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {D}The hand construction $W^{\star }$}{14}{appendix.D}\protected@file@percent }
+\newlabel{app:wstar}{{D}{14}{The hand construction \texorpdfstring {$\Wstar $}{W*}}{appendix.D}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {E}Gauge, collapse, and structural metrics}{14}{appendix.E}\protected@file@percent }
+\newlabel{app:gauge}{{E}{14}{Gauge, collapse, and structural metrics}{appendix.E}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {F}Readout constructions and searched parameters}{15}{appendix.F}\protected@file@percent }
+\newlabel{app:constructions}{{F}{15}{Readout constructions and searched parameters}{appendix.F}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Full cross-entropy table (nats; fresh evaluation data, $5{,}000$ sequences per $\alpha $, positions $100$--$200$). Analytic references, GD-trained models, and hand constructions on frozen $W^{\star }$ attention.}}{15}{table.2}\protected@file@percent }
+\newlabel{tab:full-ce}{{2}{15}{Full cross-entropy table (nats; fresh evaluation data, $5{,}000$ sequences per $\alpha $, positions $100$--$200$). Analytic references, GD-trained models, and hand constructions on frozen $\Wstar $ attention}{table.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Wrong-successor rate of the signal-token argmax, split by whether the input token at the evaluation position is a noise token (post-noise; requires the noise-skipping circuit) or a signal token. Fresh evaluation data.}}{15}{table.3}\protected@file@percent }
+\newlabel{tab:postnoise}{{3}{15}{Wrong-successor rate of the signal-token argmax, split by whether the input token at the evaluation position is a noise token (post-noise; requires the noise-skipping circuit) or a signal token. Fresh evaluation data}{table.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {G}The unequal-successor control benchmark}{16}{appendix.G}\protected@file@percent }
+\newlabel{app:altered}{{G}{16}{The unequal-successor control benchmark}{appendix.G}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Unequal-successor variant: CE (nats). The trained model lands on the count-normalisation construction (gap $|\mathrm  {GD}-\text  {in-arch}|\le 0.02$ nats); equal-split equalisation is harmful here (up to ${\sim }0.2$ nats; not shown).}}{16}{table.4}\protected@file@percent }
+\newlabel{tab:altered}{{4}{16}{Unequal-successor variant: CE (nats). The trained model lands on the count-normalisation construction (gap $|\mathrm {GD}-\text {in-arch}|\le 0.02$ nats); equal-split equalisation is harmful here (up to ${\sim }0.2$ nats; not shown)}{table.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {H}Additional figures}{16}{appendix.H}\protected@file@percent }
+\newlabel{app:figs}{{H}{16}{Additional figures}{appendix.H}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces All predictors and model families on one axis (fresh evaluation data).}}{16}{figure.6}\protected@file@percent }
+\newlabel{fig:all}{{6}{16}{All predictors and model families on one axis (fresh evaluation data)}{figure.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Per-position diagnostic at $\alpha =0.8$ (sequence $0$, focus position $196$): token strip, the sequence's ground-truth chain, and the predicted distribution of each predictor alongside the in-context evidence for the queried state. The trained FFN model places $\approx \alpha /2$ on each observed successor and the exact floor on noise---the \textsf  {context-Bayes}{} pattern of \S  \ref  {sec:ffn}.}}{17}{figure.7}\protected@file@percent }
+\newlabel{fig:inspect}{{7}{17}{Per-position diagnostic at $\alpha =0.8$ (sequence $0$, focus position $196$): token strip, the sequence's ground-truth chain, and the predicted distribution of each predictor alongside the in-context evidence for the queried state. The trained FFN model places $\approx \alpha /2$ on each observed successor and the exact floor on noise---the \ctxbayes {} pattern of \S \ref {sec:ffn}}{figure.7}{}}
+\gdef \@abspage@last{17}

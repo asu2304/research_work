@@ -1,0 +1,6 @@
+# Everything below is stdlib except these three.
+# Versions are what the original runs used; the code has no version-specific
+# behavior, so any reasonably recent release should reproduce the results.
+torch>=2.0
+numpy>=1.24
+matplotlib>=3.7
