@@ -62,6 +62,7 @@ import torch.utils.data as data
 # Saves → models/model_idarch_ws06_x_0.7.pth
 # main.ipynb loads via TRAINED_OVERRIDE={0.7:'idarch_ws06'}
 # ─────────────────────────────────────────────────────────────────────────────
+
 CONFIG = {
     'data_dir':   'dataset',
     'models_dir': 'models',
@@ -115,7 +116,6 @@ CONFIG = {
 }
 TAG = 'idarch'   # used only for the combined summary/plot; per-threshold saves use PER_THR tags
 # ─────────────────────────────────────────────────────────────────────────────
-
 
 # ─── Model (IDENTICAL architecture to the in-arch log readout) ─────────────────
 class ConcatAttentionBlock(nn.Module):
