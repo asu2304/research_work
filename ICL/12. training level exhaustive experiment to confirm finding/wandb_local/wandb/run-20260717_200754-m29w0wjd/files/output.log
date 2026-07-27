@@ -1,0 +1,14 @@
+  opt-adam_lr-0.01_b-128_init-default/separate_seed0_x_0.4  trainable=130,904  init: tr=2.4007 te=2.4015
+    ep   25/400  tr=1.7769  te=1.7808  best=1.7768
+    ep   50/400  tr=1.7753  te=1.7826  best=1.7750
+    ep   75/400  tr=1.7741  te=1.7794  best=1.7738
+    ep  100/400  tr=1.7730  te=1.7779  best=1.7730
+    ep  125/400  tr=1.7727  te=1.7787  best=1.7727
+    ep  150/400  tr=1.7724  te=1.7777  best=1.7724
+    ep  175/400  tr=1.7727  te=1.7786  best=1.7723
+    ep  200/400  tr=1.7725  te=1.7785  best=1.7721
+    ep  225/400  tr=1.7724  te=1.7778  best=1.7720
+    ep  250/400  tr=1.7718  te=1.7774  best=1.7718
+    ep  275/400  tr=1.7724  te=1.7788  best=1.7717
+    ep  300/400  tr=1.7736  te=1.7782  best=1.7717
+    [early stop] ep=318  best_train=1.7717

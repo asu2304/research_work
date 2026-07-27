@@ -1,0 +1,43 @@
+  opt-adam_lr-0.01_b-128_init-default/separate_seed0_x_0.4  trainable=130,904  init: tr=2.4007 te=2.4015
+    [INTERRUPTED] saving best-so-far, moving to next run (Ctrl+C again within ~1s exits the sweep)
+Traceback (most recent call last):
+  File "/home/hariguru/ashutosh/ICL/13. training level exhaustive experiment to confirm finding/train.py", line 422, in train_one
+    te_loss = eval_ce(model, te_x, te_y, V, token_start, token_end, device, C['eval_batch'])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hariguru/miniconda3/envs/ashu_env/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 115, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hariguru/ashutosh/ICL/13. training level exhaustive experiment to confirm finding/train.py", line 317, in eval_ce
+    logits = model(xb)[:, token_start:token_end]
+             ^^^^^^^^^
+  File "/home/hariguru/miniconda3/envs/ashu_env/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hariguru/ashutosh/ICL/13. training level exhaustive experiment to confirm finding/train.py", line 181, in forward
+    s, _ = self.layer1(s, mask)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/hariguru/miniconda3/envs/ashu_env/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hariguru/ashutosh/ICL/13. training level exhaustive experiment to confirm finding/train.py", line 144, in forward
+    Q, K, V_ = self.W_q(x), self.W_k(x), self.W_v(x)
+               ^^^^^^^^^^^
+  File "/home/hariguru/miniconda3/envs/ashu_env/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hariguru/miniconda3/envs/ashu_env/lib/python3.11/site-packages/torch/nn/modules/linear.py", line 114, in forward
+    return F.linear(input, self.weight, self.bias)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/hariguru/ashutosh/ICL/13. training level exhaustive experiment to confirm finding/train.py", line 518, in <module>
+    main()
+  File "/home/hariguru/ashutosh/ICL/13. training level exhaustive experiment to confirm finding/train.py", line 506, in main
+    did = train_one(cell, arch, seed, thr, device)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hariguru/ashutosh/ICL/13. training level exhaustive experiment to confirm finding/train.py", line 443, in train_one
+    time.sleep(1)
+KeyboardInterrupt

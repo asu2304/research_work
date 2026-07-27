@@ -1,0 +1,17 @@
+
+Abstract:
+
+Theorem 1: Construction(there exist) a solution which implement the given data distributoin. 
+Theorem 2: Seperate parameterized initialized Uniformaly will reach the global minimum with seperate Wq,Wk,Wo,Wv parameterization for both layers with ffn fixed implementing the log.
+Theorem 3: Seperate parameterization GD reaching the global minimum way faster than combined, and combined not even able to reach the better solution(theorem 2) especially if the noise injection ratio is more.
+
+Appendix: 
+lemmas: 
+
+A. proffs
+- proff1: construciton
+- proff2: 
+- proff3 
+
+B. some more plots with train on more states.
+

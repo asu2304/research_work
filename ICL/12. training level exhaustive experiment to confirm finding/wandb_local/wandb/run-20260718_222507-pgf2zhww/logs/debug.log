@@ -1,0 +1,21 @@
+2026-07-18 22:25:07,870 INFO    MainThread:1826191 [wandb_init.py:setup_run_log_directory():729] Logging user logs to /home/hariguru/ashutosh/ICL/13. training level exhaustive experiment to confirm finding/wandb_local/wandb/run-20260718_222507-pgf2zhww/logs/debug.log
+2026-07-18 22:25:07,870 INFO    MainThread:1826191 [wandb_init.py:setup_run_log_directory():730] Logging internal logs to /home/hariguru/ashutosh/ICL/13. training level exhaustive experiment to confirm finding/wandb_local/wandb/run-20260718_222507-pgf2zhww/logs/debug-internal.log
+2026-07-18 22:25:07,870 INFO    MainThread:1826191 [wandb_init.py:init():772] calling init triggers
+2026-07-18 22:25:07,870 INFO    MainThread:1826191 [wandb_init.py:init():777] wandb.init called with sweep_config: {}
+config: {'device': 'cuda:1', 'v_sig': 4, 'n_noise': 4, 'seq_len': 100, 'token_start': 50, 'bias': True, 'freeze_readout': True, 'freeze_delta': 1.0, 'freeze_hidden_k': 128, 'freeze_fit_fmax': 40.0, 'freeze_fit_steps': 2000, 'train_params': ['attn', 'fc_out'], 'weight_decay': 0.0, 'clip_grad': False, 'grad_clip': 0.0, 'epochs': 400, 'patience': 50, 'eval_batch': 256, 'optimizer': 'adam', 'lr': 0.01, 'batch_size': 128, 'init': 'default', 'attn_param': 'combined', 'seed': 0, 'threshold': 1.0, 'cell': 'opt-adam_lr-0.01_b-128_init-default', '_wandb': {}}
+2026-07-18 22:25:07,870 INFO    MainThread:1826191 [wandb_init.py:init():820] starting backend
+2026-07-18 22:25:07,870 INFO    MainThread:1826191 [wandb_init.py:init():835] sending inform_init request
+2026-07-18 22:25:07,980 INFO    MainThread:1826191 [wandb_init.py:init():840] backend started and connected
+2026-07-18 22:25:07,982 INFO    MainThread:1826191 [wandb_init.py:init():910] updated telemetry
+2026-07-18 22:25:07,990 INFO    MainThread:1826191 [wandb_init.py:init():933] communicating run to backend with 90.0 second timeout
+2026-07-18 22:25:08,936 INFO    MainThread:1826191 [wandb_init.py:init():978] starting run threads in backend
+2026-07-18 22:25:09,027 INFO    MainThread:1826191 [wandb_run.py:_console_start():2621] atexit reg
+2026-07-18 22:25:09,027 INFO    MainThread:1826191 [wandb_run.py:_redirect():2471] redirect: wrap_raw
+2026-07-18 22:25:09,027 INFO    MainThread:1826191 [wandb_run.py:_redirect():2540] Wrapping output streams.
+2026-07-18 22:25:09,027 INFO    MainThread:1826191 [wandb_run.py:_redirect():2563] Redirects installed.
+2026-07-18 22:25:09,028 INFO    MainThread:1826191 [wandb_init.py:init():1016] run started, returning control to user process
+2026-07-18 22:31:18,254 INFO    MainThread:1826191 [wandb_run.py:_finish():2383] finishing run aashu-patidar9876/ICL-exhaustive-experiment-to-verify-claim/pgf2zhww
+2026-07-18 22:31:18,255 INFO    MainThread:1826191 [wandb_run.py:_atexit_cleanup():2588] got exitcode: 0
+2026-07-18 22:31:18,255 INFO    MainThread:1826191 [wandb_run.py:_restore():2570] restore
+2026-07-18 22:31:18,255 INFO    MainThread:1826191 [wandb_run.py:_restore():2576] restore done
+2026-07-18 22:31:20,635 INFO    MainThread:1826191 [wandb_run.py:_footer_sync_info():3993] logging synced files

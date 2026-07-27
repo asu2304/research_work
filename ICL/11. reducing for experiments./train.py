@@ -40,7 +40,8 @@ import matplotlib.pyplot as plt
 # ─── Config (must match simplified_setting.ipynb's CONFIG cell) ──────────────
 CONFIG = {
     'data_dir':   'dataset',
-    'models_dir': 'models',
+    'models_dir': None,       # resolved below to models_{attn_param} -- keeps combined/separate
+                              # runs from overwriting each other's checkpoints
     'device':     'cuda:0',
 
     # ── task size (must match data_generation.py) ─────────────────────────────
@@ -57,15 +58,21 @@ CONFIG = {
 
     'bias': True,
 
+    # 'combined' -> W_qk/W_ov (folder 7 style, gauge-free) ; 'separate' -> Wq,Wk,Wv,Wo
+    # (folders 6/8/10 style, keeps the within-head rotation gauge)
+    'attn_param': 'combined',
+
     # ── frozen log-readout construction ────────────────────────────────────────
     'freeze_readout':   True,
     'freeze_delta':     1.0,
-    'freeze_hidden_k':  12,
+    'freeze_hidden_k':  128,   # GELU hidden units per signal state approximating log(f+delta);
+                               # matches this project's standard mlp_hidden=128 convention
+                               # (folders 6/8/10); raised from 12 for a much tighter fit.
     'freeze_fit_fmax':  40.0,
     'freeze_fit_steps': 2000,
 
-    # 'attn' -> W_qk/W_ov both layers ; 'ffn' -> ff1/ff2 (forced-frozen if freeze_readout) ;
-    # 'fc_out' -> fc_out.weight/.bias
+    # 'attn' -> attention params (whichever attn_param uses) ; 'ffn' -> ff1/ff2 (forced-frozen
+    # if freeze_readout) ; 'fc_out' -> fc_out.weight/.bias
     'train_params': ['attn', 'fc_out'],
 
     # ── optimization ─────────────────────────────────────────────────────────────
@@ -73,21 +80,25 @@ CONFIG = {
     'lr':           None,     # None -> per-optimizer default (1e-3 adam / 0.1 sgd)
     'momentum':     0.9,      # only used when optimizer='sgd'
     'weight_decay': 0.0,
-    'grad_clip':    0.5,
-    'epochs':       200,
+    'clip_grad':    False,     # toggle gradient clipping on/off
+    'grad_clip':    0.00,      # max grad norm, only applied when clip_grad=True
+    'epochs':       100,
     'batch_size':   256,
-    'patience':     60,
+    'patience':     50,
     'eval_batch':   256,      # bounds peak GPU memory on a contested shared box (CLAUDE.md §6)
 }
-CONFIG['lr'] = CONFIG['lr'] or {'adam': 1e-3, 'sgd': 0.1}[CONFIG['optimizer']]
+
+CONFIG['lr'] = CONFIG['lr'] or {'adam': 1e-2, 'sgd': 0.1}[CONFIG['optimizer']]
+CONFIG['models_dir'] = CONFIG['models_dir'] or f"models_{CONFIG['attn_param']}"
 TAG = f"simplified_{CONFIG['optimizer']}"
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-# ─── Model: combined-QK/OV attention + (frozen) log-readout FFN ──────────────
+# ─── Model: combined- OR separate-QK/OV attention + (frozen) log-readout FFN ──
 class CombinedAttentionBlock(nn.Module):
     """QK/OV combined parametrization (folder 7 style): scores = x @ W_qk @ x^T ;
-    out = softmax(scores) @ (x @ W_ov). Removes the within-head Q/K, V/O rotation gauge."""
+    out = softmax(scores) @ (x @ W_ov). Removes the within-head Q/K, V/O rotation gauge --
+    W_qk, W_ov ARE the only free parameters (exact reparametrization, not an approximation)."""
     def __init__(self, input_dim, output_dim):
         super().__init__()
         self.output_dim = output_dim
@@ -104,18 +115,49 @@ class CombinedAttentionBlock(nn.Module):
         return torch.cat([x, attn_out], dim=-1), scores
 
 
+class SeparateAttentionBlock(nn.Module):
+    """Separate Wq,Wk,Wv,Wo parametrization (folders 6/8/10 style). Unlike the combined block,
+    this keeps the within-head Q/K and V/O rotation gauge -- Wq,Wk individually free even though
+    only WqᵀWk affects the output (same for Wo·Wv). Strictly more parameters than the combined
+    form for the same functional capacity; useful for comparing whether GD's solution under the
+    two parametrizations differs beyond that gauge freedom."""
+    def __init__(self, input_dim, output_dim):
+        super().__init__()
+        self.output_dim = output_dim
+        self.W_q = nn.Linear(input_dim, output_dim, bias=False)
+        self.W_k = nn.Linear(input_dim, output_dim, bias=False)
+        self.W_v = nn.Linear(input_dim, output_dim, bias=False)
+        self.W_o = nn.Linear(output_dim, output_dim, bias=False)
+
+    def forward(self, x, mask=None):
+        Q, K, V_ = self.W_q(x), self.W_k(x), self.W_v(x)
+        scores = torch.bmm(Q, K.transpose(1, 2)) / (self.output_dim ** 0.5)
+        if mask is not None:
+            scores = scores + mask
+        attn_out = self.W_o(torch.bmm(F.softmax(scores, dim=-1), V_))
+        return torch.cat([x, attn_out], dim=-1), scores
+
+
+_ATTN_BLOCKS = {'combined': CombinedAttentionBlock, 'separate': SeparateAttentionBlock}
+
+
 class SimplifiedTransformerMLP(nn.Module):
-    """Two CombinedAttentionBlock layers + a position-wise GELU FFN head + linear unembedding.
-    `in2` marks where layer-2's attention-output block begins -- the coordinate convention the
-    project's hand-built W* construction has always used for "where the frequency counts live"."""
-    def __init__(self, total_vocab, seq_len, attn_dim, v_sig, ffn_hidden_per_state, bias=True):
+    """Two attention layers (combined W_qk/W_ov OR separate Wq/Wk/Wv/Wo, per attn_param) + a
+    position-wise GELU FFN head + linear unembedding. `in2` marks where layer-2's attention-output
+    block begins -- the coordinate convention the project's hand-built W* construction has always
+    used for "where the frequency counts live"; this is architecture-level (concat structure), so
+    it holds regardless of which attention parametrization is chosen."""
+    def __init__(self, total_vocab, seq_len, attn_dim, v_sig, ffn_hidden_per_state, bias=True,
+                 attn_param='combined'):
         super().__init__()
         self.total_vocab = total_vocab
         self.seq_len      = seq_len
         self.v_sig        = v_sig
+        self.attn_param   = attn_param
         self.initial_dim  = total_vocab + seq_len
-        self.layer1 = CombinedAttentionBlock(self.initial_dim, attn_dim)
-        self.layer2 = CombinedAttentionBlock(self.initial_dim + attn_dim, attn_dim)
+        Block = _ATTN_BLOCKS[attn_param]
+        self.layer1 = Block(self.initial_dim, attn_dim)
+        self.layer2 = Block(self.initial_dim + attn_dim, attn_dim)
         self.D   = self.initial_dim + 2 * attn_dim
         self.in2 = self.initial_dim + attn_dim
         self.ff1 = nn.Linear(self.D, v_sig * ffn_hidden_per_state)
@@ -193,10 +235,18 @@ def load_data(data_dir, split, thr):
 
 
 # ─── Training infra ────────────────────────────────────────────────────────────
+def _attn_params(model):
+    """Return the list of attention parameters, whichever parametrization the model uses."""
+    if model.attn_param == 'combined':
+        return [model.layer1.W_qk, model.layer1.W_ov, model.layer2.W_qk, model.layer2.W_ov]
+    return [p for layer in (model.layer1, model.layer2)
+            for p in (layer.W_q.weight, layer.W_k.weight, layer.W_v.weight, layer.W_o.weight)]
+
+
 def get_trainable_params(model, groups):
     params = []
     if 'attn' in groups:
-        params += [model.layer1.W_qk, model.layer1.W_ov, model.layer2.W_qk, model.layer2.W_ov]
+        params += _attn_params(model)
     if 'ffn' in groups:
         params += list(model.ff1.parameters()) + list(model.ff2.parameters())
     if 'fc_out' in groups:
@@ -205,7 +255,7 @@ def get_trainable_params(model, groups):
 
 
 def set_trainable(model, groups, freeze_readout):
-    for p in (model.layer1.W_qk, model.layer1.W_ov, model.layer2.W_qk, model.layer2.W_ov):
+    for p in _attn_params(model):
         p.requires_grad_('attn' in groups)
     for p in list(model.ff1.parameters()) + list(model.ff2.parameters()):
         p.requires_grad_(('ffn' in groups) and not freeze_readout)
@@ -251,7 +301,7 @@ def train_one(thr, thr_idx, n_thrs, device):
     te_x, te_y = test_blob['x'], test_blob['y']
 
     model = SimplifiedTransformerMLP(V, seq_len, attn_dim, C['v_sig'], C['freeze_hidden_k'],
-                                      bias=C['bias']).to(device)
+                                      bias=C['bias'], attn_param=C['attn_param']).to(device)
     if C['freeze_readout']:
         build_frozen_ffn(model, C['freeze_delta'], C['freeze_hidden_k'],
                           C['freeze_fit_fmax'], C['freeze_fit_steps'])
@@ -265,7 +315,8 @@ def train_one(thr, thr_idx, n_thrs, device):
     print(f"\n{'='*72}")
     n_params = sum(p.numel() for p in params)
     print(f"  [{thr_idx+1}/{n_thrs}] thr={thr}  optimizer={C['optimizer']}  lr={C['lr']}  "
-          f"train_params={C['train_params']}  freeze_readout={C['freeze_readout']}  "
+          f"attn_param={C['attn_param']}  train_params={C['train_params']}  "
+          f"freeze_readout={C['freeze_readout']}  clip_grad={C['clip_grad']}  "
           f"trainable_params={n_params:,}")
     print(f"  data: train={tr_x.shape[0]:,}  test={te_x.shape[0]:,}  "
           f"loss_window=[{token_start}:{token_end}]")
@@ -285,7 +336,7 @@ def train_one(thr, thr_idx, n_thrs, device):
                 logits = model(xb)[:, token_start:token_end]
                 loss = F.cross_entropy(logits.reshape(-1, V), yb.reshape(-1))
                 loss.backward()
-                if C['grad_clip']: torch.nn.utils.clip_grad_norm_(params, C['grad_clip'])
+                if C['clip_grad']: torch.nn.utils.clip_grad_norm_(params, C['grad_clip'])
                 opt.step()
                 ep_loss += loss.item() * yb.numel(); ep_n += yb.numel()
             tr_loss = ep_loss / ep_n
@@ -335,8 +386,8 @@ def main():
     device = torch.device(C['device'] if torch.cuda.is_available() else 'cpu')
     V = C['v_sig'] + C['n_noise']
     print(f"device      : {device}")
-    print(f"model       : SimplifiedTransformerMLP (combined W_qk/W_ov attn, "
-          f"freeze_readout={C['freeze_readout']})")
+    print(f"model       : SimplifiedTransformerMLP (attn_param={C['attn_param']}, "
+          f"freeze_readout={C['freeze_readout']}, freeze_hidden_k={C['freeze_hidden_k']}/state)")
     print(f"data        : {os.path.abspath(C['data_dir'])}")
     print(f"vocab       : v_sig={C['v_sig']}  n_noise={C['n_noise']}  V={V}")
     print(f"seq_len     : {C['seq_len']}   loss_window=[{C['token_start']}:{C['seq_len']}]")

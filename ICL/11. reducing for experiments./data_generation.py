@@ -1,9 +1,8 @@
 """
 Generate train + test data for the reduced-state ICL Markov-with-noise task (folder 11 /
 simplified_setting.ipynb). V_sig=4, n_noise=4, seq_len=100, unequal per-state successor split
-p1~U(0.1,0.9) (folder 10's altered-distribution scheme, resized). No separate validation file --
-validation is carved out of train at TRAINING time via a fixed-seed permutation (see
-simplified_setting.ipynb's split_train_val), same convention as train_identical_arch.py (folder 10).
+p1~U(0.1,0.9) (folder 10's altered-distribution scheme, resized). No validation split at all --
+train.py trains on the FULL train blob and checkpoints on best TRAIN loss (see train.py's CONFIG).
 
 CONFIG below must stay in sync with simplified_setting.ipynb's CONFIG cell
 (V_SIG/N_NOISE/SEQ_LEN/THRESHOLDS/SUCC_P_LOW/SUCC_P_HIGH/N_TRAIN/N_TEST/DATA_SEED).
@@ -21,7 +20,7 @@ import torch
 CONFIG = {
     'output_dir':  'dataset',
     'thresholds':  [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-    'train_size':  10_000,
+    'train_size':  20_000,
     'test_size':   2_000,
     'seq_len':     100,
     'vocab_set1':  4,          # ruled (signal) tokens  -> ids 0..3

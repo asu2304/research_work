@@ -1,0 +1,123 @@
+_wandb:
+    value:
+        cli_version: 0.28.1
+        e:
+            od8ltg1wqwm8ogcoapnbalbew0n04m2n:
+                codePath: ICL/13. training level exhaustive experiment to confirm finding/train.py
+                codePathLocal: train.py
+                cpu_count: 64
+                cpu_count_logical: 64
+                cudaVersion: "13.2"
+                disk:
+                    /:
+                        total: "5814857658368"
+                        used: "5721983414272"
+                email: aashu.patidar9876@gmail.com
+                executable: /home/hariguru/miniconda3/envs/ashu_env/bin/python
+                git:
+                    commit: 300e5879747a62806c925583f870d474fd203bda
+                    remote: git@github-ashutosh:asu2304/research_work.git
+                gpu: NVIDIA A100 80GB PCIe
+                gpu_count: 4
+                gpu_nvidia:
+                    - architecture: Ampere
+                      cudaCores: 6912
+                      memoryTotal: "85899345920"
+                      name: NVIDIA A100 80GB PCIe
+                      uuid: GPU-6308af7a-72a7-f0b6-b940-6733379a4c1c
+                    - architecture: Ampere
+                      cudaCores: 6912
+                      memoryTotal: "85899345920"
+                      name: NVIDIA A100 80GB PCIe
+                      uuid: GPU-87a45f4c-ac5c-fbf2-9a78-855261b3ff40
+                    - architecture: Ampere
+                      cudaCores: 6912
+                      memoryTotal: "85899345920"
+                      name: NVIDIA A100 80GB PCIe
+                      uuid: GPU-f4a4cb4c-73a5-10e5-22d2-05d660c0da78
+                    - architecture: Ampere
+                      cudaCores: 6912
+                      memoryTotal: "85899345920"
+                      name: NVIDIA A100 80GB PCIe
+                      uuid: GPU-ddc46dc9-250c-db17-ed82-5e5731ce6b7a
+                host: ip-91-203-132-11
+                memory:
+                    total: "474466279424"
+                os: Linux-6.8.0-106-generic-x86_64-with-glibc2.39
+                program: /home/hariguru/ashutosh/ICL/13. training level exhaustive experiment to confirm finding/train.py
+                python: CPython 3.11.13
+                root: /home/hariguru/ashutosh/ICL/13. training level exhaustive experiment to confirm finding/wandb_local
+                startedAt: "2026-07-18T04:28:04.655442Z"
+                writerId: od8ltg1wqwm8ogcoapnbalbew0n04m2n
+        m: []
+        python_version: 3.11.13
+        t:
+            "1":
+                - 1
+            "2":
+                - 1
+            "3":
+                - 2
+                - 13
+                - 15
+                - 16
+                - 61
+                - 62
+            "4": 3.11.13
+            "5": 0.28.1
+            "12": 0.28.1
+            "13": linux-x86_64
+attn_param:
+    value: separate
+batch_size:
+    value: 128
+bias:
+    value: true
+cell:
+    value: opt-sgd_lr-0.1_b-128_init-normal
+clip_grad:
+    value: false
+device:
+    value: cuda:1
+epochs:
+    value: 400
+eval_batch:
+    value: 256
+freeze_delta:
+    value: 1
+freeze_fit_fmax:
+    value: 40
+freeze_fit_steps:
+    value: 2000
+freeze_hidden_k:
+    value: 128
+freeze_readout:
+    value: true
+grad_clip:
+    value: 0
+init:
+    value: normal
+lr:
+    value: 0.1
+n_noise:
+    value: 4
+optimizer:
+    value: sgd
+patience:
+    value: 50
+seed:
+    value: 0
+seq_len:
+    value: 100
+threshold:
+    value: 0.6
+token_start:
+    value: 50
+train_params:
+    value:
+        - attn
+        - fc_out
+v_sig:
+    value: 4
+weight_decay:
+    value: 0

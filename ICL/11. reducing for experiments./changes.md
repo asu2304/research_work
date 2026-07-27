@@ -9,3 +9,9 @@ Final changes going to be made:
 - setting the markov uniform distribution in the range [0.1, 0.9]. as the possibilites for the next two possible ruled token depending on the last ruled token. 
 - optimizer we will set to vanila sgd, adam both options to train.
 - use 10,000 data points to train .
+
+
+up next: 
+data: 20k datapoints. 
+epochs: 200
+lr: 0.01

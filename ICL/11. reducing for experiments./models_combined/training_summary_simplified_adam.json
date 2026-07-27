@@ -1,0 +1,69 @@
+{
+  "thresholds": [
+    0.4,
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    0.9,
+    1.0
+  ],
+  "config": {
+    "data_dir": "dataset",
+    "models_dir": "models_combined",
+    "device": "cuda:0",
+    "v_sig": 4,
+    "n_noise": 4,
+    "seq_len": 100,
+    "token_start": 50,
+    "thresholds": [
+      0.4,
+      0.5,
+      0.6,
+      0.7,
+      0.8,
+      0.9,
+      1.0
+    ],
+    "seed": 7,
+    "bias": true,
+    "attn_param": "combined",
+    "freeze_readout": true,
+    "freeze_delta": 1.0,
+    "freeze_hidden_k": 128,
+    "freeze_fit_fmax": 40.0,
+    "freeze_fit_steps": 2000,
+    "train_params": [
+      "attn",
+      "fc_out"
+    ],
+    "optimizer": "adam",
+    "lr": 0.01,
+    "momentum": 0.9,
+    "weight_decay": 0.0,
+    "clip_grad": false,
+    "grad_clip": 0.0,
+    "epochs": 100,
+    "batch_size": 256,
+    "patience": 50,
+    "eval_batch": 256
+  },
+  "best_train": {
+    "0.6": 1.662098154067993,
+    "0.9": 1.019402721786499,
+    "1.0": 0.6009202479362488,
+    "0.5": 1.768769036102295,
+    "0.7": 1.48517197265625,
+    "0.4": 1.8521823928833008,
+    "0.8": 1.3089348260879516
+  },
+  "test_at_best": {
+    "0.6": 1.68044310546875,
+    "0.9": 1.03027630859375,
+    "1.0": 0.609615625,
+    "0.5": 1.79159083984375,
+    "0.7": 1.50164515625,
+    "0.4": 1.87869447265625,
+    "0.8": 1.323878251953125
+  }
+}
