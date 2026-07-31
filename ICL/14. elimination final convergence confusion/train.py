@@ -83,7 +83,10 @@ BASE = {
     'optimizer':  'adam',
     'lr':         0.006,
     'batch_size': 128,
-    'init':       'normal',        # N(0, 1/sqrt(fan_in)) on every attention matrix
+    'init':       'normal',        # N(0, 1/sqrt(fan_in)) on each arch's own matrices -- the SAME
+                                   # scheme long-1000ep-b used, so the two new hybrid archs land
+                                   # in that existing cell alongside its combined/separate runs.
+                                   # 'matched' (product-matched, confound-free) also available.
 
     # ── the long-run change ───────────────────────────────────────────────────
     'epochs':     1000,
@@ -91,19 +94,29 @@ BASE = {
     'patience':   50,              # only used when early_stop=True
 }
 
-ARCHS      = ['combined', 'separate']
-SEEDS      = [0]                                          # single seed, per the experiment spec
-THRESHOLDS = [0.4, 0.5, 0.6, 0.7, 0.8]          # all thresholds in the dataset
+# All four parametrizations of the SAME function class. 'combined'/'separate' are already done
+# for this cell (SKIP_DONE will skip them); the two hybrids are the new 10 runs, and they
+# separate the QK circuit's factorization from the OV circuit's.
+ARCHS      = ['combined', 'separate', 'qk_comb_ov_sep', 'qk_sep_ov_comb']
+SEEDS      = [0]                                # single seed, per the experiment spec
+THRESHOLDS = [0.4, 0.5, 0.6, 0.7, 0.8]
 
 SKIP_DONE     = True
 USE_WANDB     = True
-WANDB_PROJECT = 'ICL-1000ep-convergence-check2'
+WANDB_PROJECT = 'ICL-1000ep-qk-ov-hybrids'
 WANDB_ENTITY  = None         # None -> default entity (set WANDB_ENTITY env var to override)
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-CELL_TAG = (f"opt-{BASE['optimizer']}_lr-{BASE['lr']}_b-{BASE['batch_size']}"
-            f"_init-{BASE['init']}_ep-{BASE['epochs']}")
+# Explicit cell-directory name. Normally None -> derived from the hyperparameters, so identical
+# settings reuse one directory. Set it explicitly to give a run its OWN directory even when the
+# hyperparameters match an earlier cell -- here so the 4-architecture comparison lives in a
+# self-contained copy instead of growing the original 2-architecture cell in place.
+CELL_TAG_OVERRIDE = 'qk-ov-hybrids_opt-adam_lr-0.006_b-128_init-normal_ep-1000'
+
+CELL_TAG = CELL_TAG_OVERRIDE or (
+    f"opt-{BASE['optimizer']}_lr-{BASE['lr']}_b-{BASE['batch_size']}"
+    f"_init-{BASE['init']}_ep-{BASE['epochs']}")
 
 
 # ─── Model (identical to folder 12's train.py) ────────────────────────────────
@@ -147,7 +160,57 @@ class SeparateAttentionBlock(nn.Module):
         return torch.cat([x, attn_out], dim=-1), scores
 
 
-_ATTN_BLOCKS = {'combined': CombinedAttentionBlock, 'separate': SeparateAttentionBlock}
+class QKCombinedOVSeparateBlock(nn.Module):
+    """HYBRID: QK collapsed to a single W_qk, but V/O left factorized as Wv, Wo.
+    Isolates the QK circuit -- if the separate-vs-combined effect is driven by the OV
+    factorization alone, this arch should behave like fully-combined."""
+    def __init__(self, input_dim, output_dim):
+        super().__init__()
+        self.output_dim = output_dim
+        self.W_qk = nn.Parameter(torch.empty(input_dim, input_dim))
+        s = input_dim ** -0.5
+        nn.init.uniform_(self.W_qk, -s, s)
+        self.W_v = nn.Linear(input_dim, output_dim, bias=False)
+        self.W_o = nn.Linear(output_dim, output_dim, bias=False)
+
+    def forward(self, x, mask=None):
+        scores = torch.bmm(x @ self.W_qk, x.transpose(1, 2)) / (self.output_dim ** 0.5)
+        if mask is not None:
+            scores = scores + mask
+        attn_out = self.W_o(torch.bmm(F.softmax(scores, dim=-1), self.W_v(x)))
+        return torch.cat([x, attn_out], dim=-1), scores
+
+
+class QKSeparateOVCombinedBlock(nn.Module):
+    """HYBRID: Q/K left factorized as Wq, Wk, but OV collapsed to a single W_ov.
+    The complement of the block above -- together the two isolate which circuit's
+    factorization actually carries the optimization advantage."""
+    def __init__(self, input_dim, output_dim):
+        super().__init__()
+        self.output_dim = output_dim
+        self.W_q = nn.Linear(input_dim, output_dim, bias=False)
+        self.W_k = nn.Linear(input_dim, output_dim, bias=False)
+        self.W_ov = nn.Parameter(torch.empty(input_dim, output_dim))
+        s = input_dim ** -0.5
+        nn.init.uniform_(self.W_ov, -s, s)
+
+    def forward(self, x, mask=None):
+        Q, K = self.W_q(x), self.W_k(x)
+        scores = torch.bmm(Q, K.transpose(1, 2)) / (self.output_dim ** 0.5)
+        if mask is not None:
+            scores = scores + mask
+        attn_out = torch.bmm(F.softmax(scores, dim=-1), x @ self.W_ov)
+        return torch.cat([x, attn_out], dim=-1), scores
+
+
+# All four are the SAME function class (W_qk == Wq^T Wk, W_ov == Wv^T Wo^T exactly);
+# they differ only in how many redundant coordinates GD gets to move in.
+_ATTN_BLOCKS = {
+    'combined':       CombinedAttentionBlock,        # QK combined, OV combined
+    'separate':       SeparateAttentionBlock,        # QK separate, OV separate
+    'qk_comb_ov_sep': QKCombinedOVSeparateBlock,     # QK combined, OV separate
+    'qk_sep_ov_comb': QKSeparateOVCombinedBlock,     # QK separate, OV combined
+}
 
 
 class SimplifiedTransformerMLP(nn.Module):
@@ -183,18 +246,79 @@ class SimplifiedTransformerMLP(nn.Module):
 
 
 def _attn_mats_with_fanin(model):
-    """(param, fan_in) for every attention matrix. Combined mats are used as x @ W, so
-    fan_in = shape[0]; separate mats are nn.Linear weights [out,in], so fan_in = shape[1]."""
-    if model.attn_param == 'combined':
-        return [(p, p.shape[0]) for layer in (model.layer1, model.layer2)
-                for p in (layer.W_qk, layer.W_ov)]
-    return [(lin.weight, lin.weight.shape[1])
-            for layer in (model.layer1, model.layer2)
-            for lin in (layer.W_q, layer.W_k, layer.W_v, layer.W_o)]
+    """(param, fan_in) for every attention matrix, for ANY of the four parametrizations.
+    Combined mats (W_qk, W_ov) are applied as x @ W, so fan_in = shape[0]; separate mats are
+    nn.Linear weights of shape [out, in], so fan_in = shape[1]. Detection is per-circuit
+    (QK and OV independently), which is what makes the two hybrids work."""
+    out = []
+    for layer in (model.layer1, model.layer2):
+        if hasattr(layer, 'W_qk'):
+            out.append((layer.W_qk, layer.W_qk.shape[0]))
+        else:
+            out.append((layer.W_q.weight, layer.W_q.weight.shape[1]))
+            out.append((layer.W_k.weight, layer.W_k.weight.shape[1]))
+        if hasattr(layer, 'W_ov'):
+            out.append((layer.W_ov, layer.W_ov.shape[0]))
+        else:
+            out.append((layer.W_v.weight, layer.W_v.weight.shape[1]))
+            out.append((layer.W_o.weight, layer.W_o.weight.shape[1]))
+    return out
 
 
-def apply_init(model, scheme):
-    """Same method for both archs. 'default' = U(+-1/sqrt(fan_in)); 'normal' = N(0, 1/sqrt(fan_in))."""
+def _layer_dims(layer):
+    """(input_dim, output_dim) of an attention block, for any of the four parametrizations."""
+    if hasattr(layer, 'W_qk'):
+        d_in = layer.W_qk.shape[0]
+    elif hasattr(layer, 'W_q'):
+        d_in = layer.W_q.weight.shape[1]
+    else:
+        d_in = layer.W_ov.shape[0]
+    return d_in, layer.output_dim
+
+
+def apply_init(model, scheme, seed=0):
+    """Initialize the attention matrices.
+
+    'default' : U(+-1/sqrt(fan_in)) on each arch's own matrices  (= nn.Linear's default)
+    'normal'  : N(0, 1/sqrt(fan_in)) on each arch's own matrices
+    'matched' : MATCHED-PRODUCT init -- the control that removes the initialization-statistics
+                confound. Under 'normal', separate's *effective* W_qk = Wq^T Wk is a product of
+                two Gaussians while combined's W_qk is a single Gaussian draw: same method, but
+                different scale/spectrum, so the two architectures do NOT start from the same
+                function (epoch-0 losses differed by up to ~0.1 nats). Here BOTH archs draw the
+                same Wq,Wk,Wv,Wo ~ N(0, 1/sqrt(fan_in)) from a dedicated generator seeded only by
+                `seed`; separate installs them directly, combined installs their exact products
+                W_qk = Wq^T Wk and W_ov = Wv^T Wo^T. The two models are then the SAME FUNCTION at
+                step 0 (verified: identical logits), so any subsequent divergence is pure
+                optimization dynamics, not a head start.
+
+                The generator is independent of the global RNG on purpose: model construction
+                consumes a different number of global draws per architecture, so a shared
+                torch.manual_seed would NOT give the two archs the same matrices.
+    """
+    if scheme == 'matched':
+        gen = torch.Generator(device='cpu').manual_seed(int(seed))
+        dev = next(model.parameters()).device
+        with torch.no_grad():
+            for layer in (model.layer1, model.layer2):
+                d_in, d_out = _layer_dims(layer)
+                # canonical draw order q,k,v,o -- identical for ALL parametrizations
+                Wq = torch.randn(d_out, d_in,  generator=gen) / math.sqrt(d_in)
+                Wk = torch.randn(d_out, d_in,  generator=gen) / math.sqrt(d_in)
+                Wv = torch.randn(d_out, d_in,  generator=gen) / math.sqrt(d_in)
+                Wo = torch.randn(d_out, d_out, generator=gen) / math.sqrt(d_out)
+                # each circuit installs either the factors or their exact algebraic collapse,
+                # so all four architectures are the SAME function at step 0
+                if hasattr(layer, 'W_qk'):
+                    layer.W_qk.copy_((Wq.t() @ Wk).to(dev))
+                else:
+                    layer.W_q.weight.copy_(Wq.to(dev)); layer.W_k.weight.copy_(Wk.to(dev))
+                if hasattr(layer, 'W_ov'):
+                    layer.W_ov.copy_((Wv.t() @ Wo.t()).to(dev))
+                else:
+                    layer.W_v.weight.copy_(Wv.to(dev)); layer.W_o.weight.copy_(Wo.to(dev))
+        return
+
     with torch.no_grad():
         for p, fan_in in _attn_mats_with_fanin(model):
             s = 1.0 / math.sqrt(fan_in)
@@ -369,7 +493,7 @@ def train_one(arch, seed, thr, device):
 
     model = SimplifiedTransformerMLP(V, seq_len, attn_dim, C['v_sig'], C['freeze_hidden_k'],
                                       bias=C['bias'], attn_param=arch).to(device)
-    apply_init(model, C['init'])
+    apply_init(model, C['init'], seed=seed)
     if C['freeze_readout']:
         build_frozen_ffn(model, C['freeze_delta'], C['freeze_hidden_k'],
                           C['freeze_fit_fmax'], C['freeze_fit_steps'])

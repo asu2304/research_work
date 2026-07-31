@@ -1,0 +1,13 @@
+
+
+# ON HOLD
+
+
+changes: 
+
+- start from the same parameterization.
+- change one hot embeddings to absolute embeddings. 
+- change the data generation rule to eqviprobable state because the ffd is already fixed so no much risk of overfitting. 
+- checkout if seperate still converges the same way with adam? 
+- if so compute gradients plot and findout why seperate converge better than combined. 
+

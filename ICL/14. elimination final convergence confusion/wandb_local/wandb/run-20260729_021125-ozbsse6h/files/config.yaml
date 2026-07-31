@@ -1,0 +1,89 @@
+_wandb:
+    value:
+        cli_version: 0.28.1
+        e:
+            phfvl6fcrjgixxdo6jxp4bl3nuj59p0k:
+                codePath: ICL/14. elimination final convergence confusion/backfill_wandb.py
+                codePathLocal: backfill_wandb.py
+                email: aashu.patidar9876@gmail.com
+                executable: /home/hariguru/miniconda3/envs/ashu_env/bin/python
+                git:
+                    commit: 11d573ce0bf76e428ff5dd25626ec331776f394b
+                    remote: git@github-ashutosh:asu2304/research_work.git
+                host: ip-91-203-132-11
+                os: Linux-6.8.0-106-generic-x86_64-with-glibc2.39
+                program: /home/hariguru/ashutosh/ICL/14. elimination final convergence confusion/backfill_wandb.py
+                python: CPython 3.11.13
+                root: /home/hariguru/ashutosh/ICL/14. elimination final convergence confusion/wandb_local
+                startedAt: "2026-07-28T20:41:25.866055Z"
+                writerId: phfvl6fcrjgixxdo6jxp4bl3nuj59p0k
+        m: []
+        python_version: 3.11.13
+        t:
+            "3":
+                - 2
+                - 13
+                - 15
+                - 16
+                - 61
+                - 62
+            "4": 3.11.13
+            "5": 0.28.1
+            "12": 0.28.1
+            "13": linux-x86_64
+attn_param:
+    value: combined
+batch_size:
+    value: 128
+bias:
+    value: true
+cell:
+    value: qk-ov-hybrids_opt-adam_lr-0.006_b-128_init-normal_ep-1000
+clip_grad:
+    value: false
+device:
+    value: cuda:1
+early_stop:
+    value: false
+epochs:
+    value: 1000
+eval_batch:
+    value: 256
+freeze_delta:
+    value: 1
+freeze_fit_fmax:
+    value: 40
+freeze_fit_steps:
+    value: 2000
+freeze_hidden_k:
+    value: 128
+freeze_readout:
+    value: true
+grad_clip:
+    value: 0
+init:
+    value: normal
+lr:
+    value: 0.006
+n_noise:
+    value: 4
+optimizer:
+    value: adam
+patience:
+    value: 50
+seed:
+    value: 0
+seq_len:
+    value: 100
+threshold:
+    value: 0.6
+token_start:
+    value: 50
+train_params:
+    value:
+        - attn
+        - fc_out
+v_sig:
+    value: 4
+weight_decay:
+    value: 0

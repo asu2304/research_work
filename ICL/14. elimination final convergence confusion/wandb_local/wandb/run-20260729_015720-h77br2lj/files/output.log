@@ -1,0 +1,9 @@
+  qk_sep_ov_comb_seed0_x_0.4  trainable=107,576  init: tr=2.3157 te=2.3171
+    ep   100/1000  tr=1.7665  te=1.7787  best=1.7664
+    ep   200/1000  tr=1.7662  te=1.7796  best=1.7651
+[34m[1mwandb[0m: [33mWARNING[0m Fatal error while uploading data. Some run data will not be synced, but it will still be written to disk. Use `wandb sync` at the end of the run to try uploading.
+    ep   300/1000  tr=1.7663  te=1.7832  best=1.7640
+    ep   400/1000  tr=1.7642  te=1.7807  best=1.7638
+    ep   500/1000  tr=1.7638  te=1.7803  best=1.7633
+    ep   600/1000  tr=1.7635  te=1.7810  best=1.7633
+    [INTERRUPTED] saving best-so-far, moving to next run (Ctrl+C again within ~1s exits)
