@@ -1,0 +1,7 @@
+  [lr=0.003] combined_seed0_x_1.0  trainable=95,912  init: tr=2.2694 te=2.2693
+    readout input range at init: [-0.210, 0.145]  (calibrated for [0, 40])
+    ep   100/500  tr=0.6290  te=0.6375  best=0.6290  f in [-3.47,4.83]
+    ep   200/500  tr=0.6191  te=0.6288  best=0.6190  f in [-4.47,7.77]
+    ep   300/500  tr=0.6148  te=0.6259  best=0.6147  f in [-5.28,10.61]
+    ep   400/500  tr=0.6120  te=0.6234  best=0.6118  f in [-5.85,13.76]
+    ep   500/500  tr=0.6099  te=0.6227  best=0.6099  f in [-6.27,16.88]

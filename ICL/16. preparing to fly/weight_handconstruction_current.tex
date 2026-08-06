@@ -1,0 +1,678 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,bm,mathtools}
+\usepackage[margin=0.9in,a4paper]{geometry}
+\usepackage{booktabs,array,multirow}
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage[colorlinks=true,linkcolor=blue!70!black,urlcolor=blue!70!black]{hyperref}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage{microtype}
+
+\definecolor{myblue}{RGB}{0,0,180}
+\definecolor{lightblue}{RGB}{214,234,255}
+\definecolor{darkblue}{RGB}{10,40,120}
+\definecolor{darkorange}{RGB}{180,90,0}
+\definecolor{lightorange}{RGB}{255,237,200}
+\definecolor{hl}{RGB}{200,30,30}
+
+\titleformat{\section}{\large\bfseries\color{myblue}}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{myblue}}{\thesubsection}{0.8em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{myblue}}{\thesubsubsection}{0.8em}{}
+
+\newtcolorbox{conventionbox}{
+  colback=lightblue, colframe=darkblue,
+  title={\textbf{Convention --- read this first}},
+  fonttitle=\bfseries, coltitle=white, colbacktitle=darkblue,
+  boxrule=0.8pt, arc=2pt}
+\newtcolorbox{notebox}[1]{
+  colback=lightblue, colframe=darkblue,
+  title={\textbf{#1}},
+  fonttitle=\bfseries, coltitle=white, colbacktitle=darkblue,
+  boxrule=0.8pt, arc=2pt}
+\newtcolorbox{warningbox}[1]{
+  colback=lightorange, colframe=darkorange,
+  title={\textbf{#1}},
+  fonttitle=\bfseries, coltitle=white, colbacktitle=darkorange,
+  boxrule=0.8pt, arc=2pt}
+
+\lstset{language=Python, basicstyle=\small\ttfamily,
+  commentstyle=\color{green!60!black}, keywordstyle=\color{blue},
+  showstringspaces=false, columns=flexible, breaklines=true}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Wq}{W_Q}
+\newcommand{\Wk}{W_K}
+\newcommand{\Wv}{W_V}
+\newcommand{\Wo}{W_O}
+\newcommand{\sd}{\sqrt{D}}
+\newcommand{\rowlab}[1]{\ \leftarrow\ \text{\footnotesize #1}}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\bfseries Weight Matrix Construction}\\[0.4em]
+{\large The hand-built counting induction head $W^\star$}\\[0.3em]
+{\normalsize $V=8$,\quad $V_{\mathrm{sig}}=4$,\quad $T=100$,\quad $D=108$ \quad---\quad
+ICL of Markov-with-noise, folders 14/15/16}
+\end{center}
+\vspace{0.6em}
+
+\begin{conventionbox}
+PyTorch's \texttt{nn.Linear(in, out)} stores $W\in\R^{\text{out}\times\text{in}}$ and computes
+$y=xW^\top$ with $x$ a row vector. \textbf{Every matrix in this document is shown as $W^\top$
+(shape $\R^{\text{in}\times\text{out}}$)} --- the matrix that $x$ multiplies \emph{from the left}.
+Rows $=$ input dimensions, columns $=$ output dimensions. Circuit matrices are
+$M_{QK}=(\Wq^\top)(\Wk^\top)^\top$ and $M_{OV}=(\Wv^\top)(\Wo^\top)^\top$, exactly as the code
+forms them: \texttt{W\_qk = Wq.weight.T @ Wk.weight}, \texttt{W\_ov = Wv.weight.T @ Wo.weight.T}.
+
+\medskip
+\textbf{On the $\sd$ factors.} The forward pass divides every score by
+$\sqrt{\text{output\_dim}}=\sqrt{108}$. Every $\sd$ written into a weight exists \emph{only} to
+cancel that denominator. After cancellation the effective score coefficient is the plain integer
+($1000$, $50$, $10$, $-10^9$, $-5\times10^4$).
+\end{conventionbox}
+
+\tableofcontents
+\newpage
+
+%=================================================================
+\section{Configuration and dimension map}
+
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Symbol} & \textbf{Definition} & \textbf{Value} & \textbf{Meaning}\\
+\midrule
+$V$        & \texttt{total\_vocab}  & $8$ & alphabet; IDs $0{:}4$ signal, $4{:}8$ noise\\
+$V_{\mathrm{sig}}$ & \texttt{vocab\_set1} & $4$ & signal token count\\
+$n_{\mathrm{noise}}$ & $V-V_{\mathrm{sig}}$ & $4$ & noise token count\\
+$T$        & \texttt{seq\_len}      & $100$ & context length\\
+$D$        & $V+T$                  & $108$ & input / attention dimension\\
+$\mathrm{in}_2$ & $2D$              & $216$ & first coordinate of layer-2 output\\
+$\sd$      & $D^{1/2}$              & $10.392305$ & score denominator and no-op factor\\
+$\alpha_{\mathrm{rec}}$ & recency slope & $20$ & layer-1 position weighting\\
+$\gamma$   & noise-kill weight      & $-5\times10^4$ & layer-2 key noise filter\\
+$P_1$      & priority 1             & $1000$ & layer-2 query: own signal token\\
+$P_2$      & priority 2             & $50$ & layer-2 query: layer-1 predecessor\\
+$\eta$     & noise trigger          & $10$ & layer-2 query: noise-filter row\\
+$\delta$   & \texttt{freeze\_delta} & $0.01$ & smoothing inside the frozen log\\
+$k$        & \texttt{freeze\_hidden\_k} & $128$ & GELU units per signal state\\
+$\alpha$   & threshold              & $0.4\ldots1.0$ & signal emission probability\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Residual stream layout}
+
+\[
+x_t \xrightarrow{\text{L1 concat}} x^{(1)}_t \xrightarrow{\text{L2 concat}} h_t
+\xrightarrow{\text{FFN}} h'_t \xrightarrow{W_u^\top} z_t,
+\qquad
+\underbrace{x_t}_{\R^{108}}\ \
+\underbrace{x^{(1)}_t}_{\R^{216}}\ \
+\underbrace{h_t}_{\R^{324}}\ \
+\underbrace{z_t}_{\R^{8}}
+\]
+
+\begin{center}
+\begin{tabular}{@{}lllc@{}}
+\toprule
+\textbf{Stream} & \textbf{Dims} & \textbf{Content} & \textbf{Written by}\\
+\midrule
+$x_t$ & $0{:}8$ & token one-hot $e^{(8)}_{v_t}$ & embedding\\
+      & $8{:}108$ & position one-hot $e^{(100)}_t$ & embedding\\
+\midrule
+$x^{(1)}_t$ & $0{:}108$ & unchanged $x_t$ & (concat)\\
+            & $108{:}116$ & $e^{(8)}_{v^*(t)}$ --- previous signal token & L1\\
+            & $116{:}216$ & $\bm{0}_{100}$ & L1 (zeroed by $\Wv^{(1)}$)\\
+\midrule
+$h_t$ & $0{:}216$ & unchanged $x^{(1)}_t$ & (concat)\\
+      & $216{:}220$ & successor frequencies $f_v$ & L2\\
+      & $220{:}224$ & $\bm{0}_4$ (noise slots) & L2\\
+      & $224{:}324$ & $\bm{0}_{100}$ & L2\\
+\midrule
+$h'_t$ & $216{:}220$ & $\log(f_v+\delta)$ (overwritten in place) & FFN\\
+       & elsewhere & identical to $h_t$ & FFN (zero rows)\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%=================================================================
+\section{Input embedding}
+
+There is no learnable embedding matrix. Token $v_t\in\{0,\dots,7\}$ at position
+$t\in\{0,\dots,99\}$ is embedded as a concatenation of two one-hots,
+\begin{equation}
+x_t=\Bigl[\ \underbrace{e^{(8)}_{v_t}}_{\text{dims }0:8}\ ;\
+\underbrace{e^{(100)}_{t}}_{\text{dims }8:108}\ \Bigr]\in\R^{108}.
+\end{equation}
+Equivalently the embedding matrix is the identity $I_{108}$ acting on the concatenated index.
+The causal mask added to every score matrix before the softmax is
+\begin{equation}
+M_{t_q,t_k}=-\infty\cdot\bm{1}[t_k>t_q].
+\end{equation}
+
+%=================================================================
+\section{Layer 1 --- the strict previous-signal retriever}
+
+\textbf{Purpose.} Read the causal past, suppress every noise token, and write the identity of the
+\emph{most recent signal token strictly before $t$} into dims $108{:}116$ of the stream. All four
+layer-1 matrices have display shape $\R^{108\times108}$.
+
+\subsection{$(\Wq^{(1)})^\top\in\R^{108\times108}$}
+\begin{equation}
+\boxed{(\Wq^{(1)})^\top=\sd\cdot I_{108}}
+\qquad
+(\Wq^{(1)})^\top=
+\begin{bmatrix}
+\sd\, I_{8} & \bm{0}_{8\times100}\\[2pt]
+\bm{0}_{100\times8} & \sd\, I_{100}
+\end{bmatrix}
+\begin{matrix}
+\rowlab{token dims $0{:}8$}\\[2pt]
+\rowlab{position dims $8{:}108$}
+\end{matrix}
+\end{equation}
+Non-zero cells: $108$, all equal to $\sd=10.392305$.
+
+\begin{notebox}{No-op scaling}
+\[
+s_{t_q,t_k}=\frac{\bigl(\sd\,x_{t_q}\bigr)\bigl((\Wk^{(1)})^\top x_{t_k}^\top\bigr)^\top}{\sd}
+= x_{t_q}\bigl((\Wk^{(1)})^\top x_{t_k}^\top\bigr)^\top .
+\]
+The $\sd$ cancels exactly; the entire layer-1 attention pattern is decided by $\Wk^{(1)}$ alone.
+\end{notebox}
+
+\subsection{$(\Wk^{(1)})^\top\in\R^{108\times108}$}
+The code sets \texttt{W\_k.weight.data = T1.t()}, so the display matrix is
+$(\Wk^{(1)})^\top=\bm{T}_1$ exactly. Entrywise,
+\begin{equation}
+[\bm{T}_1]_{i,j}=
+\begin{cases}
+-10^{9} & i\in\{4,\dots,7\},\ \forall j \quad\text{(noise-token input rows: kill any noise key)}\\
+-10^{9} & i=8{+}t_k,\ j=8{+}t_q,\ t_k=t_q \quad\text{(no self-attention)}\\
+-\alpha_{\mathrm{rec}}(t_q-t_k) & i=8{+}t_k,\ j=8{+}t_q,\ t_k\neq t_q \quad(\alpha_{\mathrm{rec}}=20)\\
+0 & \text{otherwise.}
+\end{cases}
+\end{equation}
+Let $P\in\R^{100\times100}$ be the position-recency sub-block,
+\begin{equation}
+P_{t_k,t_q}=\begin{cases}-10^{9} & t_k=t_q\\ -20\,(t_q-t_k) & t_k\neq t_q.\end{cases}
+\end{equation}
+Then
+\begin{equation}
+\boxed{
+(\Wk^{(1)})^\top=\bm{T}_1=
+\begin{bmatrix}
+\bm{0}_{4\times8} & \bm{0}_{4\times100}\\[2pt]
+-10^{9}\cdot\bm{1}_{4\times8} & -10^{9}\cdot\bm{1}_{4\times100}\\[2pt]
+\bm{0}_{100\times8} & P
+\end{bmatrix}}
+\begin{matrix}
+\rowlab{signal token rows $0{:}4$}\\[2pt]
+\rowlab{noise token rows $4{:}8$}\\[2pt]
+\rowlab{position rows $8{:}108$}
+\end{matrix}
+\end{equation}
+Non-zero cells: $10\,432$. Concretely $P_{0,5}=-100$, $P_{0,99}=-1980$, $P_{5,0}=+100$
+(the last is irrelevant --- it is masked, since $t_k>t_q$).
+
+\paragraph{Score decomposition.} For a query at $t_q$ (token $v_q$) and a key at $t_k$ (token
+$v_k$), using $x_{t_k}=[e_{v_k};e_{t_k}]$,
+\begin{equation}
+s_{t_q,t_k}=x_{t_q}\bm{T}_1^\top x_{t_k}^\top
+=\underbrace{-10^{9}\bm{1}[v_k\ge4]}_{\text{suppress noise keys}}
++\underbrace{-10^{9}\bm{1}[t_k=t_q]}_{\text{no self-attention}}
++\underbrace{-20(t_q-t_k)\,\bm{1}[v_k<4,\ t_k\neq t_q]}_{\text{recency}} .
+\end{equation}
+Among all admissible keys ($v_k$ signal, $t_k<t_q$), the score is $-20(t_q-t_k)$, which is
+maximised by the \emph{largest} $t_k$. Two candidates separated by one step differ by $20$ nats,
+so $\mathrm{softmax}$ gives weight $\ge 1-e^{-20}\approx1-2\times10^{-9}$ to the most recent one:
+a near-hard argmax.
+
+\subsection{$(\Wv^{(1)})^\top\in\R^{108\times108}$}
+\begin{equation}
+\boxed{(\Wv^{(1)})^\top=
+\begin{bmatrix}
+I_{8} & \bm{0}_{8\times100}\\[2pt]
+\bm{0}_{100\times8} & \bm{0}_{100\times100}
+\end{bmatrix}}
+\begin{matrix}
+\rowlab{token dims $0{:}8$}\\[2pt]
+\rowlab{position dims $8{:}108$}
+\end{matrix}
+\end{equation}
+Non-zero cells: $8$, all $=1$. Only the token one-hot passes; all position information is zeroed,
+so the value read at $t_k$ is $[e^{(8)}_{v_{t_k}};\bm{0}_{100}]$.
+
+\subsection{$(\Wo^{(1)})^\top\in\R^{108\times108}$}
+\begin{equation}
+\boxed{(\Wo^{(1)})^\top=I_{108}}\qquad\text{non-zero cells: }108 .
+\end{equation}
+
+\subsection{Effective circuits --- layer 1}
+\begin{align}
+M^{(1)}_{QK}&=(\Wq^{(1)})^\top\bigl((\Wk^{(1)})^\top\bigr)^\top=\sd\,\bm{T}_1^\top
+\ \xrightarrow{\ \div\sd\ }\ \bm{T}_1^\top,\\
+M^{(1)}_{OV}&=(\Wv^{(1)})^\top\bigl((\Wo^{(1)})^\top\bigr)^\top=(\Wv^{(1)})^\top=
+\begin{bmatrix}I_8&\bm{0}\\\bm{0}&\bm{0}\end{bmatrix}.
+\end{align}
+
+\subsection{What layer 1 writes}
+Let $v^*(t)=v_{t^*}$ with $t^*=\arg\max\{t_k<t: v_{t_k}<4\}$. Then
+\begin{equation}
+x^{(1)}_t=\Bigl[\underbrace{e^{(8)}_{v_t}}_{0:8};\ \underbrace{e^{(100)}_t}_{8:108};\
+\underbrace{e^{(8)}_{v^*(t)}}_{108:116};\ \underbrace{\bm{0}_{100}}_{116:216}\Bigr]\in\R^{216}.
+\end{equation}
+
+\begin{warningbox}{Layer-1 invariant}
+For \emph{every} position $t$ --- whether $v_t$ is signal or noise --- dims $108{:}116$ hold
+$e^{(8)}_{v^*(t)}$, the identity of the most recent preceding signal token. This is the state the
+Markov chain is in at time $t$, because noise tokens do not change the state.
+\end{warningbox}
+
+%=================================================================
+\section{Layer 2 --- the counting induction head}
+
+Layer 2 reads $x^{(1)}_t\in\R^{216}$. Display shapes: $\R^{216\times108}$ for $\Wq,\Wk,\Wv$ and
+$\R^{108\times108}$ for $\Wo$. Its task: attend to every earlier position whose \emph{predecessor}
+equals the current state, and average the token one-hots found there.
+
+\subsection{$(\Wk^{(2)})^\top\in\R^{216\times108}$}
+\begin{equation}
+\boxed{
+(\Wk^{(2)})^\top=
+\begin{bmatrix}
+\bm{0}_{4\times108}\\[2pt]
+\gamma\,\bm{n}\\[2pt]
+\bm{0}_{100\times108}\\[2pt]
+\bigl[\,I_{8}\ \ \bm{0}_{8\times100}\,\bigr]\\[2pt]
+\bm{0}_{100\times108}
+\end{bmatrix}}
+\begin{matrix}
+\rowlab{own signal token rows $0{:}4$}\\[2pt]
+\rowlab{own noise token rows $4{:}8$}\\[2pt]
+\rowlab{own position rows $8{:}108$}\\[2pt]
+\rowlab{L1 output token rows $108{:}116$}\\[2pt]
+\rowlab{L1 output position rows $116{:}216$}
+\end{matrix}
+\end{equation}
+where $\bm{n}\in\R^{4\times108}$ has a single non-zero \emph{column}, column $4$:
+$[\bm{n}]_{i,4}=1$ for $i=0,\dots,3$, all other entries $0$. Written out, the top-left
+$8\times8$ corner of $(\Wk^{(2)})^\top$ is exactly
+\begin{equation}
+\bigl[(\Wk^{(2)})^\top\bigr]_{0:8,\,0:8}=
+\begin{bmatrix}
+0&0&0&0&0&0&0&0\\
+0&0&0&0&0&0&0&0\\
+0&0&0&0&0&0&0&0\\
+0&0&0&0&0&0&0&0\\
+0&0&0&0&\textcolor{hl}{-5\!\times\!10^{4}}&0&0&0\\
+0&0&0&0&\textcolor{hl}{-5\!\times\!10^{4}}&0&0&0\\
+0&0&0&0&\textcolor{hl}{-5\!\times\!10^{4}}&0&0&0\\
+0&0&0&0&\textcolor{hl}{-5\!\times\!10^{4}}&0&0&0
+\end{bmatrix}
+\begin{matrix}
+\rowlab{$v=0$}\\ \rowlab{$v=1$}\\ \rowlab{$v=2$}\\ \rowlab{$v=3$}\\
+\rowlab{$v=4$ (noise)}\\ \rowlab{$v=5$}\\ \rowlab{$v=6$}\\ \rowlab{$v=7$}
+\end{matrix}
+\end{equation}
+and rows $108{:}116$ carry $I_8$ on columns $0{:}8$. Total non-zero cells: $12=8+4$.
+
+\paragraph{Key vector.}
+\begin{equation}
+k_{t_k}=x^{(1)}_{t_k}(\Wk^{(2)})^\top
+=\underbrace{e^{(8)}_{v^*(t_k)}}_{\text{predecessor of }t_k,\ \text{dims }0:8}
+\;+\;\gamma\,\bm{1}[v_{t_k}\ge4]\cdot e^{(108)}_{4}.
+\end{equation}
+The first term is the identity of the token that \emph{preceded} $t_k$. The second adds
+$-5\times10^4$ to coordinate $4$ whenever the token at $t_k$ is noise.
+
+\subsection{$(\Wv^{(2)})^\top\in\R^{216\times108}$}
+\begin{equation}
+\boxed{(\Wv^{(2)})^\top=
+\begin{bmatrix}
+I_8 & \bm{0}_{8\times100}\\[2pt]
+\bm{0}_{208\times8} & \bm{0}_{208\times100}
+\end{bmatrix}}
+\begin{matrix}
+\rowlab{own token dims $0{:}8$}\\[2pt]
+\rowlab{all other dims $8{:}216$}
+\end{matrix}
+\end{equation}
+Non-zero cells: $8$. It copies the \emph{original} token one-hot of the attended position, not the
+layer-1 output. That choice is what turns an average into a frequency.
+
+\subsection{$(\Wo^{(2)})^\top=I_{108}$, and the OV circuit}
+\begin{equation}
+M^{(2)}_{OV}=(\Wv^{(2)})^\top\bigl((\Wo^{(2)})^\top\bigr)^\top=(\Wv^{(2)})^\top
+=\begin{bmatrix}I_8&\bm{0}\\\bm{0}&\bm{0}\end{bmatrix}\in\R^{216\times108}.
+\end{equation}
+
+\subsection{$(\Wq^{(2)})^\top\in\R^{216\times108}$}
+\begin{lstlisting}
+Wq2[0:4, 0:4]     = eye(4) * (D**0.5) * 1000.0   # P1: own signal token
+Wq2[0:4, 108:112] = eye(4) * (D**0.5) * 50.0     # P2: layer-1 predecessor
+for v in range(8): Wq2[4, v] = (D**0.5) * 10.0   # NF: noise-filter trigger row
+\end{lstlisting}
+\begin{equation}
+\boxed{
+(\Wq^{(2)})^\top=
+\begin{bmatrix}
+P_1\sd\,I_4\ \ \bm{0}_{4\times104}\\[2pt]
+\bm{0}_{4\times108}\\[2pt]
+\bm{0}_{100\times108}\\[2pt]
+\bigl[\,P_2\sd\,I_4\ \ \bm{0}_{4\times104}\,\bigr]\\[2pt]
+\bm{0}_{104\times108}
+\end{bmatrix}
+\;+\;\eta\sd\!\!\sum_{v=0}^{7} E_{v,4}}
+\begin{matrix}
+\rowlab{rows $0{:}4$ (P1)}\\[2pt]
+\rowlab{rows $4{:}8$}\\[2pt]
+\rowlab{rows $8{:}108$}\\[2pt]
+\rowlab{rows $108{:}112$ (P2)}\\[2pt]
+\rowlab{rows $112{:}216$}
+\end{matrix}
+\end{equation}
+where $E_{v,4}$ is the matrix unit with a single $1$ at $(v,4)$. The top-left $8\times8$ corner is
+therefore
+\begin{equation}
+\bigl[(\Wq^{(2)})^\top\bigr]_{0:8,\,0:8}=
+\begin{bmatrix}
+\textcolor{hl}{10392.30}&0&0&0&\textcolor{blue}{103.92}&0&0&0\\
+0&\textcolor{hl}{10392.30}&0&0&\textcolor{blue}{103.92}&0&0&0\\
+0&0&\textcolor{hl}{10392.30}&0&\textcolor{blue}{103.92}&0&0&0\\
+0&0&0&\textcolor{hl}{10392.30}&\textcolor{blue}{103.92}&0&0&0\\
+0&0&0&0&\textcolor{blue}{103.92}&0&0&0\\
+0&0&0&0&\textcolor{blue}{103.92}&0&0&0\\
+0&0&0&0&\textcolor{blue}{103.92}&0&0&0\\
+0&0&0&0&\textcolor{blue}{103.92}&0&0&0
+\end{bmatrix}
+\end{equation}
+and rows $108{:}112$ carry $519.6152\,I_4$ on columns $0{:}4$. Exact values:
+$P_1\sd=10392.3048$, $P_2\sd=519.6152$, $\eta\sd=103.9230$. Non-zero cells: $16$.
+
+\paragraph{Effective query (after $\div\sd$).}
+\begin{equation}
+q_{t}=
+\begin{cases}
+\underbrace{1000\,e^{(8)}_{v_t}}_{\text{P1: own identity}}
++\underbrace{50\,e^{(8)}_{v^*(t)}}_{\text{P2: predecessor}}
++\ 10\,e^{(108)}_4 & v_t<4\ \ \text{(signal)}\\[1.4em]
+\underbrace{\bm{0}}_{\text{P1 absent}}
++\ 50\,e^{(8)}_{v^*(t)}+\ 10\,e^{(108)}_4 & v_t\ge4\ \ \text{(noise)}
+\end{cases}
+\end{equation}
+Note $e^{(8)}_{v_t}$ has support in dims $0{:}8$; for a noise token that support lies in
+$4{:}8$, where the P1 block of $(\Wq^{(2)})^\top$ is zero --- hence P1 vanishes automatically.
+
+\begin{warningbox}{Priority override --- why this is one head, not two}
+$P_1/P_2=1000/50=20\times$. When $v_t$ is a signal token the query matches on the
+\emph{current} token; when $v_t$ is noise the P1 term is identically zero and P2 takes over, so
+the query matches on $v^*(t)$ instead. Both branches ask the same question, ``which positions had
+\emph{this state} as their predecessor'', because $v^*(t)=v_t$ when $v_t$ is a signal token.
+\end{warningbox}
+
+\subsection{QK circuit --- layer 2}
+$M^{(2)}_{QK}=(\Wq^{(2)})^\top\bigl((\Wk^{(2)})^\top\bigr)^\top\in\R^{216\times216}$ has $48$
+non-zero cells, in four groups:
+\begin{align}
+[M^{(2)}_{QK}]_{i,\,108+i}&=P_1\sd=10392.3047, & i&=0,\dots,3 &&\text{own token vs.\ predecessor}\\
+[M^{(2)}_{QK}]_{108+i,\,108+i}&=P_2\sd=519.6152, & i&=0,\dots,3 &&\text{predecessor vs.\ predecessor}\\
+[M^{(2)}_{QK}]_{i,\,112}&=\eta\sd=103.9230, & i&=0,\dots,7 &&\text{noise trigger}\\
+[M^{(2)}_{QK}]_{i,\,j}&=\eta\sd\,\gamma=-5196152.5, & i&=0..7,\ j=4..7 &&\text{noise kill}
+\end{align}
+
+\paragraph{Resulting score.} For $v_t<4$ (write $u=v^*(t)=v_t$),
+\begin{equation}
+s_{t,t_k}\ \propto\ 1000\cdot\bm{1}[v^*(t_k)=v_t]\;+\;50\cdot\bm{1}[v^*(t_k)=v^*(t)]
+\;-\;5\times10^{4}\cdot\bm{1}[v_{t_k}\ge4].
+\end{equation}
+The noise term dominates everything, so noise positions receive weight
+$\le e^{-5\times10^4}$: exactly zero in floating point. Among the survivors, the set
+$A_t=\{t_k<t:\ v_{t_k}<4,\ v^*(t_k)=v_t\}$ scores $1050$ and every other position scores $0$, so
+\begin{equation}
+\mathrm{softmax}(s_t)_{t_k}=\frac{\bm{1}[t_k\in A_t]}{|A_t|}\bigl(1+O(e^{-1050})\bigr).
+\end{equation}
+
+\subsection{What layer 2 writes --- why $f$ is a frequency}
+Applying $M^{(2)}_{OV}$ to the attended values gives, in coordinates $216{:}224$,
+\begin{equation}
+f_v=\sum_{t_k}\mathrm{softmax}(s_t)_{t_k}\,\bigl[e^{(8)}_{v_{t_k}}\bigr]_v
+=\frac{1}{|A_t|}\sum_{t_k\in A_t}\bm{1}[v_{t_k}=v]
+=\frac{\#\{t_k\in A_t: v_{t_k}=v\}}{|A_t|}.
+\end{equation}
+That is precisely the empirical successor frequency of the current state. Two exact consequences:
+\begin{equation}
+\boxed{\sum_{v=0}^{7}f_v=1}\qquad\text{and}\qquad \boxed{f_v=0\ \ \text{for }v\ge4},
+\end{equation}
+the first because a softmax sums to one, the second because $A_t$ contains only signal positions.
+Numerically over $512\times50$ positions: $\max_t|\sum_v f_v-1|=2.4\times10^{-7}$ and the noise
+slots are $0$ to machine precision.
+
+%=================================================================
+\section{The frozen FFN --- the log readout}
+
+The FFN block is \emph{residual}: $h'=h+\mathrm{ff2}(\mathrm{GELU}(\mathrm{ff1}(h)))$. Coordinate
+$216{+}v$ arrives holding $f_v$ and must leave holding $\log(f_v+\delta)$, so
+\begin{equation}
+\boxed{\ \mathrm{ff2\ must\ emit}\quad g(f)=\log(f+\delta)-f\ }
+\end{equation}
+--- the $-f$ cancels the incoming value, turning the addition into an overwrite. The core is a
+sum of $k=128$ GELU ramps, $g(f)\approx\mathrm{GELU}(fa+b)\,w+c$, fitted once by least squares.
+
+\subsection{Block structure of $\mathrm{ff1}$ and $\mathrm{ff2}$}
+With $a,b,w\in\R^{128}$ and $c\in\R$ shared by all four states,
+\begin{equation}
+\underbrace{
+\mathrm{ff1}^\top=
+\left[
+\begin{array}{c|c|c|c}
+\bm{0}_{216\times128} & \bm{0}_{216\times128} & \bm{0}_{216\times128} & \bm{0}_{216\times128}\\
+\hline
+a^\top & \bm{0} & \bm{0} & \bm{0}\\
+\bm{0} & a^\top & \bm{0} & \bm{0}\\
+\bm{0} & \bm{0} & a^\top & \bm{0}\\
+\bm{0} & \bm{0} & \bm{0} & a^\top\\
+\hline
+\bm{0}_{104\times128} & \bm{0}_{104\times128} & \bm{0}_{104\times128} & \bm{0}_{104\times128}
+\end{array}
+\right]}_{\text{shape }324\times512}
+\begin{matrix}
+\ \\
+\rowlab{rows $0{:}216$}\\
+\ \\
+\rowlab{row $216$}\\
+\rowlab{row $217$}\\
+\rowlab{row $218$}\\
+\rowlab{row $219$}\\
+\ \\
+\rowlab{rows $220{:}324$}
+\end{matrix}
+\end{equation}
+with the column blocks being neurons $0{:}128$, $128{:}256$, $256{:}384$, $384{:}512$. Its
+transpose partner is the mirror image,
+\begin{equation}
+\mathrm{ff2}^\top=
+\left[
+\begin{array}{c|cccc|c}
+\bm{0}_{128\times216} & w^\top & \bm{0} & \bm{0} & \bm{0} & \bm{0}_{128\times104}\\
+\bm{0}_{128\times216} & \bm{0} & w^\top & \bm{0} & \bm{0} & \bm{0}_{128\times104}\\
+\bm{0}_{128\times216} & \bm{0} & \bm{0} & w^\top & \bm{0} & \bm{0}_{128\times104}\\
+\bm{0}_{128\times216} & \bm{0} & \bm{0} & \bm{0} & w^\top & \bm{0}_{128\times104}
+\end{array}
+\right]
+\quad\text{shape }512\times324 ,
+\end{equation}
+whose only non-zero columns are $216,217,218,219$.
+Read plainly: \textbf{row $216+v$ of $\mathrm{ff1}^\top$ holds the vector $a$ in the column block
+$128v:128(v+1)$ and zero elsewhere; every other row is zero.} Equivalently, in
+\texttt{nn.Linear} storage,
+\[
+\mathrm{ff1.weight}[128v{+}j,\ 216{+}v]=a_j,\qquad
+\mathrm{ff1.bias}[128v{+}j]=b_j,\qquad v=0..3,\ j=0..127,
+\]
+and every one of the remaining $512\times324-512$ cells is zero. Symmetrically,
+\[
+\mathrm{ff2.weight}[216{+}v,\ 128v{+}j]=w_j,\qquad
+\mathrm{ff2.bias}[216{+}v]=c,
+\]
+with all $324-4$ other rows of $\mathrm{ff2.weight}$ identically zero --- which is exactly why the
+residual addition leaves the other $320$ coordinates untouched.
+
+\subsection{Why one input column per row}
+Row $128v{+}j$ of $\mathrm{ff1.weight}$ computes $\sum_{d=0}^{323}W_{1}[128v{+}j,d]\,h_d$. With a
+single non-zero at $d=216{+}v$ this equals $a_j f_v+b_j$: a function of $f_v$ \emph{alone}. A
+second non-zero would mix another coordinate in and the unit would stop being a ramp in $f_v$.
+The four blocks hold identical $a,b,w,c$ and differ only in which column they read --- four copies
+of one scalar function, evaluated by a single matrix multiply.
+
+\medskip
+Numerically $c=-4.60476$ against $\log\delta=-4.60517$, and the implied log is accurate to
+$1.665\times10^{-3}$ nats over $f\in[0,40]$ ($4.1\times10^{-4}$ on $[0,1]$). The knot/gain/weight
+construction is documented in full in the companion \texttt{log\_readout\_construction.pdf}.
+
+%=================================================================
+\section{Unembedding matrix and bias}
+
+The unembedding reads $h'_t\in\R^{324}$. It is a pure \emph{selector}:
+\begin{equation}
+\boxed{
+W_u^\top=
+\begin{bmatrix}
+\bm{0}_{216\times8}\\[2pt]
+\bigl[\,I_4\ \ \bm{0}_{4\times4}\,\bigr]\\[2pt]
+\bm{0}_{104\times8}
+\end{bmatrix}}
+\begin{matrix}
+\rowlab{token $+$ position $+$ L1 output, rows $0{:}216$}\\[2pt]
+\rowlab{L2 count rows $216{:}220$ \ \ \textbf{(active)}}\\[2pt]
+\rowlab{L2 noise $+$ unused rows $220{:}324$}
+\end{matrix}
+\end{equation}
+Shape $324\times8$; non-zero cells: $4$, namely $[W_u^\top]_{216+v,\,v}=1$ for $v=0,\dots,3$.
+Written out, the active block is
+\begin{equation}
+\bigl[W_u^\top\bigr]_{216:220,\ 0:8}=
+\begin{bmatrix}
+1&0&0&0&0&0&0&0\\
+0&1&0&0&0&0&0&0\\
+0&0&1&0&0&0&0&0\\
+0&0&0&1&0&0&0&0
+\end{bmatrix}.
+\end{equation}
+
+\subsection{The bias vector}
+\begin{equation}
+\boxed{\;
+b_u=\Bigl[\underbrace{0,\;0,\;0,\;0}_{\text{signal logits}},\;
+\underbrace{\beta,\;\beta,\;\beta,\;\beta}_{\text{noise logits}}\Bigr]^\top,
+\qquad
+\beta=\log\frac{(1+V_{\mathrm{sig}}\delta)(1-\alpha)}{\alpha\,n_{\mathrm{noise}}}\; }
+\end{equation}
+
+\paragraph{Derivation.} The logits are $z_v=\log(f_v+\delta)$ for $v<4$ and $z_v=\beta$ for
+$v\ge4$. Hence
+\begin{equation}
+Z=\sum_{v<4}e^{z_v}+\sum_{v\ge4}e^{z_v}=\underbrace{\sum_{v<4}(f_v+\delta)}_{=\,S}
++\,n_{\mathrm{noise}}e^{\beta},
+\qquad S=\sum_{v<4}f_v+4\delta=1+4\delta ,
+\end{equation}
+using $\sum_v f_v=1$ from \S4.7. \textbf{$S$ is a constant}, independent of the context --- this is
+the fact that makes a single scalar bias sufficient. Substituting
+$e^{\beta}=S(1-\alpha)/(\alpha n_{\mathrm{noise}})$,
+\begin{equation}
+Z=S+n_{\mathrm{noise}}\cdot\frac{S(1-\alpha)}{\alpha\,n_{\mathrm{noise}}}
+=S\Bigl(1+\frac{1-\alpha}{\alpha}\Bigr)=\frac{S}{\alpha},
+\end{equation}
+and therefore
+\begin{equation}
+\boxed{\;p(v)=\frac{f_v+\delta}{S/\alpha}=\alpha\,\frac{f_v+\delta}{1+4\delta}\quad(v<4),
+\qquad
+p(\text{noise})=\frac{e^{\beta}}{S/\alpha}=\frac{1-\alpha}{n_{\mathrm{noise}}}\;}
+\end{equation}
+exactly --- no external renormalisation anywhere. The softmax's $\exp$ undoes the FFN's $\log$;
+without the log it would return $e^{f_v}$, exponential rather than linear in the count.
+
+\begin{center}
+\begin{tabular}{@{}rrrrr@{}}
+\toprule
+$\alpha$ & $\beta$ & $e^{\beta}$ & $p(\text{noise})$ each & $p(\text{signal})$ total\\
+\midrule
+$0.4$ & $-0.941609$ & $0.390000$ & $0.1500$ & $0.40$\\
+$0.5$ & $-1.347074$ & $0.260000$ & $0.1250$ & $0.50$\\
+$0.6$ & $-1.752539$ & $0.173333$ & $0.1000$ & $0.60$\\
+$0.7$ & $-2.194372$ & $0.111429$ & $0.0750$ & $0.70$\\
+$0.8$ & $-2.733368$ & $0.065000$ & $0.0500$ & $0.80$\\
+$0.9$ & $-3.544298$ & $0.028889$ & $0.0250$ & $0.90$\\
+$1.0$ & $-30$ (for $-\infty$) & $9.4\times10^{-14}$ & $0$ & $1.00$\\
+\bottomrule
+\end{tabular}
+\end{center}
+At $\alpha=1$ the exact bias is $-\infty$; $-30$ is used, which moves the signal mass by
+$4\times10^{-13}$ --- far below float32 resolution --- and $\alpha=1$ data contains no noise tokens.
+
+%=================================================================
+\section{End-to-end trace}
+\begin{center}
+\begin{tabular}{@{}clp{10.4cm}@{}}
+\toprule
+\textbf{Step} & \textbf{Operation} & \textbf{Result}\\
+\midrule
+1 & embed & $x_t=[e^{(8)}_{v_t};e^{(100)}_t]\in\R^{108}$\\
+2 & L1 score & $s_{t,t_k}=-20(t-t_k)-10^9\bm{1}[v_{t_k}\!\ge\!4]-10^9\bm{1}[t_k\!=\!t]$\\
+3 & L1 output & $e^{(8)}_{v^*(t)}$ into dims $108{:}116$; stream $\to x^{(1)}_t\in\R^{216}$\\
+4 & L2 key & $k_{t_k}=e^{(8)}_{v^*(t_k)}+\gamma\bm{1}[v_{t_k}\!\ge\!4]e_4$\\
+5 & L2 query & $q_t=1000\,e^{(8)}_{v_t}+50\,e^{(8)}_{v^*(t)}+10\,e_4$ (P1 absent if $v_t$ noise)\\
+6 & L2 output & $f_v=\#\{t_k\in A_t: v_{t_k}=v\}/|A_t|$; \ $\sum_v f_v=1$\\
+7 & FFN & coordinate $216{+}v \leftarrow \log(f_v+\delta)$\\
+8 & unembed & $z_{0:4}=\log(f_v+\delta)$, \ $z_{4:8}=\beta$\\
+9 & softmax & $p(v)=\alpha(f_v+\delta)/(1+4\delta)$, \ $p(\text{noise})=(1-\alpha)/4$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%=================================================================
+\section{Summary of every matrix}
+\begin{center}
+\begin{tabular}{@{}llrp{7.4cm}@{}}
+\toprule
+\textbf{Display matrix} & \textbf{Shape} & \textbf{nnz} & \textbf{Value}\\
+\midrule
+$(\Wq^{(1)})^\top$ & $108\times108$ & $108$ & $\sd I_{108}$; cancels in the score\\
+$(\Wk^{(1)})^\top$ & $108\times108$ & $10432$ & $\bm{T}_1$: signal rows $0{:}4$ zero; noise rows $4{:}8$ all $-10^9$; position rows $8{:}108$ hold $P$\\
+$(\Wv^{(1)})^\top$ & $108\times108$ & $8$ & $I_8$ at $[0{:}8,0{:}8]$\\
+$(\Wo^{(1)})^\top$ & $108\times108$ & $108$ & $I_{108}$\\
+$M^{(1)}_{QK}$ & $108\times108$ & $10432$ & $\sd\bm{T}_1^\top$ (effective $\bm{T}_1^\top$)\\
+$M^{(1)}_{OV}$ & $108\times108$ & $8$ & $I_8$ at $[0{:}8,0{:}8]$\\
+\midrule
+$(\Wq^{(2)})^\top$ & $216\times108$ & $16$ & $10392.30\,I_4$ at rows $0{:}4$ cols $0{:}4$; $519.62\,I_4$ at rows $108{:}112$ cols $0{:}4$; $103.92$ at rows $0{:}8$ col $4$\\
+$(\Wk^{(2)})^\top$ & $216\times108$ & $12$ & $I_8$ at rows $108{:}116$ cols $0{:}8$; $-5\times10^4$ at rows $4{:}8$ col $4$\\
+$(\Wv^{(2)})^\top$ & $216\times108$ & $8$ & $I_8$ at rows $0{:}8$ cols $0{:}8$\\
+$(\Wo^{(2)})^\top$ & $108\times108$ & $108$ & $I_{108}$\\
+$M^{(2)}_{QK}$ & $216\times216$ & $48$ & $10392.30$ / $519.62$ / $103.92$ / $-5196152.5$\\
+$M^{(2)}_{OV}$ & $216\times108$ & $8$ & $I_8$ at $[0{:}8,0{:}8]$\\
+\midrule
+$\mathrm{ff1}^\top$ & $324\times512$ & $512$ & row $216{+}v$ holds $a^\top$ on cols $128v{:}128(v{+}1)$; bias $b$ (storage: \texttt{ff1.weight}$[128v{+}j,216{+}v]=a_j$)\\
+$\mathrm{ff2}^\top$ & $512\times324$ & $512$ & col $216{+}v$ holds $w$ on rows $128v{:}128(v{+}1)$; bias $c=-4.60476$ (storage: \texttt{ff2.weight}$[216{+}v,128v{+}j]=w_j$)\\
+$W_u^\top$ & $324\times8$ & $4$ & $I_4$ at rows $216{:}220$ cols $0{:}4$\\
+$b_u$ & $8$ & $4$ & $0$ on $0{:}4$; $\beta$ on $4{:}8$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{warningbox}{Design takeaway}
+Every attention matrix is an identity, a scaled identity, a constant block, or zero --- none
+performs a non-trivial linear mixing. The circuit's behaviour comes from two properties only:
+\begin{enumerate}
+\item \textbf{Structured sparsity}: which rows of $W^\top$ read which input dims, enforcing strict
+information routing.
+\item \textbf{Scale ratios}: $1000$ vs $50$ creates a hard two-level priority; $-10^9$ and
+$-5\times10^4$ create effectively infinite suppression.
+\end{enumerate}
+The single exception is the frozen FFN --- the only block that is not piecewise trivial --- and it
+implements one scalar function, $\log(f+\delta)$, replicated four times.
+\end{warningbox}
+
+\end{document}

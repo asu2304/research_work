@@ -1,0 +1,22 @@
+  [lr=0.003] separate_seed0_x_0.6  trainable=130,904  init: tr=2.1575 te=2.1574
+    readout input range at init: [-0.145, 0.114]  (calibrated for [0, 40])
+    ep   100/2000  tr=1.6208  te=1.6246  best_tr=1.6208  best_te=1.6244  f in [-14.44,40.13]
+    ep   200/2000  tr=1.6163  te=1.6227  best_tr=1.6161  best_te=1.6227  f in [-21.18,42.20] OUT-OF-RANGE 0.1%
+    ep   300/2000  tr=1.6132  te=1.6224  best_tr=1.6130  best_te=1.6212  f in [-23.69,40.31]
+    ep   400/2000  tr=1.6117  te=1.6216  best_tr=1.6116  best_te=1.6206  f in [-23.99,39.44]
+    ep   500/2000  tr=1.6112  te=1.6219  best_tr=1.6106  best_te=1.6206  f in [-23.13,38.03]
+    ep   600/2000  tr=1.6105  te=1.6230  best_tr=1.6102  best_te=1.6206  f in [-22.61,36.23]
+    ep   700/2000  tr=1.6105  te=1.6221  best_tr=1.6098  best_te=1.6206  f in [-23.05,34.94]
+    ep   800/2000  tr=1.6096  te=1.6225  best_tr=1.6093  best_te=1.6206  f in [-22.81,35.38]
+    ep   900/2000  tr=1.6097  te=1.6235  best_tr=1.6091  best_te=1.6206  f in [-22.60,34.55]
+    ep  1000/2000  tr=1.6091  te=1.6233  best_tr=1.6087  best_te=1.6206  f in [-22.80,34.16]
+    ep  1100/2000  tr=1.6093  te=1.6220  best_tr=1.6085  best_te=1.6206  f in [-22.85,34.07]
+    ep  1200/2000  tr=1.6093  te=1.6219  best_tr=1.6084  best_te=1.6206  f in [-23.21,34.54]
+    ep  1300/2000  tr=1.6092  te=1.6217  best_tr=1.6083  best_te=1.6206  f in [-23.57,34.89]
+    ep  1400/2000  tr=1.6085  te=1.6220  best_tr=1.6082  best_te=1.6206  f in [-23.64,35.32]
+    ep  1500/2000  tr=1.6093  te=1.6217  best_tr=1.6081  best_te=1.6206  f in [-24.27,35.90]
+    ep  1600/2000  tr=1.6092  te=1.6236  best_tr=1.6078  best_te=1.6206  f in [-24.94,36.53]
+    ep  1700/2000  tr=1.6086  te=1.6218  best_tr=1.6078  best_te=1.6206  f in [-25.40,37.41]
+    ep  1800/2000  tr=1.6083  te=1.6226  best_tr=1.6078  best_te=1.6206  f in [-25.33,38.24]
+    ep  1900/2000  tr=1.6081  te=1.6226  best_tr=1.6078  best_te=1.6206  f in [-25.60,38.96]
+    ep  2000/2000  tr=1.6084  te=1.6228  best_tr=1.6077  best_te=1.6206  f in [-25.82,39.33]

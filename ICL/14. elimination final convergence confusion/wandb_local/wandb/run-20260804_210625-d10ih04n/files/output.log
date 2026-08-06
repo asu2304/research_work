@@ -1,0 +1,22 @@
+  [lr=0.003] separate_seed0_x_1.0  trainable=130,904  init: tr=2.2146 te=2.2144
+    readout input range at init: [-0.157, 0.162]  (calibrated for [0, 40])
+    ep   100/2000  tr=0.6100  te=0.6163  best_tr=0.6100  best_te=0.6154  f in [-8.09,38.67]
+    ep   200/2000  tr=0.6074  te=0.6166  best_tr=0.6072  best_te=0.6137  f in [-8.52,41.62] OUT-OF-RANGE 0.2%
+    ep   300/2000  tr=0.6063  te=0.6129  best_tr=0.6058  best_te=0.6129  f in [-8.82,41.38] OUT-OF-RANGE 0.2%
+    ep   400/2000  tr=0.6053  te=0.6128  best_tr=0.6053  best_te=0.6125  f in [-9.73,41.44] OUT-OF-RANGE 0.2%
+    ep   500/2000  tr=0.6051  te=0.6130  best_tr=0.6049  best_te=0.6123  f in [-10.61,42.44] OUT-OF-RANGE 0.2%
+    ep   600/2000  tr=0.6048  te=0.6129  best_tr=0.6045  best_te=0.6122  f in [-11.14,42.28] OUT-OF-RANGE 0.2%
+    ep   700/2000  tr=0.6045  te=0.6132  best_tr=0.6043  best_te=0.6121  f in [-11.73,42.28] OUT-OF-RANGE 0.2%
+    ep   800/2000  tr=0.6044  te=0.6130  best_tr=0.6040  best_te=0.6121  f in [-11.35,42.38] OUT-OF-RANGE 0.2%
+    ep   900/2000  tr=0.6043  te=0.6128  best_tr=0.6038  best_te=0.6121  f in [-12.30,42.33] OUT-OF-RANGE 0.2%
+    ep  1000/2000  tr=0.6038  te=0.6125  best_tr=0.6038  best_te=0.6121  f in [-11.58,42.51] OUT-OF-RANGE 0.2%
+    ep  1100/2000  tr=0.6037  te=0.6124  best_tr=0.6036  best_te=0.6121  f in [-11.60,42.57] OUT-OF-RANGE 0.2%
+    ep  1200/2000  tr=0.6039  te=0.6126  best_tr=0.6036  best_te=0.6121  f in [-11.93,42.56] OUT-OF-RANGE 0.2%
+    ep  1300/2000  tr=0.6043  te=0.6132  best_tr=0.6035  best_te=0.6121  f in [-11.51,42.77] OUT-OF-RANGE 0.2%
+    ep  1400/2000  tr=0.6035  te=0.6126  best_tr=0.6033  best_te=0.6121  f in [-11.92,42.73] OUT-OF-RANGE 0.2%
+    ep  1500/2000  tr=0.6034  te=0.6130  best_tr=0.6032  best_te=0.6121  f in [-11.56,42.89] OUT-OF-RANGE 0.3%
+    ep  1600/2000  tr=0.6037  te=0.6134  best_tr=0.6032  best_te=0.6121  f in [-11.77,42.86] OUT-OF-RANGE 0.2%
+    ep  1700/2000  tr=0.6034  te=0.6133  best_tr=0.6031  best_te=0.6121  f in [-11.88,42.98] OUT-OF-RANGE 0.3%
+    ep  1800/2000  tr=0.6035  te=0.6130  best_tr=0.6030  best_te=0.6121  f in [-11.83,43.04] OUT-OF-RANGE 0.3%
+    ep  1900/2000  tr=0.6039  te=0.6129  best_tr=0.6029  best_te=0.6121  f in [-12.05,43.37] OUT-OF-RANGE 0.3%
+    ep  2000/2000  tr=0.6033  te=0.6133  best_tr=0.6029  best_te=0.6121  f in [-12.41,43.05] OUT-OF-RANGE 0.3%

@@ -1,0 +1,7 @@
+  [lr=0.003] separate_seed0_x_1.0  trainable=130,904  init: tr=2.2146 te=2.2144
+    readout input range at init: [-0.157, 0.162]  (calibrated for [0, 40])
+    ep   100/500  tr=0.6100  te=0.6163  best=0.6100  f in [-8.09,38.67]
+    ep   200/500  tr=0.6074  te=0.6166  best=0.6072  f in [-8.52,41.62] OUT-OF-RANGE 0.2%
+    ep   300/500  tr=0.6063  te=0.6129  best=0.6058  f in [-8.82,41.38] OUT-OF-RANGE 0.2%
+    ep   400/500  tr=0.6053  te=0.6128  best=0.6053  f in [-9.73,41.44] OUT-OF-RANGE 0.2%
+    ep   500/500  tr=0.6051  te=0.6130  best=0.6049  f in [-10.61,42.44] OUT-OF-RANGE 0.2%

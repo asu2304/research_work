@@ -1,0 +1,24 @@
+2026-08-02 21:58:43,561 INFO    MainThread:2724536 [wandb_setup.py:_flush():81] Current SDK version is 0.28.1
+2026-08-02 21:58:43,561 INFO    MainThread:2724536 [wandb_setup.py:_flush():81] Configure stats pid to 2724536
+2026-08-02 21:58:43,561 INFO    MainThread:2724536 [wandb_setup.py:_flush():81] Loading settings from environment variables
+2026-08-02 21:58:43,561 INFO    MainThread:2724536 [wandb_init.py:setup_run_log_directory():729] Logging user logs to /home/hariguru/ashutosh/ICL/14. elimination final convergence confusion/wandb_local/wandb/run-20260802_215843-h0uvu7ky/logs/debug.log
+2026-08-02 21:58:43,561 INFO    MainThread:2724536 [wandb_init.py:setup_run_log_directory():730] Logging internal logs to /home/hariguru/ashutosh/ICL/14. elimination final convergence confusion/wandb_local/wandb/run-20260802_215843-h0uvu7ky/logs/debug-internal.log
+2026-08-02 21:58:43,562 INFO    MainThread:2724536 [wandb_init.py:init():772] calling init triggers
+2026-08-02 21:58:43,562 INFO    MainThread:2724536 [wandb_init.py:init():777] wandb.init called with sweep_config: {}
+config: {'device': 'cuda:1', 'v_sig': 4, 'n_noise': 4, 'seq_len': 100, 'token_start': 50, 'bias': True, 'freeze_readout': True, 'freeze_delta': 1.0, 'freeze_hidden_k': 128, 'freeze_fit_fmax': 40.0, 'freeze_fit_steps': 2000, 'train_params': ['attn', 'fc_out'], 'weight_decay': 0.0, 'clip_grad': False, 'grad_clip': 0.0, 'eval_batch': 256, 'optimizer': 'adam', 'lr': 0.006, 'batch_size': 128, 'init': 'normal', 'epochs': 100, 'early_stop': False, 'patience': 50, 'attn_param': 'separate', 'seed': 0, 'threshold': 0.4, 'cell': 'factorized-from-combined_ep-100', 'transplant': True, 'source_cell': 'opt-adam_lr-0.006_b-128_init-matched_ep-1000', 'source_arch': 'combined', 'source_best_train': 1.812521481513977, 'transplant_train_ce': 1.8170780546875, 'factorization_rel_err': {'layer1_qk': 8.452284804915773e-07, 'layer1_ov': 9.3054804426192e-07, 'layer2_qk': 0.08253945503939747, 'layer2_ov': 9.681776757043146e-07}, '_wandb': {}}
+2026-08-02 21:58:43,562 INFO    MainThread:2724536 [wandb_init.py:init():820] starting backend
+2026-08-02 21:58:43,562 INFO    MainThread:2724536 [wandb_init.py:init():835] sending inform_init request
+2026-08-02 21:58:43,674 INFO    MainThread:2724536 [wandb_init.py:init():840] backend started and connected
+2026-08-02 21:58:43,684 INFO    MainThread:2724536 [wandb_init.py:init():910] updated telemetry
+2026-08-02 21:58:43,693 INFO    MainThread:2724536 [wandb_init.py:init():933] communicating run to backend with 90.0 second timeout
+2026-08-02 21:58:44,584 INFO    MainThread:2724536 [wandb_init.py:init():978] starting run threads in backend
+2026-08-02 21:58:44,677 INFO    MainThread:2724536 [wandb_run.py:_console_start():2621] atexit reg
+2026-08-02 21:58:44,677 INFO    MainThread:2724536 [wandb_run.py:_redirect():2471] redirect: wrap_raw
+2026-08-02 21:58:44,677 INFO    MainThread:2724536 [wandb_run.py:_redirect():2540] Wrapping output streams.
+2026-08-02 21:58:44,677 INFO    MainThread:2724536 [wandb_run.py:_redirect():2563] Redirects installed.
+2026-08-02 21:58:44,679 INFO    MainThread:2724536 [wandb_init.py:init():1016] run started, returning control to user process
+2026-08-02 22:00:51,844 INFO    MainThread:2724536 [wandb_run.py:_finish():2383] finishing run aashu-patidar9876/ICL-1000ep-matched-init/h0uvu7ky
+2026-08-02 22:00:51,844 INFO    MainThread:2724536 [wandb_run.py:_atexit_cleanup():2588] got exitcode: 0
+2026-08-02 22:00:51,844 INFO    MainThread:2724536 [wandb_run.py:_restore():2570] restore
+2026-08-02 22:00:51,844 INFO    MainThread:2724536 [wandb_run.py:_restore():2576] restore done
+2026-08-02 22:00:54,551 INFO    MainThread:2724536 [wandb_run.py:_footer_sync_info():3993] logging synced files

@@ -1,0 +1,22 @@
+  [lr=0.003] combined_seed0_x_0.8  trainable=95,912  init: tr=2.2174 te=2.2184
+    readout input range at init: [-0.165, 0.131]  (calibrated for [0, 40])
+    ep   100/2000  tr=1.3596  te=1.3680  best_tr=1.3596  best_te=1.3680  f in [-2.20,3.14]
+    ep   200/2000  tr=1.3256  te=1.3348  best_tr=1.3256  best_te=1.3348  f in [-2.95,6.02]
+    ep   300/2000  tr=1.3029  te=1.3142  best_tr=1.3029  best_te=1.3142  f in [-3.31,9.39]
+    ep   400/2000  tr=1.2960  te=1.3093  best_tr=1.2960  best_te=1.3087  f in [-3.61,12.52]
+    ep   500/2000  tr=1.2905  te=1.3043  best_tr=1.2904  best_te=1.3043  f in [-4.11,15.46]
+    ep   600/2000  tr=1.2867  te=1.3020  best_tr=1.2867  best_te=1.3018  f in [-4.18,18.23]
+    ep   700/2000  tr=1.2848  te=1.3013  best_tr=1.2846  best_te=1.3009  f in [-4.40,21.01]
+    ep   800/2000  tr=1.2830  te=1.3010  best_tr=1.2830  best_te=1.3004  f in [-4.67,23.56]
+    ep   900/2000  tr=1.2819  te=1.3017  best_tr=1.2819  best_te=1.3000  f in [-5.05,26.07]
+    ep  1000/2000  tr=1.2810  te=1.3012  best_tr=1.2810  best_te=1.3000  f in [-5.10,28.46]
+    ep  1100/2000  tr=1.2803  te=1.3006  best_tr=1.2802  best_te=1.3000  f in [-5.30,30.74]
+    ep  1200/2000  tr=1.2798  te=1.3017  best_tr=1.2796  best_te=1.3000  f in [-5.56,32.94]
+    ep  1300/2000  tr=1.2791  te=1.3017  best_tr=1.2789  best_te=1.3000  f in [-5.83,35.28]
+    ep  1400/2000  tr=1.2786  te=1.3017  best_tr=1.2785  best_te=1.3000  f in [-5.81,37.44]
+    ep  1500/2000  tr=1.2781  te=1.3023  best_tr=1.2781  best_te=1.3000  f in [-6.14,39.65]
+    ep  1600/2000  tr=1.2779  te=1.3034  best_tr=1.2778  best_te=1.3000  f in [-6.06,41.24] OUT-OF-RANGE 0.0%
+    ep  1700/2000  tr=1.2774  te=1.3031  best_tr=1.2774  best_te=1.3000  f in [-6.38,41.82] OUT-OF-RANGE 0.0%
+    ep  1800/2000  tr=1.2772  te=1.3035  best_tr=1.2771  best_te=1.3000  f in [-6.34,41.92] OUT-OF-RANGE 0.0%
+    ep  1900/2000  tr=1.2770  te=1.3031  best_tr=1.2767  best_te=1.3000  f in [-6.84,41.89] OUT-OF-RANGE 0.0%
+    ep  2000/2000  tr=1.2767  te=1.3038  best_tr=1.2765  best_te=1.3000  f in [-6.82,41.79] OUT-OF-RANGE 0.0%

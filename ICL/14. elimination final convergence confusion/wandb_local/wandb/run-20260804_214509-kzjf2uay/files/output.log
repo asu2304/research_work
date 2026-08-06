@@ -1,0 +1,22 @@
+  [lr=0.003] combined_seed0_x_1.0  trainable=95,912  init: tr=2.2694 te=2.2693
+    readout input range at init: [-0.210, 0.145]  (calibrated for [0, 40])
+    ep   100/2000  tr=0.6290  te=0.6375  best_tr=0.6290  best_te=0.6375  f in [-3.47,4.83]
+    ep   200/2000  tr=0.6191  te=0.6288  best_tr=0.6190  best_te=0.6286  f in [-4.47,7.77]
+    ep   300/2000  tr=0.6148  te=0.6259  best_tr=0.6147  best_te=0.6256  f in [-5.28,10.61]
+    ep   400/2000  tr=0.6120  te=0.6234  best_tr=0.6118  best_te=0.6233  f in [-5.85,13.76]
+    ep   500/2000  tr=0.6099  te=0.6227  best_tr=0.6099  best_te=0.6224  f in [-6.27,16.88]
+    ep   600/2000  tr=0.6089  te=0.6226  best_tr=0.6084  best_te=0.6221  f in [-6.63,19.87]
+    ep   700/2000  tr=0.6081  te=0.6227  best_tr=0.6077  best_te=0.6219  f in [-6.90,22.78]
+    ep   800/2000  tr=0.6068  te=0.6224  best_tr=0.6067  best_te=0.6219  f in [-7.15,25.66]
+    ep   900/2000  tr=0.6063  te=0.6238  best_tr=0.6061  best_te=0.6219  f in [-7.38,28.43]
+    ep  1000/2000  tr=0.6059  te=0.6235  best_tr=0.6056  best_te=0.6219  f in [-7.58,31.19]
+    ep  1100/2000  tr=0.6055  te=0.6235  best_tr=0.6051  best_te=0.6219  f in [-7.78,34.02]
+    ep  1200/2000  tr=0.6050  te=0.6232  best_tr=0.6047  best_te=0.6219  f in [-7.94,36.75]
+    ep  1300/2000  tr=0.6045  te=0.6233  best_tr=0.6043  best_te=0.6219  f in [-8.12,39.42]
+    ep  1400/2000  tr=0.6043  te=0.6235  best_tr=0.6041  best_te=0.6219  f in [-8.26,40.88] OUT-OF-RANGE 0.1%
+    ep  1500/2000  tr=0.6041  te=0.6245  best_tr=0.6038  best_te=0.6219  f in [-8.39,41.00] OUT-OF-RANGE 0.1%
+    ep  1600/2000  tr=0.6037  te=0.6236  best_tr=0.6035  best_te=0.6219  f in [-8.50,41.00] OUT-OF-RANGE 0.1%
+    ep  1700/2000  tr=0.6037  te=0.6238  best_tr=0.6034  best_te=0.6219  f in [-8.61,41.09] OUT-OF-RANGE 0.2%
+    ep  1800/2000  tr=0.6033  te=0.6242  best_tr=0.6032  best_te=0.6219  f in [-8.69,41.09] OUT-OF-RANGE 0.2%
+    ep  1900/2000  tr=0.6031  te=0.6239  best_tr=0.6030  best_te=0.6219  f in [-8.79,41.21] OUT-OF-RANGE 0.3%
+    ep  2000/2000  tr=0.6033  te=0.6247  best_tr=0.6029  best_te=0.6219  f in [-8.88,41.63] OUT-OF-RANGE 0.7%
