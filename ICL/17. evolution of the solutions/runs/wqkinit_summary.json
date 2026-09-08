@@ -1,0 +1,41 @@
+[
+  {
+    "cell": "wqkinit_opt-adam_lr-0.005_b-256_init-normal_ep-5",
+    "arch": "combined",
+    "seed": 0,
+    "threshold": 0.6,
+    "best_train": 1.9424075019836426,
+    "test_at_best": 1.9384667451171875,
+    "best_test": 1.9384667451171875,
+    "final_train": 1.9424075019836426,
+    "final_test": 1.9384667451171875,
+    "epochs_run": 5,
+    "steps_run": 490
+  },
+  {
+    "cell": "wqkinit_opt-adam_lr-0.005_b-256_init-normal_ep-5",
+    "arch": "combined",
+    "seed": 0,
+    "threshold": 0.8,
+    "best_train": 1.7061130725479126,
+    "test_at_best": 1.702003607421875,
+    "best_test": 1.702003607421875,
+    "final_train": 1.7061130725479126,
+    "final_test": 1.702003607421875,
+    "epochs_run": 5,
+    "steps_run": 490
+  },
+  {
+    "cell": "wqkinit_opt-adam_lr-0.005_b-256_init-normal_ep-5",
+    "arch": "combined",
+    "seed": 0,
+    "threshold": 1.0,
+    "best_train": 1.1348729167175293,
+    "test_at_best": 1.1372267266845704,
+    "best_test": 1.1372267266845704,
+    "final_train": 1.1348729167175293,
+    "final_test": 1.1372267266845704,
+    "epochs_run": 5,
+    "steps_run": 490
+  }
+]

@@ -275,7 +275,7 @@ def eval_ce(model, x, y, V, device):
         yb = y[i:i + CFG['eval_batch'], ts:te].to(device)
         logits = model(xb)[:, ts:te]
         total += F.cross_entropy(logits.reshape(-1, V), yb.reshape(-1),
-                                 reduction='sum').item()
+                                reduction='sum').item()
         n += yb.numel()
     model.train()
     return total / n
@@ -307,6 +307,7 @@ def metrics_path(arch, seed, thr):
 
 
 def train_one(arch, seed, thr, device):
+        
     V = CFG['v_sig'] + CFG['n_noise']
     ts, tend = CFG['token_start'], CFG['seq_len']
     tag = cell_tag()
@@ -497,3 +498,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

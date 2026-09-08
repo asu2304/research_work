@@ -10,3 +10,18 @@ datasets/
 .claude/worktrees/
 .DS_Store
 early Research-Work/
+
+# --- large regenerable training artifacts -----------------------------------
+# weight/gradient snapshots: single files reach 534 MB, far past GitHub's 100 MB
+# hard limit, and every one is reproducible by re-running the training script
+*.npy
+
+# rendered animations and figures from the analysis notebooks
+*.mp4
+*.gif
+
+# wandb local run directories (the runs live on the wandb server)
+wandb_local/
+
+# notebooks kept locally with their rendered outputs (too big for GitHub)
+*.with-outputs.ipynb

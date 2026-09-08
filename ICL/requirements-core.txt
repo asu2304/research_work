@@ -1,0 +1,37 @@
+# ICL -- in-context learning of a Markov chain corrupted with noise
+#
+# Environment: conda env `ashu_env`, Python 3.11.13
+# These are the packages actually imported anywhere under ICL/ (76 .py and .ipynb
+# files scanned), pinned to the versions the results were produced with.
+#
+#   conda create -n ashu_env python=3.11.13
+#   conda activate ashu_env
+#   pip install -r requirements.txt
+#
+# NOTE ON TORCH: the pin below is the CPU/PyPI build. The environment actually
+# runs 2.0.1+cu117 (CUDA 11.7), which pip will not resolve from PyPI. For the GPU
+# build install torch first, then the rest:
+#
+#   pip install torch==2.0.1 --index-url https://download.pytorch.org/whl/cu117
+#   pip install -r requirements.txt
+
+# --- core: the model, the data, the maths ---
+torch==2.0.1
+numpy==1.26.4
+
+# --- plotting (matplotlib also drives the .gif animation writers via pillow) ---
+matplotlib==3.10.8
+seaborn==0.13.2
+pillow==12.1.1
+
+# --- training utilities ---
+tqdm==4.67.3
+wandb==0.28.1
+
+# --- running the analysis notebooks ---
+ipython==8.37.0
+ipykernel==7.2.0
+jupyterlab==4.5.6
+notebook==7.5.5
+nbformat==5.10.4
+nbconvert==7.17.0

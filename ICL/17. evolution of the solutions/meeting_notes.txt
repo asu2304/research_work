@@ -1,0 +1,25 @@
+Meeting notes: 24 august(11:30 am)
+
+1st theorem: 
+
+Main: contruction
+
+Corollary: 
+
+- Those values the model was learning in the relevant part wasn't same as our construction as our model, so we can have a 
+different construction where we can have random values at places, just like the gradient descent is learning, and then 
+construct something to negate that effect. 
+- In the same way, construct the OV matrix differently than what I am considering right now, and then make the QK values 
+to negate the effect of the value matrix which i have set. 
+
+2nd theorem: 
+
+figure out what's governing the model to go in the right direction at the random init, at the very first step, 
+we've see how exactly the WQK for the second layer has the right gradient signal even at the random init. And the qk matrix
+of the first layer has no meaningful gradient signal. That means it's second layer first forming up.
+
+EXPT: analyze if qk parameters, when initialized to 0, are reaching one of the canonical solutions OR not. 
+3rd theorem: nothing concrete yet. 
+
+* use full data instead of 256 datapoints for taking a step. 
+

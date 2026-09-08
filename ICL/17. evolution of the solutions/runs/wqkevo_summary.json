@@ -1,0 +1,38 @@
+[
+  {
+    "cell": "wqkevo_opt-adam_lr-0.005_b-256_init-normal_ep-1000",
+    "arch": "combined",
+    "seed": 0,
+    "threshold": 0.6,
+    "best_train": 1.6893964046859742,
+    "test_at_best": 1.6959571442871093,
+    "best_test": 1.6959517392578125,
+    "final_train": 1.6893964046859742,
+    "final_test": 1.6959571442871093,
+    "epochs_run": 1000
+  },
+  {
+    "cell": "wqkevo_opt-adam_lr-0.005_b-256_init-normal_ep-1000",
+    "arch": "combined",
+    "seed": 0,
+    "threshold": 0.8,
+    "best_train": 1.385858137512207,
+    "test_at_best": 1.3929953952636718,
+    "best_test": 1.3927291323242188,
+    "final_train": 1.385858137512207,
+    "final_test": 1.3929953952636718,
+    "epochs_run": 1000
+  },
+  {
+    "cell": "wqkevo_opt-adam_lr-0.005_b-256_init-normal_ep-1000",
+    "arch": "combined",
+    "seed": 0,
+    "threshold": 1.0,
+    "best_train": 0.7474907311820984,
+    "test_at_best": 0.7543397553710938,
+    "best_test": 0.7543174537353515,
+    "final_train": 0.747494436969757,
+    "final_test": 0.7543450915527343,
+    "epochs_run": 1000
+  }
+]
