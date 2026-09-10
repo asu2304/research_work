@@ -58,10 +58,10 @@ Only these blocks are trainable. Every other entry of every W is exactly zero, a
 (gradients are masked, and the masks are re-applied after each step):
 
     W_qk layer 1   (108 x 108)   [0:8,   0:8]        token   x token
-                                 [8:108, 8:108]      position x position
-    W_qk layer 2   (216 x 216)   [0:8,     0:8]      noise suppression
-                                 [0:8,   108:116]    induction head  (own token x prev token)
-                                 [108:116, 108:116]  layer-1 output x layer-1 output
+                                 [8:108, 8:108]      position x position, MINUS its diagonal
+    W_qk layer 2   (216 x 216)   [0:8,     0:8]      noise suppression          8x8 = 64
+                                 [0:4,   108:112]    induction head             4x4 = 16
+                                 [108:112, 108:112]  layer-1 output x L1 output 4x4 = 16
     W_ov layer 1   (108 x 108)   [0:8,   0:8]        input selector      (only if TRAIN_WOV)
     W_ov layer 2   (216 x 108)   [0:8,   0:8]        input selector      (only if TRAIN_WOV)
 
@@ -69,13 +69,20 @@ Only these blocks are trainable. Every other entry of every W is exactly zero, a
                          hand construction's value path: attention copies the token one-hot.
     TRAIN_WOV = True  -> those two 8x8 blocks are trainable, starting from the identity.
 
-Layer 2's three blocks are all V x V because layer 1's output occupies only its first V
-coordinates -- columns 116..216 of layer 2's input are identically zero, so nothing there could
-ever matter. Those 192 cells are exactly the hand construction's layer-2 support.
+Layer 2's blocks sit in the first V coordinates because layer 1's output occupies only those --
+columns 116..216 of layer 2's input are identically zero, so nothing there could ever matter.
+Two of the three shrink further to their SIGNAL corner (4x4): noise tokens are never a state and
+never a successor, so 'own token == key's retrieved state' and 'own state == key's state' are only
+ever asked about signal tokens, and the construction puts nothing outside [0:4, 0:4] in either.
+Noise keys are dealt with once, by noise suppression, which does keep its full 8x8.
 
-Trainable parameter count: 8*8 + 100*100 (layer 1 QK) + 3 * 8*8 (layer 2 QK)
-                         = 64 + 10,000 + 192 = 10,256   (+128 if TRAIN_WOV)
-against 11,664 + 46,656 + 11,664 + 23,328 = 93,312 entries in the four matrices -- 11.0%.
+The layer-1 position diagonal is gone for a different reason: the causal mask is now STRICTLY
+causal (triu diagonal=0), so a position can never attend to itself and those 100 cells have
+identically zero gradient. That self-veto used to be W_qk's job.
+
+Trainable parameter count: 8*8 + (100*100 - 100) (layer 1 QK) + 64 + 16 + 16 (layer 2 QK)
+                         = 64 + 9,900 + 96 = 10,060   (+128 if TRAIN_WOV)
+against 11,664 + 46,656 + 11,664 + 23,328 = 93,312 entries in the four matrices -- 10.8%.
 `--blocks full` (below) removes this restriction entirely.
 
 TRAINING
@@ -92,14 +99,14 @@ f == 0 everywhere, and under readout='none' the floor would then flatten every g
 FULL-MATRIX MODE
 ----------------
 `--blocks full` lifts the sparsity entirely: every entry of all four matrices is trainable
-(93,312 instead of 10,256). The ARCHITECTURE is untouched -- only which entries GD may move; the
+(93,312 instead of 10,060). The ARCHITECTURE is untouched -- only which entries GD may move; the
 readout is whatever `--readout` says. Use it to ask whether GD actually needs the blocks the
 construction leaves out, or simply never uses them.
 
 `--blocks` and `--train-wov` are independent, so all four combinations exist:
 
-    --blocks relevant                 10,256   W_qk blocks only
-    --blocks relevant --train-wov     10,384   + the two 8x8 W_ov blocks
+    --blocks relevant                 10,060   W_qk blocks only
+    --blocks relevant --train-wov     10,188   + the two 8x8 W_ov blocks
     --blocks full                     58,320   both W_qk full, W_ov frozen identity
     --blocks full --train-wov         93,312   everything
 
@@ -181,15 +188,18 @@ SEED       = 0
 THRESHOLDS = [0.6, 0.8, 1.0]
 
 USE_WANDB     = True
-WANDB_PROJECT = 'training_Wqk_relevant_fixing_Wov_and_bias'
+WANDB_PROJECT = 'reducing_more_strict_mask_and_signal_corner'
 WANDB_ENTITY  = None
 SKIP_DONE     = True
 
 
 def cell_tag():
+    # 'strict' marks the generation with the strictly-causal mask and the 4x4 signal-corner
+    # layer-2 blocks. Without it these runs would land in the same directory as the earlier
+    # ep-500 run and overwrite its snapshots -- the config differs but the old tag did not.
     return (f"master_opt-{CFG['optimizer']}_lr-{CFG['lr']}_init-{CFG['init']}"
             f"_wov-{'train' if CFG['train_wov'] else 'fixed'}"
-            f"_blocks-{CFG['blocks']}_readout-{CFG['readout']}_ep-{CFG['epochs']}")
+            f"_blocks-{CFG['blocks']}-strict_readout-{CFG['readout']}_ep-{CFG['epochs']}")
 
 
 def noise_bias(alpha):
@@ -297,7 +307,12 @@ class ReducedTransformer(nn.Module):
         pos = F.one_hot(torch.arange(T, device=x.device),
                         num_classes=self.seq_len).float().unsqueeze(0).expand(B, T, -1)
         s = torch.cat([tok, pos], dim=-1)
-        mask = torch.triu(torch.ones(T, T, device=x.device) * float('-inf'), diagonal=1)
+        # STRICTLY causal: diagonal=0 masks j == i too, so a position can never attend to
+        # itself. That used to be W_qk's job -- the construction spent the whole 100-cell
+        # position diagonal on a -B self-veto, and removing it without this cost 1.36 nats.
+        # The architecture enforces it for free instead.
+        mask = torch.triu(torch.ones(T, T, device=x.device) * float('-inf'), diagonal=0)
+        mask[0, 0] = 0.0        # position 0 has no earlier key; without this its softmax is nan
         out = self.layer2(self.layer1(s, mask), mask)
         return out[..., :self.V]                   # the predicted distribution, as produced
 
@@ -322,19 +337,27 @@ def build_masks(model):
     if CFG['blocks'] != 'relevant':
         sys.exit(f"blocks must be 'relevant' or 'full', got {CFG['blocks']!r}")
 
+    Vs = CFG['v_sig']
     m = {}
     qk1 = torch.zeros(d1, d1, dtype=torch.bool)
     qk1[0:V, 0:V] = True                 # token x token
     qk1[V:d1, V:d1] = True               # position x position
+    qk1.diagonal()[V:d1] = False         # self-attention is now -inf in the causal mask, so
+                                         # these 100 cells have identically zero gradient
     m['layer1.W_qk'] = qk1
 
     # layer 1's attention output lives entirely in its first V coordinates (W_ov1 is nonzero
     # only on [0:V, 0:V]), so columns d1+V .. d2 of layer 2's input are identically zero.
-    # All three trainable blocks are therefore V x V.
+    #
+    # Two of the three blocks shrink further to their SIGNAL corner. Noise tokens are never a
+    # state and never a successor, so 'own token == key's retrieved state' and 'own state ==
+    # key's state' are only ever asked about signal tokens; the construction puts nothing
+    # outside [0:Vs, 0:Vs] in either. Noise keys are handled once, by noise suppression, which
+    # does need its full V x V.
     qk2 = torch.zeros(d2, d2, dtype=torch.bool)
-    qk2[0:V, 0:V] = True                         # noise suppression
-    qk2[0:V, d1:d1 + V] = True                   # induction head: own token x prev token
-    qk2[d1:d1 + V, d1:d1 + V] = True             # layer-1 output x layer-1 output
+    qk2[0:V, 0:V] = True                            # noise suppression      V  x V  = 64
+    qk2[0:Vs, d1:d1 + Vs] = True                    # induction head         Vs x Vs = 16
+    qk2[d1:d1 + Vs, d1:d1 + Vs] = True              # L1 output x L1 output  Vs x Vs = 16
     m['layer2.W_qk'] = qk2
 
     ov1 = torch.zeros(d1, d1, dtype=torch.bool); ov1[0:V, 0:V] = True
@@ -395,7 +418,7 @@ def reapply_masks(model, masks, device):
 class BlockRecorder:
     """Per-step snapshots of ONLY the entries that can actually move.
 
-    Storing whole matrices costs 233 KB/row for the two W_qk together. The masks leave 10,256
+    Storing whole matrices costs 233 KB/row for the two W_qk together. The masks leave 10,060
     free entries under blocks='relevant', so a row is 40 KB -- 6x smaller, and nothing is lost
     because every other entry is identically zero for the whole run.
 
@@ -742,7 +765,7 @@ def parse_args():
     ap.add_argument('--train-wov', action='store_true', default=CFG['train_wov'],
                     help='train W_ov as well as W_qk (default: frozen identity selector)')
     ap.add_argument('--blocks', choices=('relevant', 'full'), default=CFG['blocks'],
-                    help="'relevant' = the block-sparse masks (10,256 entries); "
+                    help="'relevant' = the block-sparse masks (10,060 entries); "
                          "'full' = every entry of all four matrices free (93,312)")
     ap.add_argument('--no-snapshots', action='store_true',
                     help='skip the per-step weight/gradient snapshots')

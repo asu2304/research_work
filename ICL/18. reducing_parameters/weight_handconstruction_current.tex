@@ -1,0 +1,468 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath,amssymb,bm,mathtools}
+\usepackage[margin=0.9in,a4paper]{geometry}
+\usepackage{booktabs,array,multirow}
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage[colorlinks=true,linkcolor=blue!70!black,urlcolor=blue!70!black]{hyperref}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage{microtype}
+
+\definecolor{myblue}{RGB}{0,0,180}
+\definecolor{lightblue}{RGB}{214,234,255}
+\definecolor{darkblue}{RGB}{10,40,120}
+\definecolor{darkorange}{RGB}{180,90,0}
+\definecolor{lightorange}{RGB}{255,237,200}
+\definecolor{lightgreen}{RGB}{222,245,222}
+\definecolor{darkgreen}{RGB}{20,100,40}
+\definecolor{hl}{RGB}{200,30,30}
+
+\titleformat{\section}{\large\bfseries\color{myblue}}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{myblue}}{\thesubsection}{0.8em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{myblue}}{\thesubsubsection}{0.8em}{}
+
+\newtcolorbox{conventionbox}{
+  colback=lightblue, colframe=darkblue,
+  title={\textbf{Convention --- read this first}},
+  fonttitle=\bfseries, coltitle=white, colbacktitle=darkblue,
+  boxrule=0.8pt, arc=2pt}
+\newtcolorbox{notebox}[1]{
+  colback=lightblue, colframe=darkblue,
+  title={\textbf{#1}},
+  fonttitle=\bfseries, coltitle=white, colbacktitle=darkblue,
+  boxrule=0.8pt, arc=2pt}
+\newtcolorbox{warningbox}[1]{
+  colback=lightorange, colframe=darkorange,
+  title={\textbf{#1}},
+  fonttitle=\bfseries, coltitle=white, colbacktitle=darkorange,
+  boxrule=0.8pt, arc=2pt}
+\newtcolorbox{interpbox}[1]{
+  colback=lightgreen, colframe=darkgreen,
+  title={\textbf{#1}},
+  fonttitle=\bfseries, coltitle=white, colbacktitle=darkgreen,
+  boxrule=0.8pt, arc=2pt}
+
+\lstset{language=Python, basicstyle=\small\ttfamily,
+  commentstyle=\color{green!60!black}, keywordstyle=\color{blue},
+  showstringspaces=false, columns=flexible, breaklines=true}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Wqk}{W_{QK}}
+\newcommand{\Wov}{W_{OV}}
+\newcommand{\Wq}{W_Q}
+\newcommand{\Wk}{W_K}
+\newcommand{\Wv}{W_V}
+\newcommand{\Wo}{W_O}
+\newcommand{\sd}{\sqrt{D}}
+\newcommand{\rowlab}[1]{\ \leftarrow\ \text{\footnotesize #1}}
+\newcommand{\collab}[1]{\text{\footnotesize #1}}
+
+\newcommand{\Vsig}{V_{\mathrm{sig}}}
+\newcommand{\nnoise}{n_{\mathrm{noise}}}
+\newcommand{\bsig}{b_{\mathrm{sig}}}
+\newcommand{\bnoise}{b_{\mathrm{noise}}}
+
+\title{\textbf{Hand construction, reduced-magnitude form}\\[2pt]
+\large Combined $\Wqk$ / $\Wov$, no unembedding, no log, no output softmax}
+\author{ICL --- Markov-with-noise}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{conventionbox}
+$V=8$ tokens: \textbf{signal} $0..3$ ($\Vsig=4$), \textbf{noise} $4..7$ ($\nnoise=4$).
+$T=100$ positions, scored on $[50,100)$. Residual widths
+$D_1=V+T=108$ (layer-1 input), $D_2=2D_1=216$ (layer-2 input).
+Attention scores are $s_{ij}=x_i^\top \Wqk\, x_j/\sqrt{D_1}$, so \textbf{a $\Wqk$ entry of size $w$
+contributes $w/\sqrt{108}\approx w/10.39$ to the logit}. Everything below is stated first in
+\emph{logit} units and then multiplied by $\sqrt{D_1}$ to give the matrix entry.
+\end{conventionbox}
+
+\section{What changed, and why}
+
+This document supersedes the earlier combined construction. The circuit is identical; three
+things about the \emph{numbers} changed.
+
+\begin{center}\small
+\begin{tabular}{@{}lrrl@{}}
+\toprule
+& old & new & why \\
+\midrule
+$|\Wqk^{(1)}|_{\max}$ & $1.04\times10^{10}$ & $1039.2$ & see below \\
+$|\Wqk^{(2)}|_{\max}$ & $5.20\times10^{6}$  & $1039.2$ & see below \\
+nonzeros in $\Wqk^{(2)}$ & 192 & \textbf{40} & inert entries removed \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Change 1 --- magnitudes reduced to the smallest that still works}
+
+The old constants ($P_1=1000$, $\Gamma=-5\times10^{4}$, $\text{BIG}=-10^{9}$) were chosen to make
+every softmax exactly one-hot with enormous margin. They are far past what is needed: a logit gap
+of $30$ already gives $e^{-30}\approx10^{-13}$ leakage. They also put the construction in a
+magnitude regime gradient descent never visits, which makes any entry-by-entry comparison with a
+trained model meaningless.
+
+The reduction was measured, not guessed. Sweeping the logit-level constants and re-evaluating the
+cross entropy gives
+
+\begin{center}\small
+\begin{tabular}{@{}rrrrrr@{}}
+\toprule
+$\lambda$ & $K$ & $B$ & $|\Wqk^{(1)}|_{\max}$ & $|\Wqk^{(2)}|_{\max}$ & CE $\alpha{=}0.6$ \\
+\midrule
+20 & 1000 & $10^9$ & $1.0\times10^{10}$ & $5.2\times10^{6}$ & 1.69622 \ \small(original) \\
+\textbf{20} & \textbf{100} & \textbf{100} & \textbf{1039.2} & \textbf{1039.2} & \textbf{1.70035} \\
+20 & 100 & 30  & 1039.2 & 1039.2 & 1.87644 \\
+20 & 100 & 15  & 1039.2 & 1039.2 & 3.00135 \\
+20 & 30  & 100 & 1039.2 & 1039.2 & 1.73458 \\
+6  & 12  & 20  & \ \ 311.8 & \ \ 207.8 & 1.77789 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+So $(\lambda,K,B)=(20,100,100)$ costs \textbf{0.004 nats} against the original while shrinking
+$\Wqk^{(2)}$ by a factor of $5000$ and $\Wqk^{(1)}$ by $10^{7}$.
+
+\begin{warningbox}{The veto depth $B$ is the binding constraint --- not the induction bonus $K$}
+Dropping $K$ from 100 to 30 costs 0.034 nats. Dropping $B$ from 100 to 30 costs 0.176, and $B=15$
+is catastrophic (3.00). The reason: a noise key that happens to satisfy the induction match
+receives $+K$ from the induction block and $-B$ from noise suppression. If $B \not> K$ the veto
+loses and noise leaks into the count. \textbf{Keep $B \ge K$.}
+\end{warningbox}
+
+\begin{notebox}{How this compares with what gradient descent finds}
+The trained run (Adam, lr 1.0, zero init, 500 steps, $\alpha=0.6$) reaches CE $1.6965$ with
+$|\Wqk^{(1)}|_{\max}=110.9$ and $|\Wqk^{(2)}|_{\max}=67.4$ --- roughly $10\times$ smaller still.
+Its induction diagonal is $+67$ against a background of $-55$, i.e. about $12$ logits of
+separation, where this construction uses $100$. So GD reaches the same loss with a much softer
+circuit. Pushing the construction to GD's magnitudes ($\lambda,K,B$ near $6,12,20$) costs
+$0.08$ nats, so the two are \emph{not} the same solution at different temperatures --- GD is doing
+something genuinely more economical, and that gap is a result worth reporting rather than tuning
+away.
+\end{notebox}
+
+\subsection{Change 2 --- the inert column in the induction block is removed}
+
+The old $\Wqk^{(2)}[0{:}8,\,108{:}116]$ carried $+103.92$ in \emph{every} row of column 4
+(the first noise token). It was never a design choice: it is a factorisation side effect. The
+single entry $\Wq^{(2)}[4,i]=\sqrt{D_1}\cdot\text{NF}$ appears twice in $\Wqk=\Wq^\top\Wk$,
+\[
+\underbrace{\times\, \Wk^{(2)}[4,\,D_1{+}4]=1}_{\textstyle +103.92 \text{ in the induction block}}
+\qquad\qquad
+\underbrace{\times\, \Wk^{(2)}[4,\,4{:}8]=\Gamma}_{\textstyle -5.2\times10^{6}\text{ noise suppression}}
+\]
+so the noise-suppression term could not be written without also emitting that column. It does
+nothing, for two reasons: it is $100\times$ below the induction diagonal, and the keys it boosts
+have already been vetoed at $-5.2\times10^{6}$. \textbf{Ablating it changes the cross entropy by
+exactly $0.00\times10^{0}$ at every $\alpha$} --- bit-identical, while ablating noise suppression
+for comparison costs $0.133$ nats. It is now zero.
+
+\subsection{Change 3 --- the masked-out future entries are zeroed}
+
+The positional block was filled with $-\lambda(t_q-t_k)$ for \emph{all} pairs. For $t_k>t_q$ that
+is positive and grows to $+\lambda\cdot99$, which is where $|\Wqk^{(1)}|_{\max}=20577$ came from
+even after capping. Those entries sit strictly above the causal mask and are discarded by
+$\text{softmax}(s+M)$ every single forward pass. Setting them to zero costs nothing measurable and
+removes the largest numbers in the matrix. The past decay is additionally \textbf{capped at
+$\Delta=5$}: at $\alpha=0.6$ the chance of no signal token in five steps is $0.4^5\approx1\%$, so
+ranking beyond that is wasted range.
+
+\section{The construction, matrix by matrix}
+
+Logit-level constants: $\lambda=20$ (positional slope), $C=5$ (decay cap), $K=100$ (induction
+bonus), $B=100$ (veto depth). Matrix entries are these times $\sqrt{D_1}=10.3923$.
+
+\subsection{Layer 1 --- previous-signal retriever, $\Wqk^{(1)}\in\R^{108\times108}$}
+
+Job: from position $i$, attend to the \textbf{most recent signal token strictly before $i$}.
+That token is the state the next emission comes from.
+
+\[
+\Wqk^{(1)}[r,c]=\sqrt{D_1}\cdot\begin{cases}
+-B & r\in[4,8),\ \text{any } c \rowlab{noise \emph{query} rows: vetoed}\\[2pt]
+-B & r=V{+}t,\ c=V{+}t \rowlab{exclude self, $t_k=t_q$}\\[2pt]
+-\lambda\min(t_q-t_k,\,C) & r=V{+}t_k,\ c=V{+}t_q,\ t_k<t_q \rowlab{capped recency}\\[2pt]
+0 & t_k>t_q \rowlab{above the causal mask}\\[2pt]
+0 & \text{elsewhere}
+\end{cases}
+\]
+
+\begin{center}\small
+\begin{tabular}{@{}llrr@{}}
+\toprule
+block & role & nonzeros & $|\cdot|_{\max}$ \\
+\midrule
+$[0{:}8,\ 0{:}8]$      & token $\times$ token, noise-query veto & 32 & 1039.2 \\
+$[8{:}108,\ 0{:}8]$    & position $\times$ token & 400 & 1039.2 \\
+$[8{:}108,\ 8{:}108]$  & position $\times$ position, capped recency + self-veto & 5050 & 1039.2 \\
+$[0{:}8,\ 8{:}108]$    & (empty) & 0 & --- \\
+\midrule
+\textbf{total} & & \textbf{5482} of 11664 & \textbf{1039.2} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Layer 1 --- $\Wov^{(1)}\in\R^{108\times108}$}
+$\Wov^{(1)}[0{:}8,\,0{:}8]=I_8$, zero elsewhere. Attention copies the \emph{token one-hot} of
+whichever position it selected, so layer 1 writes a one-hot of the retrieved state into the first
+8 coordinates of its output. Frozen, never trained.
+
+\subsection{Layer 2 --- counting induction head, $\Wqk^{(2)}\in\R^{216\times216}$}
+
+Layer 2's input is $x^{(1)}=[\,x^{(0)}\mid z^{(1)}\,]$, so columns $0{:}8$ are the raw token
+one-hot, $8{:}108$ the position one-hot, and $108{:}116$ the state layer 1 retrieved.
+
+\[
+\Wqk^{(2)}[r,c]=\sqrt{D_1}\cdot\begin{cases}
++K & r=v,\ c=D_1{+}v,\ v<\Vsig \rowlab{\textbf{induction}: own token $=$ key's state}\\[2pt]
+-B & r<V,\ c\in[4,8) \rowlab{\textbf{noise suppression}: veto noise keys}\\[2pt]
++K/20 & r=D_1{+}v,\ c=D_1{+}v,\ v<\Vsig \rowlab{own state $=$ key's state}\\[2pt]
+0 & \text{everywhere else}
+\end{cases}
+\]
+
+\begin{center}\small
+\begin{tabular}{@{}llrr@{}}
+\toprule
+block & role & nonzeros & $|\cdot|_{\max}$ \\
+\midrule
+$[0{:}8,\ 0{:}8]$          & noise suppression & 32 & 1039.2 \\
+$[0{:}8,\ 108{:}116]$      & induction head (diagonal only now) & \textbf{4} & 1039.2 \\
+$[108{:}116,\ 108{:}116]$  & state $\times$ state & 4 & \ \ 52.0 \\
+\midrule
+\textbf{total} & & \textbf{40} of 46656 & \textbf{1039.2} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The induction block is now exactly $\sqrt{D_1}K\,I_4$ padded with zeros --- \textbf{4 nonzeros
+instead of 20}, because the artefact column is gone and the noise-query rows were always zero:
+\[
+\Wqk^{(2)}[0{:}8,\,108{:}116]=
+\begin{pmatrix}
+1039.2 & 0 & 0 & 0 & 0&0&0&0\\
+0 & 1039.2 & 0 & 0 & 0&0&0&0\\
+0 & 0 & 1039.2 & 0 & 0&0&0&0\\
+0 & 0 & 0 & 1039.2 & 0&0&0&0\\
+0&0&0&0&0&0&0&0\\ 0&0&0&0&0&0&0&0\\ 0&0&0&0&0&0&0&0\\ 0&0&0&0&0&0&0&0
+\end{pmatrix}
+\]
+
+\subsection{Layer 2 --- $\Wov^{(2)}\in\R^{216\times108}$}
+$\Wov^{(2)}[0{:}8,\,0{:}8]=I_8$, zero elsewhere. Frozen.
+
+\begin{interpbox}{Why this one choice removes the unembedding, the log and the output softmax}
+With $\Wov^{(2)}[0{:}8,\,0{:}8]=I$, the first $V$ coordinates of layer 2's attention output are
+\[
+f_v=\sum_j A^{(2)}_{ij}\,\mathbb{1}[x_j=v].
+\]
+The attention weights $A^{(2)}_{ij}$ are non-negative and sum to 1, and each $\text{tok}_j$ is a
+one-hot. A convex combination of one-hots \textbf{is} a distribution: $f\ge0$ and $\sum_v f_v=1$
+exactly. So $f$ is already a probability vector over the 8 tokens --- there is nothing for an
+unembedding, a log, or a final softmax to do. That is the whole reason they are gone.
+
+This guarantee is exactly as strong as ``$\Wov$ frozen to the identity''. If $\Wov$ is trained,
+$f$ becomes a convex combination of \emph{arbitrary} vectors, $f\ge0$ fails, and everything below
+breaks.
+\end{interpbox}
+
+\section{The readout bias --- why it exists and where its formula comes from}
+
+This is the part of the design that is easiest to get wrong, so it is worked out slowly.
+
+\subsection{Step 1 --- what layer 2 actually hands us}
+
+With the noise filter working and the induction head perfect, layer 2's output at $\alpha=0.6$ is
+\[
+f=[\,\underbrace{0.5,\ 0.5,\ 0,\ 0}_{\text{signal slots }0..3}\ \mid\
+\underbrace{0,\ 0,\ 0,\ 0}_{\text{noise slots }4..7}\,]
+\]
+The signal slots hold the successor distribution read off the context and sum to 1. The noise
+slots are \textbf{exactly zero} --- that is what ``the noise filter works'' means: all of layer 2's
+attention went to signal keys, so no noise one-hot got averaged in.
+
+\subsection{Step 2 --- why that is a disaster without a bias}
+
+The target token is a noise token $(1-\alpha)=40\%$ of the time. When it is, we need
+$-\log p_{\text{noise}}$, and $p_{\text{noise}}=0$.
+
+\begin{warningbox}{The trap}
+Numerically the code floors it, so the cost is $-\log(\text{LOG\_FLOOR})=69$ nats on 40\% of
+positions. Gradient descent will do anything to avoid that --- and the only thing available is to
+\textbf{break the noise filter}: park $(1-\alpha)$ of layer 2's attention on noise positions so the
+noise slots are non-zero. Measured, this is exactly what happens: with \texttt{readout=none} the
+trained model sits at $\text{signal\_mass}=0.598\approx\alpha$ instead of $1.0$, and the loss
+plateaus at \textbf{1.847} instead of 1.696.
+
+So the missing bias does not just cost accuracy --- \emph{it forbids the circuit we are trying to
+study.} One attention distribution is forced to do two jobs: estimate the successor counts
+\emph{and} carry the noise mass.
+\end{warningbox}
+
+The fix is to supply the noise mass as a \textbf{known constant}. We know $\alpha$; the noise
+distribution is uniform and context-independent. There is nothing to learn there. Handing it over
+as a constant frees the entire attention budget for the one job that does need the context.
+
+\subsection{Step 3 --- what we want the output to be}
+
+At $\alpha=0.6$ the target is
+\[
+p=[\,\underbrace{0.3,\ 0.3,\ 0,\ 0}_{\alpha=0.6 \text{ split over the successors}}\ \mid\
+\underbrace{0.1,\ 0.1,\ 0.1,\ 0.1}_{(1-\alpha)=0.4 \text{ spread over 4 noise tokens}}\,]
+\]
+The noise mass is missing from $f$ entirely, and $\bnoise$ has to supply it.
+
+\subsection{Step 4 --- the one step that catches people out}
+
+The readout is $p=(f+b)/\!\sum(f+b)$. \textbf{We divide by the sum}, so whatever we put in gets
+shrunk. Work out the three sums:
+\[
+\begin{aligned}
+\text{signal side} &= \textstyle\sum f + \Vsig\,\bsig = 1+4(0.01)=1.04\\
+\text{noise side}  &= \nnoise\, b = 4b\\
+\text{total}       &= 1.04+4b
+\end{aligned}
+\]
+Now demand that the noise side is exactly $1-\alpha$ \emph{of the total}:
+\[
+\frac{4b}{1.04+4b}=0.4
+\]
+\[
+\begin{aligned}
+4b &= 0.4(1.04)+0.4(4b) &&\text{multiply out}\\
+4b-1.6b &= 0.416 &&\text{collect } b \text{ on the left}\\
+2.4\,b &= 0.416 &&\text{and } 4-1.6=4(0.6)=\nnoise\cdot\alpha\\
+b &= 0.416/2.4 = 0.173333
+\end{aligned}
+\]
+
+\begin{interpbox}{The step that matters: $4-1.6=2.4$}
+That is $\nnoise\big(1-(1-\alpha)\big)=\nnoise\cdot\alpha$. \textbf{Collecting the $b$ terms is
+what puts $\alpha$ in the denominator} --- it is not the $\alpha$ you started with. This is the
+whole reason the answer is not the naive $(1-\alpha)/\nnoise$.
+\end{interpbox}
+
+Replacing the numbers by symbols --- $0.4\to(1-\alpha)$, $1.04\to S=1+\Vsig\bsig$,
+$4\to\nnoise$, and the $4-1.6$ step $\to\nnoise\alpha$:
+\[
+\boxed{\ \bnoise=\frac{(1-\alpha)\,\bigl(1+\Vsig\,\bsig\bigr)}{\nnoise\cdot\alpha}\ }
+\]
+
+\subsection{Step 5 --- check it}
+
+\[
+(f+b)/\!\sum(f+b)=[\,0.2942,\ 0.2942,\ 0.0058,\ 0.0058\ \mid\ 0.1,\ 0.1,\ 0.1,\ 0.1\,]
+\]
+Noise slots: $0.100000$. Target $(1-\alpha)/\nnoise=0.100000$. Exact.
+
+\subsection{Step 6 --- why not just $b=(1-\alpha)/\nnoise=0.1$?}
+
+\[
+(f+b)/\!\sum(f+b)=[\,0.3542,\ 0.3542,\ 0.0069,\ 0.0069\ \mid\ 0.0694\times4\,]
+\]
+The noise slots come out $0.0694$, not $0.1$; total noise mass $0.278$, not $0.4$.
+
+\begin{interpbox}{One sentence to remember}
+\textbf{Dividing by the sum shrinks whatever you put in, so you have to put in more.} Dividing by
+$\alpha$ \emph{is} that correction: $0.1/0.6=0.1667$, and the remaining $\times1.04$ pays for the
+$\Vsig\bsig$ we also added to the signal side. $0.1667\times1.04=0.1733$.
+\end{interpbox}
+
+\subsection{And $\bsig=0.01$ --- chosen, not derived}
+
+$\bsig$ is a smoothing constant. It stops $f_v=0$ for a signal token the context never happened to
+show as a successor, which would otherwise be $\log 0$. Classic add-$\beta$ smoothing with
+$\beta=0.01$.
+
+It is not free: in the check above the two unseen signal slots take $0.0058$ each, and the real
+successors give up exactly that ($0.2942$ instead of $0.3000$). Note it appears \emph{inside} the
+$\bnoise$ formula precisely so the noise side compensates for the mass it adds.
+
+\begin{notebox}{$\alpha=1$}
+$(1-\alpha)/(\nnoise\alpha)=0$, so $\bnoise$ would be zero and any noise target would cost
+$\log 0$. There are no noise targets at $\alpha=1$, but to keep the slot off exactly zero the code
+uses $\bnoise=10^{-9}$.
+\end{notebox}
+
+\section{After the bias: the average, then the loss}
+
+Two averages happen, in this order, and they are different things.
+
+\subsection{(a) The renormalisation --- the ``average'' inside the readout}
+\[
+p=\frac{f+b}{\sum_v (f+b)_v}
+\]
+Dividing an 8-vector by its own sum makes it a distribution again. \textbf{This is the step that
+replaced the old $\log\to\text{softmax}$ pair}, because
+$\mathrm{softmax}(\log x)=x/\!\sum x$ exactly --- they were always the same operation. Measured
+difference between the two: $5.6\times10^{-17}$.
+
+\subsection{(b) The mean over scored tokens --- the average before the reported loss}
+\[
+\mathcal{L}=-\frac{1}{|B|\cdot(T_{\text{end}}-T_{\text{start}})}
+\sum_{s\in B}\ \sum_{i=T_{\text{start}}}^{T_{\text{end}}-1}\log p^{(s)}_{i,\,y^{(s)}_i}
+\]
+with $T_{\text{start}}=50$, $T_{\text{end}}=100$: the first 50 positions are context only and are
+never scored. In code this is the single \texttt{.mean()} at the end of \texttt{ce\_loss}, taken
+over sequences \emph{and} positions together. Training is full batch, so the gradient is
+accumulated over chunks with each chunk's mean reweighted by its share of the scored tokens ---
+arithmetically identical to one backward pass over all 25{,}000 sequences.
+
+\begin{notebox}{Why the loss is now well behaved}
+$f\ge0$ (convex combination of one-hots) and $b>0$ give $p$ strictly inside $(0,1)$. So
+$\mathcal{L}\ge0$ and the numerical floor never binds --- measured margin $\sim10^{28}$. Under
+\texttt{readout=none} the floor is load-bearing: it binds on $0.098\%$ of positions at
+$\alpha=0.6$. \textbf{Both guarantees require $\Wov$ frozen to the identity.} With $\Wov$
+trainable, $f$ can go negative, $\sum(f+b)$ can pass through zero, and $-\log p$ becomes unbounded
+below --- this produced $\text{best\_train}=-1.05$ before the guard existed.
+\end{notebox}
+
+\section{Summary of every matrix}
+
+\begin{center}\small
+\begin{tabular}{@{}llrrl@{}}
+\toprule
+matrix & shape & nonzeros & $|\cdot|_{\max}$ & trained? \\
+\midrule
+$\Wqk^{(1)}$ & $108\times108$ & 5482 & 1039.2 & yes (2 blocks, 10064 free) \\
+$\Wov^{(1)}$ & $108\times108$ & 8 & 1.0 & no --- frozen $I_8$ \\
+$\Wqk^{(2)}$ & $216\times216$ & \textbf{40} & 1039.2 & yes (3 blocks, 192 free) \\
+$\Wov^{(2)}$ & $216\times108$ & 8 & 1.0 & no --- frozen $I_8$ \\
+\midrule
+$b$ & $8$ & 8 & 0.1733 & no --- computed from $\alpha$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+There is no unembedding, no log, and no output softmax. Cross entropy at $\alpha=0.6$:
+\textbf{1.70035} for this construction, $1.69622$ for the original large-magnitude one,
+$1.6965$ for the trained model, and $1.6434$ for ideal-$\alpha$ (which knows the true transition
+table and is therefore unreachable from context alone).
+
+\section{Next: the ICL score}
+
+This construction is the reference for the \emph{ICL score}: the cosine between a trained
+$\Wqk$ and this one, restricted to the entries gradient descent is allowed to move,
+\[
+\text{ICL score}_\ell=\cos\Bigl(\Wqk^{(\ell)}\big|_{\text{mask}},\ \
+\Wqk^{(\ell),\text{constr}}\big|_{\text{mask}}\Bigr).
+\]
+Two reasons the reduced construction is the right reference. First, the old one put
+$\sim99.98\%$ of its layer-2 energy in 4 diagonal entries of size $10^4$ and the rest in an inert
+artefact column, so the cosine was dominated by numbers that do no work. With 40 nonzeros and one
+magnitude, every entry that contributes is an entry that matters. Second, the old magnitudes were
+$10^7$ away from anything GD produces; a comparison against them measures the gauge, not the
+circuit.
+
+\begin{warningbox}{The ceiling to quote alongside any ICL score}
+The trainable mask holds \textbf{100\%} of $\Wqk^{(2)}$'s construction energy --- its 192 free
+cells are exactly the construction's layer-2 support --- but only \textbf{24.8\%} of
+$\Wqk^{(1)}$'s, because the construction puts mass on position-rows $\times$ noise-token-columns
+which the block-sparse mask excludes. So layer 2's score is comparable against $1.0$; layer 1's is
+capped far below it, and a small number there is not a failure.
+\end{warningbox}
+
+\end{document}
