@@ -131,6 +131,7 @@ for _v in ('TMPDIR', 'TMP', 'TEMP'):
 tempfile.tempdir = _TMP
 os.environ.setdefault('MPLCONFIGDIR', _TMP)
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -155,7 +156,7 @@ CFG = {
     'optimizer':    'adam',    # 'adam' | 'sgd'
     'lr':           1.0,
     'weight_decay': 0.0,
-    'epochs':       1000,       # == optimizer steps (full batch)
+    'epochs':       500,       # == optimizer steps (full batch)
     'init':         'zeros',   # 'zeros' | 'normal'   (applies to W_qk only)
     'train_wov':    False,     # False -> W_ov top-left 8x8 = identity, frozen
     'blocks':       'relevant',  # 'relevant' -> the block-sparse masks below
@@ -164,6 +165,11 @@ CFG = {
                                # 'bias' -> p = (f+b)/sum(f+b), b a FIXED buffer from alpha
     'b_sig':        0.01,      # pseudo-count on the signal slots (smoothing)
     'noise_floor':  1e-9,      # b_noise at alpha=1, where (1-alpha)/(n_noise*alpha) = 0
+
+    # --- per-step snapshots (see BlockRecorder) ---
+    'snapshots':   True,       # record weights (and gradients) every step
+    'snap_grads':  True,       # also store dL/dW at each step, not just W
+    'snap_dtype':  'float32',
 
     # --- batching / evaluation ---
     'grad_chunk':  2048,       # memory only; does not change the gradient
@@ -364,7 +370,7 @@ def install(model, masks, device):
                 # Starting it at zero would make p == 0 everywhere and kill every gradient.
                 p[0:V, 0:V] = torch.eye(V, device=device)
 
-    trainable, n_free = [], 0
+    trainable, n_free, names = [], 0, []
     for name, p in params.items():
         train_this = name.endswith('W_qk') or CFG['train_wov']
         p.requires_grad_(train_this)
@@ -372,8 +378,9 @@ def install(model, masks, device):
             mask = masks[name].to(device)
             p.register_hook(lambda g, mask=mask: g * mask)     # gradients never leave the blocks
             trainable.append(p)
+            names.append(name)
             n_free += int(mask.sum())          # entries that can actually move
-    return trainable, n_free
+    return trainable, n_free, names
 
 
 @torch.no_grad()
@@ -381,6 +388,105 @@ def reapply_masks(model, masks, device):
     """Belt and braces: re-zero outside the masks after each step."""
     for name, p in model.named_parameters():
         p.mul_(masks[name].to(device))
+
+
+# ---------------------------------------------------------------------------- snapshots
+
+class BlockRecorder:
+    """Per-step snapshots of ONLY the entries that can actually move.
+
+    Storing whole matrices costs 233 KB/row for the two W_qk together. The masks leave 10,256
+    free entries under blocks='relevant', so a row is 40 KB -- 6x smaller, and nothing is lost
+    because every other entry is identically zero for the whole run.
+
+    Per trainable parameter, per threshold:
+        w_<param>_x_<thr>.npy      (rows, n_free)  float32   weights
+        g_<param>_x_<thr>.npy      (rows, n_free)  float32   dL/dW           [if snap_grads]
+        mask_<param>_x_<thr>.npy   full shape      bool      where those entries live
+        snapmeta_x_<thr>.json                                shapes, order, rows written
+
+    Reconstruct a full matrix from row k with
+        W = np.zeros(shape); W[mask] = w[k]
+
+    Row convention:  w[k] is the state BEFORE step k+1, so w[0] is the initialisation, and
+    g[k] is the gradient evaluated AT w[k]. The update w[k] -> w[k+1] is the optimizer's
+    response to g[k].
+    """
+
+    def __init__(self, model, masks, thr, n_rows, names, meta):
+        d = run_dir()
+        os.makedirs(d, exist_ok=True)
+        dt = np.dtype(CFG['snap_dtype'])
+        self.names = list(names)
+        self.idx = {}
+        self.w, self.g = {}, {}
+        self.meta_path = os.path.join(d, f'snapmeta_x_{thr}.json')
+        shapes, nfree = {}, {}
+        for n in self.names:
+            m = masks[n].cpu().numpy()
+            np.save(os.path.join(d, f'mask_{n}_x_{thr}.npy'), m)
+            self.idx[n] = torch.from_numpy(np.flatnonzero(m.ravel()))
+            shapes[n], nfree[n] = list(m.shape), int(m.sum())
+            self.w[n] = np.lib.format.open_memmap(
+                os.path.join(d, f'w_{n}_x_{thr}.npy'), mode='w+', dtype=dt,
+                shape=(n_rows, nfree[n]))
+            if CFG['snap_grads']:
+                self.g[n] = np.lib.format.open_memmap(
+                    os.path.join(d, f'g_{n}_x_{thr}.npy'), mode='w+', dtype=dt,
+                    shape=(n_rows, nfree[n]))
+        self.nw = self.ng = 0
+        self.meta = {**meta, 'params': self.names, 'shapes': shapes, 'n_free': nfree,
+                     'dtype': CFG['snap_dtype'], 'rows_allocated': n_rows,
+                     'snap_grads': bool(CFG['snap_grads']),
+                     'w_rows_written': 0, 'g_rows_written': 0, 'w_steps': [], 'g_steps': [],
+                     'layout': 'each row holds the masked entries in row-major order; '
+                               'W = zeros(shape); W[mask] = row',
+                     'convention': 'w[k] is before step k+1 (w[0] = init); '
+                                   'g[k] is the gradient at w[k]'}
+
+    def _flush(self):
+        self.meta['w_rows_written'], self.meta['g_rows_written'] = self.nw, self.ng
+        with open(self.meta_path, 'w') as fh:
+            json.dump(self.meta, fh, indent=2)
+
+    def _take(self, p, n):
+        return p.detach().reshape(-1)[self.idx[n].to(p.device)].to('cpu', torch.float32).numpy()
+
+    @torch.no_grad()
+    def write_w(self, model, step):
+        if self.nw >= self.meta['rows_allocated']:
+            return
+        params = dict(model.named_parameters())
+        for n in self.names:
+            self.w[n][self.nw] = self._take(params[n], n)
+            self.w[n].flush()
+        self.meta['w_steps'].append(int(step))
+        self.nw += 1
+        self._flush()
+
+    @torch.no_grad()
+    def write_g(self, model, step):
+        if not CFG['snap_grads'] or self.ng >= self.meta['rows_allocated']:
+            return
+        params = dict(model.named_parameters())
+        for n in self.names:
+            if params[n].grad is None:
+                return
+            self.g[n][self.ng] = self._take(params[n].grad, n)
+            self.g[n].flush()
+        self.meta['g_steps'].append(int(step))
+        self.ng += 1
+        self._flush()
+
+    def close(self):
+        for a in list(self.w.values()) + list(self.g.values()):
+            a.flush()
+        self.w, self.g = {}, {}
+
+    def nbytes(self):
+        n = np.dtype(CFG['snap_dtype']).itemsize
+        per_row = sum(self.meta['n_free'].values()) * n
+        return per_row * self.meta['rows_allocated'] * (2 if CFG['snap_grads'] else 1)
 
 
 # --------------------------------------------------------------------------------------- loss
@@ -489,7 +595,7 @@ def train_one(thr, device):
 
     model = ReducedTransformer(CFG['v_sig'], CFG['n_noise'], CFG['seq_len']).to(device)
     masks = build_masks(model)
-    params, n_free = install(model, masks, device)
+    params, n_free, tnames = install(model, masks, device)
 
     opt = (torch.optim.Adam(params, lr=CFG['lr'], weight_decay=CFG['weight_decay'])
            if CFG['optimizer'] == 'adam' else
@@ -525,6 +631,17 @@ def train_one(thr, device):
     n_all = sum(p.numel() for p in model.parameters())
     print(f'  alpha={thr}  free entries {n_free:,} of {n_all:,} '
           f'({n_free / n_all:.2%} of the four matrices)')
+
+    rec = None
+    if CFG['snapshots']:
+        rec = BlockRecorder(model, masks, thr, CFG['epochs'] + 1, tnames,
+                            {'cell': tag, 'threshold': float(thr), 'seed': SEED,
+                             'init': CFG['init'], 'blocks': CFG['blocks'],
+                             'readout': CFG['readout'], 'train_wov': CFG['train_wov']})
+        rec.write_w(model, 0)                       # row 0 = the initialisation
+        print(f'    snapshots: {tnames} every step, '
+              f'{"weights + gradients" if CFG["snap_grads"] else "weights only"}, '
+              f'{rec.nbytes() / 2**20:.0f} MB -> {run_dir()}')
     print(f'    init: train {tr0:.5f}  test {te0:.5f}', flush=True)
 
     t0, ep, interrupted, stop_reason = time.time(), 0, False, None
@@ -532,8 +649,12 @@ def train_one(thr, device):
         for ep in range(1, CFG['epochs'] + 1):
             model.train()
             tr_loss = full_batch_grad(model, tr_x, tr_y, b)
+            if rec is not None:
+                rec.write_g(model, ep - 1)          # gradient AT the weights in w-row (ep-1)
             opt.step()
             reapply_masks(model, masks, device)
+            if rec is not None:
+                rec.write_w(model, ep)
             te_loss = eval_ce(model, te_x, te_y, device, b)
 
             # A negative or non-finite CE is a correctness violation, not a bad hyperparameter:
@@ -564,6 +685,8 @@ def train_one(thr, device):
         interrupted = True
         print('    [INTERRUPTED] saving best-so-far', flush=True)
 
+    if rec is not None:
+        rec.close()
     torch.save(model.state_dict(), os.path.join(d, f'model_final_seed{SEED}_x_{thr}.pth'))
     if best_state is not None:
         torch.save(best_state, os.path.join(d, f'model_best_seed{SEED}_x_{thr}.pth'))
@@ -573,7 +696,11 @@ def train_one(thr, device):
               'final_train': history['train_loss'][-1], 'final_test': history['test_loss'][-1],
               'steps_run': ep, 'time_s': round(time.time() - t0, 1),
               'stopped_early': stop_reason is not None or interrupted,
-              'stop_reason': stop_reason or ('interrupted' if interrupted else None)}
+              'stop_reason': stop_reason or ('interrupted' if interrupted else None),
+              'snapshots': None if rec is None else
+              {'params': rec.names, 'w_rows_written': rec.meta['w_rows_written'],
+               'g_rows_written': rec.meta['g_rows_written'],
+               'meta': f'snapmeta_x_{thr}.json'}}
     with open(mpath, 'w') as fh:
         json.dump(result, fh, indent=2)
     if wb:
@@ -617,6 +744,10 @@ def parse_args():
     ap.add_argument('--blocks', choices=('relevant', 'full'), default=CFG['blocks'],
                     help="'relevant' = the block-sparse masks (10,256 entries); "
                          "'full' = every entry of all four matrices free (93,312)")
+    ap.add_argument('--no-snapshots', action='store_true',
+                    help='skip the per-step weight/gradient snapshots')
+    ap.add_argument('--no-snap-grads', action='store_true',
+                    help='snapshot weights only, not gradients')
     ap.add_argument('--readout', choices=('none', 'bias'), default=CFG['readout'],
                     help="'none' = p used as-is; 'bias' = p <- (p+b)/sum(p+b) with b fixed "
                          "from alpha (no log, no softmax, no unembedding)")
@@ -631,7 +762,9 @@ def main():
     a = parse_args()
     CFG.update({'epochs': a.epochs, 'lr': a.lr, 'optimizer': a.optimizer, 'init': a.init,
                 'train_wov': a.train_wov, 'device': a.device, 'blocks': a.blocks,
-                'readout': a.readout})
+                'readout': a.readout,
+                'snapshots': CFG['snapshots'] and not a.no_snapshots,
+                'snap_grads': CFG['snap_grads'] and not a.no_snap_grads})
     THRESHOLDS = a.thresholds
     USE_WANDB = USE_WANDB and not a.no_wandb
 
@@ -644,6 +777,8 @@ def main():
     n_qk = int(masks['layer1.W_qk'].sum() + masks['layer2.W_qk'].sum())
     n_ov = int(masks['layer1.W_ov'].sum() + masks['layer2.W_ov'].sum())
     n_free = n_qk + (n_ov if CFG['train_wov'] else 0)
+    snap_mb = ((CFG['epochs'] + 1) * n_free * np.dtype(CFG['snap_dtype']).itemsize
+               * (2 if CFG['snap_grads'] else 1) / 2 ** 20) if CFG['snapshots'] else 0
     del probe
 
     print(f'device     : {device}')
@@ -669,6 +804,12 @@ def main():
     print(f'optimiser  : {CFG["optimizer"]}  lr={CFG["lr"]}  wd={CFG["weight_decay"]}  '
           f'init={CFG["init"]}  steps={CFG["epochs"]}')
     print(f'batching   : FULL BATCH in chunks of {CFG["grad_chunk"]} -> 1 epoch = 1 step')
+    if CFG['snapshots']:
+        print(f'snapshots  : the {n_free:,} FREE entries every step, '
+              f'{"weights + gradients" if CFG["snap_grads"] else "weights only"}  '
+              f'~= {snap_mb:.0f} MB per threshold ({snap_mb * len(THRESHOLDS):.0f} MB total)')
+    else:
+        print(f'snapshots  : OFF')
     print(f'thresholds : {THRESHOLDS}\n')
 
     for thr in THRESHOLDS:
