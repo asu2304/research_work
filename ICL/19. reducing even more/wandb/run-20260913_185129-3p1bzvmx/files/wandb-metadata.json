@@ -1,0 +1,61 @@
+{
+  "os":  "Linux-6.8.0-139-generic-x86_64-with-glibc2.39",
+  "python":  "CPython 3.11.13",
+  "startedAt":  "2026-09-13T13:21:29.096425Z",
+  "program":  "/home/hariguru/ashutosh/ICL/19. reducing even more/train_three_params.py",
+  "codePath":  "ICL/19. reducing even more/train_three_params.py",
+  "codePathLocal":  "train_three_params.py",
+  "git":  {
+    "remote":  "git@github-ashutosh:asu2304/research_work.git",
+    "commit":  "bac655e5b973639a91668e2016f5aded5ee5da9e"
+  },
+  "email":  "da24s006@smail.iitm.ac.in",
+  "root":  "/home/hariguru/ashutosh/ICL/19. reducing even more",
+  "host":  "ip-91-203-132-11",
+  "executable":  "/home/hariguru/miniconda3/envs/ashu_env/bin/python",
+  "cpu_count":  64,
+  "cpu_count_logical":  64,
+  "gpu":  "NVIDIA A100 80GB PCIe",
+  "gpu_count":  4,
+  "disk":  {
+    "/":  {
+      "total":  "5814857658368",
+      "used":  "5746309672960"
+    }
+  },
+  "memory":  {
+    "total":  "474466017280"
+  },
+  "gpu_nvidia":  [
+    {
+      "name":  "NVIDIA A100 80GB PCIe",
+      "memoryTotal":  "85899345920",
+      "cudaCores":  6912,
+      "architecture":  "Ampere",
+      "uuid":  "GPU-6308af7a-72a7-f0b6-b940-6733379a4c1c"
+    },
+    {
+      "name":  "NVIDIA A100 80GB PCIe",
+      "memoryTotal":  "85899345920",
+      "cudaCores":  6912,
+      "architecture":  "Ampere",
+      "uuid":  "GPU-87a45f4c-ac5c-fbf2-9a78-855261b3ff40"
+    },
+    {
+      "name":  "NVIDIA A100 80GB PCIe",
+      "memoryTotal":  "85899345920",
+      "cudaCores":  6912,
+      "architecture":  "Ampere",
+      "uuid":  "GPU-f4a4cb4c-73a5-10e5-22d2-05d660c0da78"
+    },
+    {
+      "name":  "NVIDIA A100 80GB PCIe",
+      "memoryTotal":  "85899345920",
+      "cudaCores":  6912,
+      "architecture":  "Ampere",
+      "uuid":  "GPU-ddc46dc9-250c-db17-ed82-5e5731ce6b7a"
+    }
+  ],
+  "cudaVersion":  "13.2",
+  "writerId":  "oqebz3a6vtu6szo13zh4oizo3bkwae4m"
+}

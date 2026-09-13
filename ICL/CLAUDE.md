@@ -156,7 +156,168 @@ GD-vs-construction comparison for the induction (not regression) circuit.
 
 ---
 
-## 8. Open threads / possible next steps
+## 8. The reduced-vocab line (folders 14–19) — CURRENT WORK
+
+Sections 1–7 are the V=20 / seq_len=200 work. Folders 14 onward run a **smaller task** so the whole
+circuit is inspectable; everything below refers to that.
+
+- **V=8**: signal `0–3` (`V_sig=4`), noise `4–7` (`n_noise=4`); **seq_len=100**, scored on `[50:100)`.
+  Each signal state has exactly 2 equiprobable successors.
+- Data: `14. elimination final convergence confusion/dataset/` — train 25,000 / test 10,000,
+  `succ_split='equiprobable'`. Thresholds **α ∈ {0.6, 0.8, 1.0}**.
+- Two attention layers in combined **W_qk / W_ov** form, `d1=108`, `d2=216`.
+  **No unembedding, no log, no output softmax.**
+
+### 8.1 The agenda
+How few independent numbers can implement in-context learning here, and **does gradient descent
+find the hand construction?** Two axes of reduction: which ENTRIES may move (folder 18), and how
+many INDEPENDENT VALUES those entries may take (folder 19). At every step the question is whether
+GD's solution is the construction, a gauge-equivalent of it, or something else.
+
+### 8.2 Why the unembedding, log and softmax are gone
+With `W_ov[:8,:8] = I` **frozen**, layer 2's output `f` is a convex combination of token one-hots,
+so `f ≥ 0` and `sum(f) = 1` exactly — `f` already IS a distribution. And `softmax(log x) = x/sum(x)`,
+so the old log→softmax pair was only ever the renormalisation (measured difference 5.6e-17).
+**The guarantee needs W_ov frozen**: with `--train-wov`, `f` can go negative, `sum(f+b)` can cross
+zero and `-log p` is unbounded below (this produced `best_train = -1.05`).
+
+### 8.3 The readout bias — why it is needed and where the formula comes from
+A good induction head drives the NOISE slots of `f` to **zero** — that is what the noise filter is.
+But noise occurs `(1-α)` of the time, so under `readout=none` a noise target lands on `f=0` and costs
+69 nats. **`none` therefore FORBIDS the noise filter**: GD is forced to park `(1-α)` of layer-2's
+attention on noise (measured `signal_mass = 0.598 ≈ α` at α=0.6, vs 1.0 for the construction) and
+the loss plateaus at **1.847**. With the bias, `signal_mass → 0.997` and the loss reaches 1.698.
+
+    b_noise = (1-α)(1 + V_sig·b_sig) / (n_noise·α)          b_sig = 0.01 (add-β smoothing)
+
+The `/α` is the part people drop. Demanding `n_noise·b / (S + n_noise·b) = 1-α` with
+`S = 1 + V_sig·b_sig`, collecting the `b` terms is what puts `n_noise·α` in the denominator. The
+naive `(1-α)/n_noise` forgets that **the renormalisation shrinks whatever you put in**.
+
+### 8.4 How far the reduction goes
+Folder 18 — **10,060 free entries of 93,312 (10.8%)**:
+
+    W_qk layer 1 (108²)   [0:8, 0:8] token×token              64
+                          [8:108, 8:108] MINUS its diagonal   9,900
+    W_qk layer 2 (216²)   [0:8, 0:8]         noise suppression  64
+                          [0:4, 108:112]     induction          16
+                          [108:112, 108:112] state×state        16
+
+Folder 19 ties groups on top of that — **10,060 cells → 9,910 degrees of freedom**:
+
+    L1 [0:8,0:8]           four 4×4 quadrants        64 → 4
+    L2 A [0:8,0:8]         left 8×4, right 8×4       64 → 2
+    L2 B induction         diagonal / off-diagonal   16 → 2    B and C NOT tied to each other
+    L2 C state×state       diagonal / off-diagonal   16 → 2
+    L1 position block      untied                    9,900
+
+Tying is enforced **without reparametrising** — a gradient hook replaces each group's gradient by
+its **SUM** (`dL/dθ = Σ dL/dW[i]`; sum not mean, since under SGD it differs by `|G|`), and
+`retie()` re-averages after each step. So the stored matrices stay full and every folder-18
+analysis keeps working unchanged.
+
+Two entry-level reductions, **each verified by ablation rather than assumed**:
+- **Strictly causal mask** `triu(diagonal=0)` with `mask[0,0]` reopened (position 0 has no earlier
+  key; without it every softmax is `nan`). A position then cannot attend to itself, so the
+  construction's 100-cell self-veto is unnecessary. Removing that veto **without** the strict mask
+  costs 1.36–2.44 nats; with it, ~1e-4.
+- **Layer-2 blocks cut to their 4×4 signal corner** (192 → 96). Noise tokens are never a state and
+  never a successor.
+
+### 8.5 Result: GD matches the construction, and the gap to ideal-α is constant
+Adam, lr 1.0, zero init, 500 full-batch steps:
+
+    α      GD test     construction    ideal-α      GD − ideal
+    0.6    1.69823       1.70100       1.64342        0.0548
+    0.8    1.38435       1.38383       1.33218        0.0522
+    1.0    0.74498       0.74730       0.69315        0.0518
+
+GD and the construction agree to **within 0.003 nats** — the sign of the difference is not
+meaningful at that margin. **The gap to ideal-α is constant (~0.052) across noise densities,
+including α=1.0 where there is no noise at all**: pure finite-sample count-estimation error,
+unreachable from context by either.
+
+But **GD gets there far more cheaply**. Its induction block uses ~12 logits of separation where
+the construction needs 100; pushing the construction down to GD's magnitudes costs 0.08 nats. They
+are **not** the same solution at different temperatures.
+
+### 8.6 A large part of the construction was doing nothing
+Each ablated and measured:
+
+| removed | entries | evidence |
+|---|---|---|
+| `+103.92` column 4 of the induction block | 8 | CE changes by **exactly 0.00e+00** — a `WqᵀWk` factorisation artefact |
+| self-veto diagonal of the position block | 100 | the strict causal mask already does it |
+| noise veto on the position-query rows | 400 | token rows already reach every query; it was applied twice |
+| positional fill **above** the causal mask | 4,950 | `softmax(s+mask)` discards it every pass |
+
+Plus magnitudes `P1=1000, Γ=-5e4, BIG=-1e9` → `λ=20, K=100, B=100, cap=5`, costing 0.004 nats:
+`|W_qk|max` 1.04e10 → **1039** (layer 1), 5.2e6 → **1039** (layer 2); layer-2 nonzeros 48 → **40**.
+**The veto depth B is the binding constraint, not the induction bonus K** — a noise key that
+satisfies the induction match receives `+K` and `-B`, so **keep B ≥ K**. Dropping K 100→30 costs
+0.034 nats; dropping B 100→30 costs 0.176 and B=15 is catastrophic (3.00).
+
+> Before concluding GD "missed" a construction entry, **ablate that entry**. Several were never
+> load-bearing.
+
+### 8.7 Gauge — the idea that changed how the comparison is measured
+`W_qk` carries an **exact** invariance: `softmax(s + c·1) = softmax(s)`. A key contributes exactly
+one entry from the token columns and one from the position columns, so **adding a constant to a
+query row across a complete key group changes nothing** — verified at absurd magnitudes
+(ramp `+50→+500`, token-row shift `-1000`: CE change 0.00e+00 and 1.5e-08).
+
+Two refinements: shifting only *part* of a key group is a **conditional** gauge, exact only while
+the complement carries no mass (induction shift −20 exact, −5000 costs 0.387 nats). And **global
+scale is NOT a gauge** — ×2 and ×0.25 both change the loss; it is a nearly-flat direction that
+cosine quotients out by choice, not necessity.
+
+**Why it matters:** raw cosine between GD and the construction gave **0.7169 / 0.8631 / 0.8631 /
+0.8794 across four writings of the SAME circuit**. Gauge-fixed — subtract each query row's mean
+over its *reachable* keys, on both sides — it is **0.8646 every time**.
+
+> **Any metric that moves under a transformation which provably cannot change the model is
+> reporting your notation.** Use gauge-fixed cosine. Never raw dot product or L2 of the difference:
+> both are dominated by the scale mismatch, and L2 mostly tracks how big GD has got.
+
+### 8.8 ICL score
+Gauge-fixed cosine on the trainable entries, GD vs the centered construction:
+
+    α=0.6   layer 1 0.9209   layer 2 0.8646     Ceiling: the mask holds 100% of layer 2's
+    α=0.8   layer 1 0.9564   layer 2 0.8352     construction energy but only 24.8% of layer 1's,
+    α=1.0   layer 1 0.5477   layer 2 0.4105     so quote each score against its own cap.
+
+**Layer 2 peaks at ~0.99 by step 12, then falls to 0.83 and only partly recovers — while the loss
+keeps improving.** GD reaches the construction almost immediately and then trades that agreement
+for something the loss prefers. That trade is the most interesting open question here.
+
+α=1.0 is the control: with no noise the suppression block is unconstrained, so its low score means
+"not comparable", not "poor agreement".
+
+### 8.9 Zero init: the layers form in sequence
+At `W_qk = 0`, layer 1 has **identically zero gradient** — `∂S²/∂Z¹` carries `W²_qk` as a
+multiplicative factor, so layer 1 cannot move until layer 2 has left zero. Measured: `‖g₁‖` is
+exactly 0 at step 0 and `‖W₁‖` is still exactly 0 after step 1.
+
+And the first gradient already points at the answer. `cos(-g[0], centered construction)` on
+layer 2, measured on the strict run:
+
+    α=0.6  0.8934      α=0.8  0.7697      α=1.0  0.1130   (control: no noise, so the
+                                                           suppression block is irrelevant)
+
+against a random-vector baseline of ~0. **From exactly zero, the loss surface aims at the
+construction immediately — GD does not wander and stumble onto it.** Together with the gating
+above, the order is forced: layer 2 moves first, layer 1 only once layer 2 is nonzero.
+
+## 9. Open threads / possible next steps
+- **Explain the layer-2 ICL peak-then-decline** (0.99 at step 12 → 0.83). What does GD buy with the
+  ~0.05 nats it gains while moving away from the construction?
+- **Ground-truth the weight-space metric**: compare attention distributions directly (per-query TV
+  or KL on the scored window) at steps 1, 12, 50, 500. One forward pass per checkpoint.
+- **Layer 1's ICL score still has a residual gauge** — a ramp offset moves it 0.9726 vs 0.9814 with
+  no change to the model. Pin the convention before quoting it; layer 2's number is solid.
+- **SGD cannot match Adam here** (six probes, lr 1k–50k): all overshoot eventually, best point 1.894
+  vs Adam's 1.696, and the two layers want learning rates ~30× apart (Σ‖g‖ 0.025 vs 0.041 against
+  ‖W_final‖ 6350 vs 344). Needs per-layer rates or a schedule, not another lr.
 - Push the equalize construction toward ideal-α with n_obs-aware routing (spread the unseen-successor
   mass) — needs a 2-stage FFN, won't be a clean hand-set step.
 - Generalize to **full Markov chains** (any-to-any successors): if rows are unstructured (Dirichlet),

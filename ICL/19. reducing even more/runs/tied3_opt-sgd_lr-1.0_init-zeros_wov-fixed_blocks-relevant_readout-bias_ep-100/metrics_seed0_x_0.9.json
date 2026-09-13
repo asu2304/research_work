@@ -1,0 +1,89 @@
+{
+  "cell": "tied3_opt-sgd_lr-1.0_init-zeros_wov-fixed_blocks-relevant_readout-bias_ep-100",
+  "threshold": 0.9,
+  "seed": 0,
+  "config": {
+    "data_dir": "/home/hariguru/ashutosh/ICL/14. elimination final convergence confusion/dataset",
+    "runs_dir": "/home/hariguru/ashutosh/ICL/19. reducing even more/runs",
+    "v_sig": 4,
+    "n_noise": 4,
+    "seq_len": 100,
+    "token_start": 50,
+    "optimizer": "sgd",
+    "lr": 1.0,
+    "weight_decay": 0.0,
+    "epochs": 100,
+    "init": "zeros",
+    "train_wov": false,
+    "blocks": "relevant",
+    "readout": "bias",
+    "b_sig": 0.01,
+    "noise_floor": 1e-09,
+    "tie": true,
+    "check_ties": false,
+    "snapshots": true,
+    "snap_grads": true,
+    "snap_dtype": "float32",
+    "grad_chunk": 8192,
+    "eval_chunk": 8192,
+    "meta_every": 25,
+    "log_every": 0,
+    "device": "cuda:2",
+    "trainable_entries": 9972,
+    "degrees_of_freedom": 9904,
+    "b_noise": 0.028888888888888884
+  },
+  "history": {
+    "step": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "train_loss": [
+      1.5329256258773805,
+      1.532900717201233,
+      1.5328756522750855,
+      1.532850825767517,
+      1.5328259191131592,
+      1.5328010515213013
+    ],
+    "test_loss": [
+      1.5324871110916138,
+      1.5324621963500977,
+      1.5324371839523316,
+      1.5324122692108155,
+      1.5323872352600099,
+      1.5323623205184937
+    ],
+    "train_loss_pre": [
+      1.5329256258773805,
+      1.5329256258773805,
+      1.532900717201233,
+      1.5328756522750855,
+      1.532850825767517,
+      1.5328259191131592
+    ]
+  },
+  "best_train": 1.5328010515213013,
+  "best_test": 1.5323623205184937,
+  "final_train": 1.5328010515213013,
+  "final_test": 1.5323623205184937,
+  "steps_run": 5,
+  "seconds": 12.792869567871094,
+  "tie_spread": 0.0,
+  "tie_spread_where": null,
+  "stopped_early": true,
+  "stop_reason": "interrupted",
+  "snapshots": {
+    "params": [
+      "layer1.W_qk",
+      "layer2.W_qk"
+    ],
+    "w_rows_written": 6,
+    "g_rows_written": 5,
+    "meta": "snapmeta_x_0.9.json"
+  }
+}

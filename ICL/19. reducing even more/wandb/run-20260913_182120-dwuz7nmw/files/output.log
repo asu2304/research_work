@@ -1,0 +1,24 @@
+  alpha=0.4  free entries 9,972 of 93,312   degrees of freedom 9,904  (tying folds 68 of them away)
+    snapshots: ['layer1.W_qk', 'layer2.W_qk'] every step, weights + gradients, 8 MB -> /home/hariguru/ashutosh/ICL/19. reducing even more/runs/tied3_opt-sgd_lr-1.0_init-zeros_wov-fixed_blocks-relevant_readout-bias_ep-100
+    init: train 2.13204  test 2.13184
+    step     1/100  train 2.13183  test 2.13162  best_train 2.13183  best_test 2.13162
+    step     5/100  train 2.13096  test 2.13075  best_train 2.13096  best_test 2.13075
+    step    10/100  train 2.12988  test 2.12967  best_train 2.12988  best_test 2.12967
+    step    15/100  train 2.12882  test 2.12860  best_train 2.12882  best_test 2.12860
+    step    20/100  train 2.12776  test 2.12754  best_train 2.12776  best_test 2.12754
+    step    25/100  train 2.12671  test 2.12649  best_train 2.12671  best_test 2.12649
+    step    30/100  train 2.12567  test 2.12545  best_train 2.12567  best_test 2.12545
+    step    35/100  train 2.12465  test 2.12442  best_train 2.12465  best_test 2.12442
+    step    40/100  train 2.12363  test 2.12340  best_train 2.12363  best_test 2.12340
+    step    45/100  train 2.12262  test 2.12239  best_train 2.12262  best_test 2.12239
+    step    50/100  train 2.12161  test 2.12138  best_train 2.12161  best_test 2.12138
+    step    55/100  train 2.12062  test 2.12039  best_train 2.12062  best_test 2.12039
+    step    60/100  train 2.11964  test 2.11940  best_train 2.11964  best_test 2.11940
+    step    65/100  train 2.11866  test 2.11842  best_train 2.11866  best_test 2.11842
+    step    70/100  train 2.11769  test 2.11745  best_train 2.11769  best_test 2.11745
+    step    75/100  train 2.11674  test 2.11649  best_train 2.11674  best_test 2.11649
+    step    80/100  train 2.11579  test 2.11554  best_train 2.11579  best_test 2.11554
+    step    85/100  train 2.11484  test 2.11460  best_train 2.11484  best_test 2.11460
+    step    90/100  train 2.11391  test 2.11366  best_train 2.11391  best_test 2.11366
+    step    95/100  train 2.11299  test 2.11273  best_train 2.11299  best_test 2.11273
+    step   100/100  train 2.11207  test 2.11181  best_train 2.11207  best_test 2.11181

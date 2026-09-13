@@ -1,0 +1,74 @@
+{
+  "cell": "tied3_opt-sgd_lr-1.0_init-zeros_wov-fixed_blocks-relevant_readout-bias_ep-100",
+  "threshold": 0.9,
+  "seed": 0,
+  "init": "zeros",
+  "blocks": "relevant",
+  "tie": true,
+  "readout": "bias",
+  "train_wov": false,
+  "params": [
+    "layer1.W_qk",
+    "layer2.W_qk"
+  ],
+  "shapes": {
+    "layer1.W_qk": [
+      108,
+      108
+    ],
+    "layer2.W_qk": [
+      216,
+      216
+    ]
+  },
+  "n_free": {
+    "layer1.W_qk": 9932,
+    "layer2.W_qk": 40
+  },
+  "n_dof": {
+    "layer1.W_qk": 9901,
+    "layer2.W_qk": 3
+  },
+  "tie_group_names": {
+    "layer1.W_qk": [
+      "L1.A.knoi"
+    ],
+    "layer2.W_qk": [
+      "L2.A.knoi",
+      "L2.B.induction.diag",
+      "L2.C.state.diag"
+    ]
+  },
+  "tie_groups": {
+    "layer1.W_qk": {
+      "L1.A.knoi": 0
+    },
+    "layer2.W_qk": {
+      "L2.A.knoi": 0,
+      "L2.B.induction.diag": 1,
+      "L2.C.state.diag": 2
+    }
+  },
+  "dtype": "float32",
+  "rows_allocated": 101,
+  "snap_grads": true,
+  "w_rows_written": 6,
+  "g_rows_written": 5,
+  "w_steps": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "g_steps": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "layout": "a row holds ONE VALUE PER DOF. Rebuild with W = zeros(shape); W[mask] = row[dofidx], taking mask from mask_<param>_x_<thr>.npy and dofidx from dofidx_<param>_x_<thr>.npy. dof id < len(tie_group_names) is that tie group; the rest are untied cells, one dof each.",
+  "convention": "w[k] is before step k+1 (w[0] = init); g[k] is the gradient at w[k]. For a tied group the stored gradient is the SUM over its members = dL/dtheta for the shared value."
+}

@@ -1,0 +1,12 @@
+  alpha=0.8  free entries 73 of 93,313   degrees of freedom 5  (tying folds 68 of them away)
+    snapshots: ['p_ramp', 'layer1.W_qk', 'layer2.W_qk'] every step, weights + gradients, 0 MB -> /home/hariguru/ashutosh/ICL/19. reducing even more/runs/tied5_opt-adam_lr-1.0_init-zeros_wov-fixed_blocks-relevant_readout-bias_ep-200
+    init: train 1.76326  test 1.76138
+    step     1/200  train 1.75453  test 1.75263  best_train 1.75453  best_test 1.75263
+    step    10/200  train 1.65624  test 1.65413  best_train 1.65624  best_test 1.65413
+    step    20/200  train 1.54955  test 1.54758  best_train 1.54955  best_test 1.54758
+    step    30/200  train 1.48440  test 1.48295  best_train 1.48440  best_test 1.48295
+    step    40/200  train 1.45131  test 1.44988  best_train 1.45131  best_test 1.44988
+    step    50/200  train 1.43275  test 1.43125  best_train 1.43275  best_test 1.43125
+    step    60/200  train 1.42130  test 1.41980  best_train 1.42130  best_test 1.41980
+    step    70/200  train 1.41420  test 1.41270  best_train 1.41420  best_test 1.41270
+    step    80/200  train 1.40933  test 1.40782  best_train 1.40933  best_test 1.40782

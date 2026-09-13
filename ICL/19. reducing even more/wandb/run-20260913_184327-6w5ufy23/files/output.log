@@ -1,0 +1,24 @@
+  alpha=0.7  free entries 9,873 of 93,312   degrees of freedom 9,805  (tying folds 68 of them away)
+    snapshots: ['layer1.W_qk', 'layer2.W_qk'] every step, weights + gradients, 15 MB -> /home/hariguru/ashutosh/ICL/19. reducing even more/runs/tied4_opt-adam_lr-1.0_init-zeros_wov-fixed_blocks-relevant_readout-bias_ep-200
+    init: train 1.92713  test 1.92577
+    step     1/200  train 1.91571  test 1.91436  best_train 1.91571  best_test 1.91436
+    step    10/200  train 1.85119  test 1.85003  best_train 1.85119  best_test 1.85003
+    step    20/200  train 1.81014  test 1.80934  best_train 1.81014  best_test 1.80934
+    step    30/200  train 1.76659  test 1.76623  best_train 1.76659  best_test 1.76623
+    step    40/200  train 1.71538  test 1.71497  best_train 1.71538  best_test 1.71497
+    step    50/200  train 1.67445  test 1.67414  best_train 1.67445  best_test 1.67414
+    step    60/200  train 1.64416  test 1.64408  best_train 1.64416  best_test 1.64408
+    step    70/200  train 1.62099  test 1.62095  best_train 1.62099  best_test 1.62095
+    step    80/200  train 1.60497  test 1.60481  best_train 1.60497  best_test 1.60481
+    step    90/200  train 1.59363  test 1.59343  best_train 1.59363  best_test 1.59343
+    step   100/200  train 1.58630  test 1.58609  best_train 1.58630  best_test 1.58609
+    step   110/200  train 1.58138  test 1.58124  best_train 1.58138  best_test 1.58124
+    step   120/200  train 1.57866  test 1.57858  best_train 1.57866  best_test 1.57858
+    step   130/200  train 1.57687  test 1.57681  best_train 1.57687  best_test 1.57681
+    step   140/200  train 1.57553  test 1.57549  best_train 1.57553  best_test 1.57549
+    step   150/200  train 1.57447  test 1.57445  best_train 1.57447  best_test 1.57445
+    step   160/200  train 1.57361  test 1.57359  best_train 1.57361  best_test 1.57359
+    step   170/200  train 1.57288  test 1.57287  best_train 1.57288  best_test 1.57287
+    step   180/200  train 1.57225  test 1.57226  best_train 1.57225  best_test 1.57226
+    step   190/200  train 1.57171  test 1.57173  best_train 1.57171  best_test 1.57173
+    step   200/200  train 1.57123  test 1.57126  best_train 1.57123  best_test 1.57126

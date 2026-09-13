@@ -1,0 +1,19 @@
+  alpha=0.6  free entries 9,873 of 93,312   degrees of freedom 9,805  (tying folds 68 of them away)
+    snapshots: ['layer1.W_qk', 'layer2.W_qk'] every step, weights + gradients, 8 MB -> /home/hariguru/ashutosh/ICL/19. reducing even more/runs/tied4_opt-sgd_lr-10000.0_init-zeros_wov-fixed_blocks-relevant_readout-bias_ep-100
+    init: train 2.04070  test 2.04017
+    step     1/100  train 1.92342  test 1.92275  best_train 1.92342  best_test 1.92275
+    step     5/100  train 1.91907  test 1.91846  best_train 1.91907  best_test 1.91846
+    step    10/100  train 1.91186  test 1.91139  best_train 1.91186  best_test 1.91139
+    step    15/100  train 1.90506  test 1.90476  best_train 1.90506  best_test 1.90476
+    step    20/100  train 1.90184  test 1.90165  best_train 1.90184  best_test 1.90165
+    step    25/100  train 1.90016  test 1.90000  best_train 1.90016  best_test 1.90000
+    step    30/100  train 1.89877  test 1.89862  best_train 1.89877  best_test 1.89862
+    step    35/100  train 1.89749  test 1.89734  best_train 1.89749  best_test 1.89734
+    step    40/100  train 1.89631  test 1.89615  best_train 1.89631  best_test 1.89615
+    step    45/100  train 1.89522  test 1.89505  best_train 1.89522  best_test 1.89505
+    step    50/100  train 1.89422  test 1.89404  best_train 1.89422  best_test 1.89404
+    step    55/100  train 1.89329  test 1.89310  best_train 1.89329  best_test 1.89310
+    step    60/100  train 1.89243  test 1.89222  best_train 1.89243  best_test 1.89222
+    step    65/100  train 1.89162  test 1.89140  best_train 1.89162  best_test 1.89140
+
+    [interrupted -- saving what exists and moving to the next threshold]

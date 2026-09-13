@@ -1,0 +1,45 @@
+2026-09-13 18:51:29,098 INFO    MainThread:2823114 [wandb_init.py:setup_run_log_directory():729] Logging user logs to /home/hariguru/ashutosh/ICL/19. reducing even more/wandb/run-20260913_185129-3p1bzvmx/logs/debug.log
+2026-09-13 18:51:29,098 INFO    MainThread:2823114 [wandb_init.py:setup_run_log_directory():730] Logging internal logs to /home/hariguru/ashutosh/ICL/19. reducing even more/wandb/run-20260913_185129-3p1bzvmx/logs/debug-internal.log
+2026-09-13 18:51:29,098 INFO    MainThread:2823114 [wandb_init.py:init():772] calling init triggers
+2026-09-13 18:51:29,098 INFO    MainThread:2823114 [wandb_init.py:init():777] wandb.init called with sweep_config: {}
+config: {'data_dir': '/home/hariguru/ashutosh/ICL/14. elimination final convergence confusion/dataset', 'runs_dir': '/home/hariguru/ashutosh/ICL/19. reducing even more/runs', 'v_sig': 4, 'n_noise': 4, 'seq_len': 100, 'token_start': 50, 'optimizer': 'adam', 'lr': 1.0, 'weight_decay': 0.0, 'epochs': 200, 'init': 'zeros', 'train_wov': False, 'blocks': 'relevant', 'readout': 'bias', 'b_sig': 0.01, 'noise_floor': 1e-09, 'tie': True, 'check_ties': False, 'snapshots': True, 'snap_grads': True, 'snap_dtype': 'float32', 'grad_chunk': 8192, 'eval_chunk': 8192, 'meta_every': 25, 'log_every': 0, 'device': 'cuda:2', 'threshold': 0.8, 'seed': 0, '_wandb': {}}
+2026-09-13 18:51:29,098 INFO    MainThread:2823114 [wandb_init.py:init():820] starting backend
+2026-09-13 18:51:29,098 INFO    MainThread:2823114 [wandb_init.py:init():835] sending inform_init request
+2026-09-13 18:51:29,207 INFO    MainThread:2823114 [wandb_init.py:init():840] backend started and connected
+2026-09-13 18:51:29,208 INFO    MainThread:2823114 [wandb_init.py:init():910] updated telemetry
+2026-09-13 18:51:29,216 INFO    MainThread:2823114 [wandb_init.py:init():933] communicating run to backend with 90.0 second timeout
+2026-09-13 18:51:30,101 INFO    MainThread:2823114 [wandb_init.py:init():978] starting run threads in backend
+2026-09-13 18:51:30,199 INFO    MainThread:2823114 [wandb_run.py:_console_start():2621] atexit reg
+2026-09-13 18:51:30,199 INFO    MainThread:2823114 [wandb_run.py:_redirect():2471] redirect: wrap_raw
+2026-09-13 18:51:30,200 INFO    MainThread:2823114 [wandb_run.py:_redirect():2540] Wrapping output streams.
+2026-09-13 18:51:30,200 INFO    MainThread:2823114 [wandb_run.py:_redirect():2563] Redirects installed.
+2026-09-13 18:51:30,200 INFO    MainThread:2823114 [wandb_init.py:init():1016] run started, returning control to user process
+2026-09-13 18:56:19,970 INFO    MainThread:2823114 [wandb_run.py:_finish():2383] finishing run da24s006-indian-institue-of-technology-madras-/reducing_even_more_three_params_d1_frozen/3p1bzvmx
+2026-09-13 18:56:19,970 INFO    MainThread:2823114 [wandb_run.py:_atexit_cleanup():2588] got exitcode: 0
+2026-09-13 18:56:19,970 INFO    MainThread:2823114 [wandb_run.py:_restore():2570] restore
+2026-09-13 18:56:19,970 INFO    MainThread:2823114 [wandb_run.py:_restore():2576] restore done
+2026-09-13 18:56:20,122 INFO    wandb-AsyncioManager-main:2823114 [service_client.py:_forward_responses():122] [no run ID] Reached EOF.
+2026-09-13 18:56:20,123 INFO    wandb-AsyncioManager-main:2823114 [mailbox.py:close():154] [no run ID] Closing mailbox, abandoning 5 handles.
+2026-09-13 18:56:20,123 ERROR   wandb-AsyncioManager-main:2823114 [asyncio_manager.py:fn_wrap_exceptions():197] Uncaught exception in run_soon callback.
+Traceback (most recent call last):
+  File "/home/hariguru/miniconda3/envs/ashu_env/lib/python3.11/site-packages/wandb/sdk/lib/asyncio_manager.py", line 195, in fn_wrap_exceptions
+    await fn()
+  File "/home/hariguru/miniconda3/envs/ashu_env/lib/python3.11/site-packages/wandb/sdk/lib/run_messages.py", line 90, in loop
+    await asyncio_compat.race(
+  File "/home/hariguru/miniconda3/envs/ashu_env/lib/python3.11/site-packages/wandb/sdk/lib/asyncio_compat.py", line 279, in race
+    async with open_task_group(race=True) as tg:
+  File "/home/hariguru/miniconda3/envs/ashu_env/lib/python3.11/contextlib.py", line 217, in __aexit__
+    await anext(self.gen)
+  File "/home/hariguru/miniconda3/envs/ashu_env/lib/python3.11/site-packages/wandb/sdk/lib/asyncio_compat.py", line 241, in open_task_group
+    await task_group._wait_all(race=race, timeout=exit_timeout)
+  File "/home/hariguru/miniconda3/envs/ashu_env/lib/python3.11/site-packages/wandb/sdk/lib/asyncio_compat.py", line 181, in _wait_all
+    raise exc
+  File "/home/hariguru/miniconda3/envs/ashu_env/lib/python3.11/site-packages/wandb/sdk/lib/run_messages.py", line 113, in _print_all
+    result = await handle.wait_async(timeout=None)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hariguru/miniconda3/envs/ashu_env/lib/python3.11/site-packages/wandb/sdk/mailbox/mailbox_handle.py", line 127, in wait_async
+    response = await self._handle.wait_async(timeout=timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hariguru/miniconda3/envs/ashu_env/lib/python3.11/site-packages/wandb/sdk/mailbox/response_handle.py", line 123, in wait_async
+    raise HandleAbandonedError()
+wandb.sdk.mailbox.mailbox_handle.HandleAbandonedError

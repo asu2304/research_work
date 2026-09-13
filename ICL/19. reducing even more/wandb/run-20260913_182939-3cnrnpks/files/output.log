@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "/home/hariguru/ashutosh/ICL/19. reducing even more/train_three_params.py", line 967, in <module>
+    main()
+  File "/home/hariguru/ashutosh/ICL/19. reducing even more/train_three_params.py", line 960, in main
+    train_one(thr, device)
+  File "/home/hariguru/ashutosh/ICL/19. reducing even more/train_three_params.py", line 748, in train_one
+    tr = load_data('train', thr)
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hariguru/ashutosh/ICL/19. reducing even more/train_three_params.py", line 267, in load_data
+    _DATA[key] = torch.load(os.path.join(CFG['data_dir'], split, f'data_x_{thr}.pt'),
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hariguru/miniconda3/envs/ashu_env/lib/python3.11/site-packages/torch/serialization.py", line 809, in load
+    return _load(opened_zipfile, map_location, pickle_module, **pickle_load_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hariguru/miniconda3/envs/ashu_env/lib/python3.11/site-packages/torch/serialization.py", line 1172, in _load
+    result = unpickler.load()
+             ^^^^^^^^^^^^^^^^
+KeyboardInterrupt

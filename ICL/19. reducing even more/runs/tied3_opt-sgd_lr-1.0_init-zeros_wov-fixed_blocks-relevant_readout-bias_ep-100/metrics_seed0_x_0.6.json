@@ -1,0 +1,97 @@
+{
+  "cell": "tied3_opt-sgd_lr-1.0_init-zeros_wov-fixed_blocks-relevant_readout-bias_ep-100",
+  "threshold": 0.6,
+  "seed": 0,
+  "config": {
+    "data_dir": "/home/hariguru/ashutosh/ICL/14. elimination final convergence confusion/dataset",
+    "runs_dir": "/home/hariguru/ashutosh/ICL/19. reducing even more/runs",
+    "v_sig": 4,
+    "n_noise": 4,
+    "seq_len": 100,
+    "token_start": 50,
+    "optimizer": "sgd",
+    "lr": 1.0,
+    "weight_decay": 0.0,
+    "epochs": 100,
+    "init": "zeros",
+    "train_wov": false,
+    "blocks": "relevant",
+    "readout": "bias",
+    "b_sig": 0.01,
+    "noise_floor": 1e-09,
+    "tie": true,
+    "check_ties": false,
+    "snapshots": true,
+    "snap_grads": true,
+    "snap_dtype": "float32",
+    "grad_chunk": 8192,
+    "eval_chunk": 8192,
+    "meta_every": 25,
+    "log_every": 0,
+    "device": "cuda:2",
+    "trainable_entries": 9972,
+    "degrees_of_freedom": 9904,
+    "b_noise": 0.17333333333333337
+  },
+  "history": {
+    "step": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "train_loss": [
+      2.040702483444214,
+      2.0405166974639894,
+      2.040331236114502,
+      2.0401463957214356,
+      2.0399618099212646,
+      2.0397778531646726,
+      2.03959421295166,
+      2.039411053619385
+    ],
+    "test_loss": [
+      2.040167276763916,
+      2.039981310272217,
+      2.039796254348755,
+      2.039611198425293,
+      2.0394268577575683,
+      2.039242798614502,
+      2.0390591732025145,
+      2.0388762630462645
+    ],
+    "train_loss_pre": [
+      2.040702483444214,
+      2.040702483444214,
+      2.0405166974639894,
+      2.040331236114502,
+      2.0401463957214356,
+      2.0399618099212646,
+      2.0397778531646726,
+      2.03959421295166
+    ]
+  },
+  "best_train": 2.039411053619385,
+  "best_test": 2.0388762630462645,
+  "final_train": 2.039411053619385,
+  "final_test": 2.0388762630462645,
+  "steps_run": 7,
+  "seconds": 19.90512228012085,
+  "tie_spread": 0.0,
+  "tie_spread_where": null,
+  "stopped_early": true,
+  "stop_reason": "interrupted",
+  "snapshots": {
+    "params": [
+      "layer1.W_qk",
+      "layer2.W_qk"
+    ],
+    "w_rows_written": 9,
+    "g_rows_written": 8,
+    "meta": "snapmeta_x_0.6.json"
+  }
+}

@@ -1,0 +1,36 @@
+{"time":"2026-09-13T18:17:38.813058254+05:30","level":"INFO","msg":"wandb-core"}
+{"time":"2026-09-13T18:17:38.813383091+05:30","level":"INFO","msg":"stream: starting","core version":"0.28.1"}
+{"time":"2026-09-13T18:17:38.922639996+05:30","level":"INFO","msg":"stream: created new stream","id":"t7i5vmk5"}
+{"time":"2026-09-13T18:17:38.922860011+05:30","level":"INFO","msg":"handler: started"}
+{"time":"2026-09-13T18:17:38.923082231+05:30","level":"INFO","msg":"writer: started","stream_id":"t7i5vmk5"}
+{"time":"2026-09-13T18:17:38.923146104+05:30","level":"INFO","msg":"sender: started"}
+{"time":"2026-09-13T18:17:38.923174328+05:30","level":"INFO","msg":"stream: started"}
+{"time":"2026-09-13T18:17:41.896580232+05:30","level":"INFO","msg":"filestream: sending request","total_files":1,"console_offset":0,"console_lines":1}
+{"time":"2026-09-13T18:17:42.364209841+05:30","level":"INFO","msg":"filestream: request sent","status":"200 OK"}
+{"time":"2026-09-13T18:17:56.897376709+05:30","level":"INFO","msg":"filestream: sending request","total_files":4,"history_offset":0,"history_lines":5,"events_offset":0,"events_lines":2,"console_offset":1,"console_lines":4,"uploaded_len":2}
+{"time":"2026-09-13T18:17:57.245829006+05:30","level":"INFO","msg":"filestream: request sent","status":"200 OK"}
+{"time":"2026-09-13T18:18:11.896748421+05:30","level":"INFO","msg":"filestream: sending request","total_files":4,"history_offset":5,"history_lines":6,"events_offset":2,"events_lines":2,"console_offset":5,"console_lines":1}
+{"time":"2026-09-13T18:18:12.276403682+05:30","level":"INFO","msg":"filestream: request sent","status":"200 OK"}
+{"time":"2026-09-13T18:18:26.90032021+05:30","level":"INFO","msg":"filestream: sending request","total_files":4,"history_offset":11,"history_lines":6,"events_offset":4,"events_lines":2,"console_offset":6,"console_lines":1}
+{"time":"2026-09-13T18:18:28.058119203+05:30","level":"INFO","msg":"filestream: request sent","status":"200 OK"}
+{"time":"2026-09-13T18:18:41.897963714+05:30","level":"INFO","msg":"filestream: sending request","total_files":4,"history_offset":17,"history_lines":7,"events_offset":6,"events_lines":2,"console_offset":7,"console_lines":2}
+{"time":"2026-09-13T18:18:42.27609533+05:30","level":"INFO","msg":"filestream: request sent","status":"200 OK"}
+{"time":"2026-09-13T18:18:56.897491212+05:30","level":"INFO","msg":"filestream: sending request","total_files":4,"history_offset":24,"history_lines":6,"events_offset":8,"events_lines":2,"console_offset":9,"console_lines":1}
+{"time":"2026-09-13T18:18:57.260275897+05:30","level":"INFO","msg":"filestream: request sent","status":"200 OK"}
+{"time":"2026-09-13T18:19:11.897449921+05:30","level":"INFO","msg":"filestream: sending request","total_files":4,"history_offset":30,"history_lines":7,"events_offset":10,"events_lines":2,"console_offset":10,"console_lines":1}
+{"time":"2026-09-13T18:19:12.279624064+05:30","level":"INFO","msg":"filestream: request sent","status":"200 OK"}
+{"time":"2026-09-13T18:19:26.897133164+05:30","level":"INFO","msg":"filestream: sending request","total_files":4,"history_offset":37,"history_lines":7,"events_offset":12,"events_lines":2,"console_offset":11,"console_lines":2}
+{"time":"2026-09-13T18:19:27.313365557+05:30","level":"INFO","msg":"filestream: request sent","status":"200 OK"}
+{"time":"2026-09-13T18:19:41.897114592+05:30","level":"INFO","msg":"filestream: sending request","total_files":4,"history_offset":44,"history_lines":7,"events_offset":14,"events_lines":2,"console_offset":13,"console_lines":1}
+{"time":"2026-09-13T18:19:42.194676583+05:30","level":"ERROR","msg":"api: HTTP error","status":404,"method":"POST","url":"https://api.wandb.ai/files/da24s006-indian-institue-of-technology-madras-/reducing_even_more_three_params/t7i5vmk5/file_stream"}
+{"time":"2026-09-13T18:19:42.194779661+05:30","level":"ERROR+4","msg":"filestream: fatal error: filestream: failed to upload: 404 Not Found url=https://api.wandb.ai/files/da24s006-indian-institue-of-technology-madras-/reducing_even_more_three_params/t7i5vmk5/file_stream: {\"error\":\"run reducing_even_more_three_params/t7i5vmk5 not found while streaming file\"}"}
+{"time":"2026-09-13T18:21:19.549787849+05:30","level":"ERROR","msg":"api: HTTP error","status":410,"method":"POST","url":"https://api.wandb.ai/graphql"}
+{"time":"2026-09-13T18:21:19.549857904+05:30","level":"ERROR","msg":"runupserter: failed to upload changes","error":"returned error 410: {\"data\":{\"upsertBucket\":null},\"errors\":[{\"message\":\"run t7i5vmk5 was previously created and deleted; try a new run id\",\"path\":[\"upsertBucket\"]}]}"}
+{"time":"2026-09-13T18:21:19.856461465+05:30","level":"ERROR","msg":"api: HTTP error","status":404,"method":"POST","url":"https://api.wandb.ai/graphql"}
+{"time":"2026-09-13T18:21:19.85651042+05:30","level":"ERROR","msg":"runfiles: CreateRunFiles returned error: returned error 404: {\"data\":{\"createRunFiles\":null},\"errors\":[{\"message\":\"run reducing_even_more_three_params/t7i5vmk5 not found during createRunFiles\",\"path\":[\"createRunFiles\"]}]}"}
+{"time":"2026-09-13T18:21:19.856611786+05:30","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2026-09-13T18:21:19.857911025+05:30","level":"INFO","msg":"handler: operation stats","stats":{}}
+{"time":"2026-09-13T18:21:19.862796924+05:30","level":"INFO","msg":"stream: finishing up"}
+{"time":"2026-09-13T18:21:19.862886096+05:30","level":"INFO","msg":"handler: closed"}
+{"time":"2026-09-13T18:21:19.862957494+05:30","level":"INFO","msg":"sender: closed"}
+{"time":"2026-09-13T18:21:19.86296621+05:30","level":"INFO","msg":"stream: all finished"}
