@@ -1,0 +1,133 @@
+\section{Proof of Theorem~\ref{thm:construction}}
+\label{app:construction}
+
+We exhibit weights and verify the two claims. Write $\lambda>0$ for a recency slope, $K>0$ for a
+match bonus and $B>0$ for a veto depth; all three are free and only their ratios matter.
+
+\paragraph{Layer 1 (state recovery).}
+Set $W^{(1)}$ so that the score decomposes as
+\begin{equation}
+\sqrt d\,S^{(1)}_{t,u}\;=\;\underbrace{-B\,\mathbf 1[v_u\in\mathcal{D}]}_{\text{distractor veto}}
+\;\underbrace{-\,\lambda\,(t-u)}_{\text{recency}} .
+\label{eq:l1score}
+\end{equation}
+Concretely the symbol rows of the key side carry $-B$ on the distractor coordinates and the
+position block carries $-\lambda(t-u)$; the query side is a scaled identity, so the
+$\sqrt d$ cancels. Among admissible keys ($u<t$) the score is maximised by the largest $u$ with
+$v_u\in\mathcal{S}$. Two candidates separated by one position differ by $\lambda$, so for
+$B\gg\lambda\gg1$ the softmax places mass $1-O(e^{-\lambda})$ on the most recent signal position
+and $O(e^{-B})$ on every distractor. Hence $h_t=e_{\mathrm{st}(t)}$ up to those errors, and
+crucially the lag is unbounded: \eqref{eq:l1score} is linear in $t-u$ and so ranks correctly at
+every separation with a fixed number of parameters.\footnote{A capped ramp,
+$-\lambda\min(t-u,c)$, behaves identically because only the argmax matters, and is what our
+trained models approximate.}
+
+\paragraph{Layer 2 (counting induction).}
+Set $W^{(2)}$ so that
+\begin{equation}
+\sqrt d\,S^{(2)}_{t,u}\;=\;K\,\mathbf 1\bigl[h_u=e_{v_t}\bigr]
+\;+\;\tfrac{K}{20}\,\mathbf 1\bigl[h_u=h_t\bigr]\;-\;B\,\mathbf 1[v_u\in\mathcal{D}] .
+\label{eq:l2score}
+\end{equation}
+The first term is the induction match: it rewards keys whose \emph{recovered state} equals the
+query's own symbol. The second is the same question asked of the query's recovered state, and
+takes over when $v_t$ is a distractor, in which case the first term is identically zero because
+$e_{v_t}$ has no support on $\mathcal{S}$. The third removes distractor keys from the average.
+
+Let $A_t=\{u<t: v_u\in\mathcal{S},\ \mathrm{st}(u-1)=\mathrm{st}(t)\}$ be the set of past
+positions whose predecessor state equals the current state. By \eqref{eq:l2score} every
+$u\in A_t$ scores $K(1+\tfrac1{20})$ and every other admissible $u$ scores at most $0$, so
+$a^{(2)}_{t,u}=\mathbf 1[u\in A_t]/|A_t|+O(e^{-K})$ and
+\begin{equation}
+f_t[w]=\sum_u a^{(2)}_{t,u}\mathbf 1[v_u=w]
+=\frac{\#\{u\in A_t: v_u=w\}}{|A_t|}+O(e^{-K}),
+\end{equation}
+which is the claimed empirical successor frequency. Two consequences are worth recording:
+$\sum_w f_t[w]=1$ exactly, and $f_t[w]=0$ for $w\in\mathcal{D}$, since $A_t$ contains only signal
+positions. Composing with \eqref{eq:readout} and Appendix~\ref{app:readout} gives add-$b_s$
+smoothed context-Bayes prediction. \qed
+
+\section{The readout, and why no softmax is needed}
+\label{app:readout}
+
+\paragraph{Derivation of $b_d$.}
+Write $D=\sum_w(f_t[w]+b_w)$. A model with a perfect distractor filter has $f_t$ supported on
+$\mathcal{S}$ with $\sum_w f_t[w]=1$, so $D=1+V_sb_s+V_db_d$, a constant independent of the
+context.\footnote{This is the property that makes a single scalar bias sufficient. It fails if the
+value circuit is trained, since then $\sum_w f_t[w]$ varies with the context and no fixed $b_d$
+delivers a fixed distractor mass.} Demanding that each distractor receives exactly
+$(1-\alpha)/V_d$,
+\begin{equation}
+\frac{b_d}{D}=\frac{1-\alpha}{V_d}
+\;\Longrightarrow\;
+V_db_d=(1-\alpha)D
+\;\Longrightarrow\;
+D=\bigl(1+V_sb_s\bigr)+(1-\alpha)D
+\;\Longrightarrow\;
+D=\frac{1+V_sb_s}{\alpha},
+\end{equation}
+whence $b_d=(1-\alpha)(1+V_sb_s)/(V_d\alpha)$ as in \eqref{eq:readout}, and the signal side
+receives $p_t[w]=\alpha(f_t[w]+b_s)/(1+V_sb_s)$, exactly proportional to the smoothed count.
+
+\paragraph{Relation to a log-plus-softmax readout.}
+A conventional readout would apply an unembedding and a softmax. If the intervening nonlinearity
+is $z_w=\log(f_t[w]+b_s)$ on signal coordinates and a constant $\beta$ on distractor coordinates,
+then $\mathrm{softmax}(z)_w=(f_t[w]+b_s)/\sum_{w'}e^{z_{w'}}$, which is \eqref{eq:readout} with
+$b_d=e^{\beta}$. The logarithm and the exponential cancel and the pair implements precisely the
+renormalisation we use.\footnote{Measured difference between the two implementations on our
+checkpoints: $5.6\times10^{-17}$.} The logarithm is not optional decoration: without it the
+softmax would return $e^{f_t[w]}$, exponential rather than linear in the count, and no rescaling
+repairs this because $\mathrm{softmax}(\kappa f)$ is a different function of $f$ than
+$f/\sum f$ for every $\kappa$.
+
+\section{Experimental details}
+\label{app:exp}
+
+\paragraph{Data.}
+Sequences are generated as in Section~\ref{sec:setup} with successor sets drawn uniformly without
+replacement and with equiprobable successors. Train and test tables are drawn independently; no
+table is shared between splits, so test performance measures in-context inference and not table
+memorisation.
+
+\paragraph{Two configurations.}
+% TODO: this is a real scope issue and should be resolved before submission.
+Table~\ref{tab:transition} is measured in the larger configuration
+($V_s=V_d=10$, $T=200$, scored on $[100,200)$) with a trained unembedding and the log-plus-softmax
+readout of Appendix~\ref{app:readout}. The dynamics of Section~\ref{sec:dynamics} are measured in
+a reduced configuration ($V_s=V_d=4$, $T=100$, scored on $[50,100)$) with the fixed readout
+\eqref{eq:readout}, which is what makes the closed forms of Theorem~\ref{thm:dynamics} available.
+The two configurations should be reconciled: either the phase transition should be replicated in
+the reduced configuration, or the dynamics should be re-derived for the larger one.
+
+\paragraph{Optimisation.}
+Full-batch Adam, constant learning rate, zero initialisation of both query--key matrices, with the
+value circuits and readout fixed throughout. Checkpoint selection is on held-out loss.
+
+\paragraph{Reported numbers.}
+Table~\ref{tab:transition} uses 1500 held-out sequences per $\alpha$ and scores every position in
+the window whose state is defined. The gradient statistics in Section~\ref{sec:dynamics} are exact
+full-batch gradients at initialisation, not stochastic estimates.
+% TODO: all reported numbers are a single seed. Add seed bands before submission.
+
+\section{Weight-space agreement is not monotone}
+\label{app:peak}
+
+We record an observation we cannot yet explain. Measuring the agreement between the trained
+$W^{(2)}$ and the construction of Theorem~\ref{thm:construction}, after quotienting the exact
+symmetries of Appendix~\ref{app:gauge}, the agreement rises to its maximum within the first ten
+steps and then \emph{declines}, while the loss continues to improve:
+
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+& peak agreement & at step & final agreement & loss over that interval \\
+\midrule
+$\alpha=0.6$ & 0.911 & 5 & 0.779 & $1.950\to1.698$ \\
+$\alpha=0.8$ & 0.885 & 7 & 0.740 & $1.690\to1.384$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Gradient descent reaches the construction almost immediately and then trades roughly $0.14$ of
+agreement for roughly $0.3$ nats. The construction is therefore a way-station and not the
+destination, and characterising what is gained in that trade is open.

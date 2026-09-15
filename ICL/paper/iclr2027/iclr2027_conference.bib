@@ -1,0 +1,298 @@
+% =====================================================================================
+% References for "How Gradient Descent Builds a Noise-Skipping Induction Head".
+%
+% PROVENANCE, so this can be audited:
+%  [V] author list verified against arXiv (source: Insights/_make_related_papers_pdf.py,
+%      "Papers verified against arXiv API on 2026-07-04"), or a widely-known reference.
+%  [P] PARTIAL -- lead author(s) verified, remainder recorded as "and others". Expand from
+%      the paper before submission.
+%  [C] classic / foundational, cited from common knowledge; check the exact venue string.
+%
+% The ICLR 2027 AI policy makes the authors responsible for every citation. Every [P]
+% entry below MUST be completed and every entry spot-checked before submission.
+% =====================================================================================
+
+% ------------------------------------------------------------------ induction heads [V/C]
+@article{elhage2021,
+  title   = {A Mathematical Framework for Transformer Circuits},
+  author  = {Elhage, Nelson and Nanda, Neel and Olsson, Catherine and Henighan, Tom and
+             Joseph, Nicholas and Mann, Ben and Askell, Amanda and Bai, Yuntao and
+             Chen, Anna and Conerly, Tom and DasSarma, Nova and Drain, Dawn and
+             Ganguli, Deep and Hatfield-Dodds, Zac and Hernandez, Danny and
+             Jones, Andy and Kernion, Jackson and Lovitt, Liane and Ndousse, Kamal and
+             Amodei, Dario and Brown, Tom and Clark, Jack and Kaplan, Jared and
+             McCandlish, Sam and Olah, Chris},
+  journal = {Transformer Circuits Thread},
+  year    = {2021}
+}
+
+@article{olsson2022,
+  title   = {In-context Learning and Induction Heads},
+  author  = {Olsson, Catherine and Elhage, Nelson and Nanda, Neel and Joseph, Nicholas and
+             DasSarma, Nova and Henighan, Tom and Mann, Ben and Askell, Amanda and
+             Bai, Yuntao and Chen, Anna and Conerly, Tom and Drain, Dawn and
+             Ganguli, Deep and Hatfield-Dodds, Zac and Hernandez, Danny and
+             Johnston, Scott and Jones, Andy and Kernion, Jackson and Lovitt, Liane and
+             Ndousse, Kamal and Amodei, Dario and Brown, Tom and Clark, Jack and
+             Kaplan, Jared and McCandlish, Sam and Olah, Chris},
+  journal = {Transformer Circuits Thread},
+  year    = {2022}
+}
+
+@inproceedings{bietti2023,
+  title     = {Birth of a Transformer: A Memory Viewpoint},
+  author    = {Bietti, Alberto and Cabannes, Vivien and Bouchacourt, Diane and
+               J{\'e}gou, Herv{\'e} and Bottou, L{\'e}on},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2023},
+  note      = {arXiv:2306.00802}
+}
+
+% -------------------------------------------------- in-context learning of Markov structure
+@inproceedings{edelman2024,
+  title     = {The Evolution of Statistical Induction Heads: In-Context Learning Markov Chains},
+  author    = {Edelman, Ezra and Tsilivis, Nikolaos and Edelman, Benjamin L. and
+               Malach, Eran and Goel, Surbhi},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2024},
+  note      = {arXiv:2402.11004}
+}
+
+@inproceedings{ekbote2025,
+  title     = {What One Cannot, Two Can: Two-Layer Transformers Provably Represent
+               Induction Heads on Any-Order Markov Chains},
+  author    = {Ekbote, Chanakya and Bondaschi, Marco and Rajaraman, Nived and Lee, Jason D.
+               and Gastpar, Michael and Makkuva, Ashok Vardhan and Liang, Paul Pu},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2025},
+  note      = {arXiv:2508.07208}
+}
+
+@article{shi2025,                                                            % [P]
+  title   = {Towards Understanding Transformers in Learning Random Walks},
+  author  = {Shi, Yiwei and Cao, Yuan},
+  journal = {arXiv preprint arXiv:2511.23239},
+  year    = {2025},
+  note    = {[P] verify given names}
+}
+
+@article{dai2026,                                                            % [P]
+  title   = {Pre-trained Large Language Models Learn Hidden Markov Models In-context},
+  author  = {Dai, Yijia and others},
+  journal = {arXiv preprint arXiv:2506.07298},
+  year    = {2026},
+  note    = {[P] expand author list}
+}
+
+@article{hao2025,                                                            % [P]
+  title   = {Transformers as Multi-task Learners: Decoupling Features in Hidden Markov Models},
+  author  = {Hao, Yifan and others},
+  journal = {arXiv preprint arXiv:2506.01919},
+  year    = {2025},
+  note    = {[P] expand author list}
+}
+
+% ------------------------------------------------------------------- training dynamics [V/P]
+@inproceedings{nichani2024,
+  title     = {How Transformers Learn Causal Structure with Gradient Descent},
+  author    = {Nichani, Eshaan and Damian, Alex and Lee, Jason D.},
+  booktitle = {International Conference on Machine Learning},
+  year      = {2024},
+  note      = {arXiv:2402.14735}
+}
+
+@inproceedings{unveiling2024,
+  title     = {Unveiling Induction Heads: Provable Training Dynamics and Feature Learning
+               in Transformers},
+  author    = {Chen, Siyu and Sheen, Heejune and Wang, Tianhao and Yang, Zhuoran},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2024},
+  note      = {arXiv:2409.10559}
+}
+
+@article{varre2025,                                                          % [P]
+  title   = {Learning In-context $n$-grams with Transformers: Sub-$n$-grams Are
+             Near-stationary Points},
+  author  = {Varre, Aditya and others},
+  journal = {arXiv preprint arXiv:2508.12837},
+  year    = {2025},
+  note    = {[P] expand author list}
+}
+
+@article{musat2026,                                                          % [P]
+  title   = {On the Emergence of Induction Heads for In-Context Learning},
+  author  = {Musat, Andrei and others},
+  journal = {arXiv preprint arXiv:2511.01033},
+  year    = {2026},
+  note    = {[P] expand author list}
+}
+
+@article{wang2025,                                                       % [P]
+  title   = {How Transformers Get Rich: Approximation and Dynamics Analysis},
+  author  = {Wang, Mingze and others},
+  journal = {arXiv preprint arXiv:2410.11474},
+  year    = {2025},
+  note    = {[P] expand author list}
+}
+
+% ------------------------------------------------ data distribution, shortcuts, emergence [P]
+@inproceedings{kawata2025,
+  title     = {From Shortcut to Induction Head: How Data Diversity Shapes Algorithm
+               Selection in Transformers},
+  author    = {Kawata, Yuma and others},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2025},
+  note      = {arXiv:2512.18634. [P] expand author list}
+}
+
+@inproceedings{zucchet2025,
+  title     = {The Emergence of Sparse Attention: Impact of Data Distribution and
+               Benefits of Repetition},
+  author    = {Zucchet, Nicolas and others},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2025},
+  note      = {arXiv:2505.17863. [P] expand author list}
+}
+
+@article{lavie2026,                                                          % [P]
+  title   = {Phase Transitions in Attention: A Bayesian Theory of Copy Head Emergence},
+  author  = {Lavie, Ori and others},
+  journal = {arXiv preprint arXiv:2606.12058},
+  year    = {2026},
+  note    = {[P] expand author list}
+}
+
+@article{yuksel2026,                                                         % [P]
+  title   = {Incremental Learning of Sparse Attention Patterns in Transformers},
+  author  = {Yuksel, Kamer Ali and others},
+  journal = {arXiv preprint arXiv:2602.19143},
+  year    = {2026},
+  note    = {[P] expand author list}
+}
+
+% ------------------------------------------------------ selecting causal structure in context
+@inproceedings{selective2025,
+  title     = {Selective Induction Heads: How Transformers Select Causal Structures in Context},
+  author    = {Anonymous},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2025},
+  note      = {arXiv:2509.08184. [P] REQUIRED: fill in the author list from the paper}
+}
+
+% ------------------------------------------------------------ Bayesian views of ICL [P]
+@article{agarwal2026,
+  title   = {The Bayesian Geometry of Transformer Attention},
+  author  = {Agarwal, Rohan and others},
+  journal = {arXiv preprint arXiv:2512.22471},
+  year    = {2026},
+  note    = {companion: Gradient Dynamics of Attention, arXiv:2512.22473. [P] expand}
+}
+
+@article{wakayama2025,                                                       % [P]
+  title   = {In-Context Learning Is Provably Bayesian Inference: A Generalization Theory
+             for Meta-Learning},
+  author  = {Wakayama, Tomoya and Imaizumi, Masaaki},
+  journal = {arXiv preprint arXiv:2510.10981},
+  year    = {2025},
+  note    = {[P] verify given names}
+}
+
+@article{zhang2026,                                                          % [P]
+  title   = {Bayesian Optimality of In-Context Learning with Selective State Spaces},
+  author  = {Zhang, Yifan and others},
+  journal = {arXiv preprint arXiv:2602.17744},
+  year    = {2026},
+  note    = {[P] expand author list}
+}
+
+@article{dangelo2026,                                                        % [P]
+  title   = {Transformers Learn Latent Mixture Models In-Context via Mirror Descent},
+  author  = {D'Angelo, Francesco and Flammarion, Nicolas},
+  journal = {arXiv preprint arXiv:2604.10848},
+  year    = {2026},
+  note    = {[P] verify given names}
+}
+
+% ---------------------------------------------------- denoising, FFN, architecture [P]
+@inproceedings{smart2025,
+  title     = {In-context Denoising with One-layer Transformers: Connections between
+               Attention and Associative Memory Retrieval},
+  author    = {Smart, Matthew and others},
+  booktitle = {International Conference on Machine Learning},
+  year      = {2025},
+  note      = {arXiv:2502.05164. [P] expand author list}
+}
+
+@article{sun2025,                                                            % [P]
+  title   = {On the Role of Transformer Feed-Forward Layers in Nonlinear In-Context Learning},
+  author  = {Sun, Haoyuan and others},
+  journal = {arXiv preprint arXiv:2501.18187},
+  year    = {2025},
+  note    = {[P] expand author list}
+}
+
+% ------------------------------------------------- symmetry, gauge, parameterisation [P]
+@article{silverstein2026,
+  title   = {Symmetry Breaking in Transformers for Efficient and Interpretable Training},
+  author  = {Silverstein, Louis and others},
+  journal = {arXiv preprint arXiv:2601.22257},
+  year    = {2026},
+  note    = {[P] expand author list}
+}
+
+@inproceedings{kobayashi2024,                                                % [P]
+  title     = {Weight Decay Induces Low-rank Attention Layers},
+  author    = {Kobayashi, Seijin and others},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2024},
+  note      = {arXiv:2410.23819. [P] expand author list}
+}
+
+% ------------------------------------------------------------------- foundational [C]
+@inproceedings{vaswani2017,
+  title     = {Attention Is All You Need},
+  author    = {Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and
+               Jones, Llion and Gomez, Aidan N. and Kaiser, Lukasz and Polosukhin, Illia},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2017}
+}
+
+@inproceedings{brown2020,
+  title     = {Language Models Are Few-Shot Learners},
+  author    = {Brown, Tom B. and Mann, Benjamin and Ryder, Nick and Subbiah, Melanie and
+               Kaplan, Jared and Dhariwal, Prafulla and Neelakantan, Arvind and others},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2020},
+  note      = {[P] expand author list if cited prominently}
+}
+
+@inproceedings{garg2022,
+  title     = {What Can Transformers Learn In-Context? A Case Study of Simple Function Classes},
+  author    = {Garg, Shivam and Tsipras, Dimitris and Liang, Percy and Valiant, Gregory},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2022}
+}
+
+@inproceedings{xie2022,
+  title     = {An Explanation of In-context Learning as Implicit Bayesian Inference},
+  author    = {Xie, Sang Michael and Raghunathan, Aditi and Liang, Percy and Ma, Tengyu},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2022}
+}
+
+@inproceedings{vonoswald2023,
+  title     = {Transformers Learn In-Context by Gradient Descent},
+  author    = {von Oswald, Johannes and Niklasson, Eyvind and Randazzo, Ettore and
+               Sacramento, Jo{\~a}o and Mordvintsev, Alexander and Zhmoginov, Andrey and
+               Vladymyrov, Max},
+  booktitle = {International Conference on Machine Learning},
+  year      = {2023}
+}
+
+@inproceedings{akyurek2023,
+  title     = {What Learning Algorithm Is In-Context Learning? Investigations with Linear Models},
+  author    = {Aky{\"u}rek, Ekin and Schuurmans, Dale and Andreas, Jacob and Ma, Tengyu and
+               Zhou, Denny},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2023}
+}

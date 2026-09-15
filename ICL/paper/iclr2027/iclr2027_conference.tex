@@ -1,0 +1,1242 @@
+% =====================================================================================
+% SELF-CONTAINED: the bibliography is embedded below via filecontents, so this single
+% .tex file is all you need to paste into Overleaf. On compile LaTeX writes it out as
+% iclr2027_conference.bib and BibTeX picks it up. If you would rather keep the .bib as a
+% separate file in the project, delete the filecontents block -- nothing else changes.
+% =====================================================================================
+\begin{filecontents*}[overwrite]{iclr2027_conference.bib}
+% =====================================================================================
+% References for "How Gradient Descent Builds a Noise-Skipping Induction Head".
+%
+% PROVENANCE, so this can be audited:
+%  [V] author list verified against arXiv (source: Insights/_make_related_papers_pdf.py,
+%      "Papers verified against arXiv API on 2026-07-04"), or a widely-known reference.
+%  [P] PARTIAL -- lead author(s) verified, remainder recorded as "and others". Expand from
+%      the paper before submission.
+%  [C] classic / foundational, cited from common knowledge; check the exact venue string.
+%
+% The ICLR 2027 AI policy makes the authors responsible for every citation. Every [P]
+% entry below MUST be completed and every entry spot-checked before submission.
+% =====================================================================================
+
+% ------------------------------------------------------------------ induction heads [V/C]
+@article{elhage2021,
+  title   = {A Mathematical Framework for Transformer Circuits},
+  author  = {Elhage, Nelson and Nanda, Neel and Olsson, Catherine and Henighan, Tom and
+             Joseph, Nicholas and Mann, Ben and Askell, Amanda and Bai, Yuntao and
+             Chen, Anna and Conerly, Tom and DasSarma, Nova and Drain, Dawn and
+             Ganguli, Deep and Hatfield-Dodds, Zac and Hernandez, Danny and
+             Jones, Andy and Kernion, Jackson and Lovitt, Liane and Ndousse, Kamal and
+             Amodei, Dario and Brown, Tom and Clark, Jack and Kaplan, Jared and
+             McCandlish, Sam and Olah, Chris},
+  journal = {Transformer Circuits Thread},
+  year    = {2021}
+}
+
+@article{olsson2022,
+  title   = {In-context Learning and Induction Heads},
+  author  = {Olsson, Catherine and Elhage, Nelson and Nanda, Neel and Joseph, Nicholas and
+             DasSarma, Nova and Henighan, Tom and Mann, Ben and Askell, Amanda and
+             Bai, Yuntao and Chen, Anna and Conerly, Tom and Drain, Dawn and
+             Ganguli, Deep and Hatfield-Dodds, Zac and Hernandez, Danny and
+             Johnston, Scott and Jones, Andy and Kernion, Jackson and Lovitt, Liane and
+             Ndousse, Kamal and Amodei, Dario and Brown, Tom and Clark, Jack and
+             Kaplan, Jared and McCandlish, Sam and Olah, Chris},
+  journal = {Transformer Circuits Thread},
+  year    = {2022}
+}
+
+@inproceedings{bietti2023,
+  title     = {Birth of a Transformer: A Memory Viewpoint},
+  author    = {Bietti, Alberto and Cabannes, Vivien and Bouchacourt, Diane and
+               J{\'e}gou, Herv{\'e} and Bottou, L{\'e}on},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2023},
+  note      = {arXiv:2306.00802}
+}
+
+% -------------------------------------------------- in-context learning of Markov structure
+@inproceedings{edelman2024,
+  title     = {The Evolution of Statistical Induction Heads: In-Context Learning Markov Chains},
+  author    = {Edelman, Ezra and Tsilivis, Nikolaos and Edelman, Benjamin L. and
+               Malach, Eran and Goel, Surbhi},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2024},
+  note      = {arXiv:2402.11004}
+}
+
+@inproceedings{ekbote2025,
+  title     = {What One Cannot, Two Can: Two-Layer Transformers Provably Represent
+               Induction Heads on Any-Order Markov Chains},
+  author    = {Ekbote, Chanakya and Bondaschi, Marco and Rajaraman, Nived and Lee, Jason D.
+               and Gastpar, Michael and Makkuva, Ashok Vardhan and Liang, Paul Pu},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2025},
+  note      = {arXiv:2508.07208}
+}
+
+@article{shi2025,                                                            % [P]
+  title   = {Towards Understanding Transformers in Learning Random Walks},
+  author  = {Shi, Yiwei and Cao, Yuan},
+  journal = {arXiv preprint arXiv:2511.23239},
+  year    = {2025},
+  note    = {[P] verify given names}
+}
+
+@article{dai2026,                                                            % [P]
+  title   = {Pre-trained Large Language Models Learn Hidden Markov Models In-context},
+  author  = {Dai, Yijia and others},
+  journal = {arXiv preprint arXiv:2506.07298},
+  year    = {2026},
+  note    = {[P] expand author list}
+}
+
+@article{hao2025,                                                            % [P]
+  title   = {Transformers as Multi-task Learners: Decoupling Features in Hidden Markov Models},
+  author  = {Hao, Yifan and others},
+  journal = {arXiv preprint arXiv:2506.01919},
+  year    = {2025},
+  note    = {[P] expand author list}
+}
+
+% ------------------------------------------------------------------- training dynamics [V/P]
+@inproceedings{nichani2024,
+  title     = {How Transformers Learn Causal Structure with Gradient Descent},
+  author    = {Nichani, Eshaan and Damian, Alex and Lee, Jason D.},
+  booktitle = {International Conference on Machine Learning},
+  year      = {2024},
+  note      = {arXiv:2402.14735}
+}
+
+@inproceedings{unveiling2024,
+  title     = {Unveiling Induction Heads: Provable Training Dynamics and Feature Learning
+               in Transformers},
+  author    = {Chen, Siyu and Sheen, Heejune and Wang, Tianhao and Yang, Zhuoran},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2024},
+  note      = {arXiv:2409.10559}
+}
+
+@article{varre2025,                                                          % [P]
+  title   = {Learning In-context $n$-grams with Transformers: Sub-$n$-grams Are
+             Near-stationary Points},
+  author  = {Varre, Aditya and others},
+  journal = {arXiv preprint arXiv:2508.12837},
+  year    = {2025},
+  note    = {[P] expand author list}
+}
+
+@article{musat2026,                                                          % [P]
+  title   = {On the Emergence of Induction Heads for In-Context Learning},
+  author  = {Musat, Andrei and others},
+  journal = {arXiv preprint arXiv:2511.01033},
+  year    = {2026},
+  note    = {[P] expand author list}
+}
+
+@article{wang2025,                                                       % [P]
+  title   = {How Transformers Get Rich: Approximation and Dynamics Analysis},
+  author  = {Wang, Mingze and others},
+  journal = {arXiv preprint arXiv:2410.11474},
+  year    = {2025},
+  note    = {[P] expand author list}
+}
+
+% ------------------------------------------------ data distribution, shortcuts, emergence [P]
+@inproceedings{kawata2025,
+  title     = {From Shortcut to Induction Head: How Data Diversity Shapes Algorithm
+               Selection in Transformers},
+  author    = {Kawata, Yuma and others},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2025},
+  note      = {arXiv:2512.18634. [P] expand author list}
+}
+
+@inproceedings{zucchet2025,
+  title     = {The Emergence of Sparse Attention: Impact of Data Distribution and
+               Benefits of Repetition},
+  author    = {Zucchet, Nicolas and others},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2025},
+  note      = {arXiv:2505.17863. [P] expand author list}
+}
+
+@article{lavie2026,                                                          % [P]
+  title   = {Phase Transitions in Attention: A Bayesian Theory of Copy Head Emergence},
+  author  = {Lavie, Ori and others},
+  journal = {arXiv preprint arXiv:2606.12058},
+  year    = {2026},
+  note    = {[P] expand author list}
+}
+
+@article{yuksel2026,                                                         % [P]
+  title   = {Incremental Learning of Sparse Attention Patterns in Transformers},
+  author  = {Yuksel, Kamer Ali and others},
+  journal = {arXiv preprint arXiv:2602.19143},
+  year    = {2026},
+  note    = {[P] expand author list}
+}
+
+% ------------------------------------------------------ selecting causal structure in context
+@inproceedings{selective2025,
+  title     = {Selective Induction Heads: How Transformers Select Causal Structures in Context},
+  author    = {Anonymous},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2025},
+  note      = {arXiv:2509.08184. [P] REQUIRED: fill in the author list from the paper}
+}
+
+% ------------------------------------------------------------ Bayesian views of ICL [P]
+@article{agarwal2026,
+  title   = {The Bayesian Geometry of Transformer Attention},
+  author  = {Agarwal, Rohan and others},
+  journal = {arXiv preprint arXiv:2512.22471},
+  year    = {2026},
+  note    = {companion: Gradient Dynamics of Attention, arXiv:2512.22473. [P] expand}
+}
+
+@article{wakayama2025,                                                       % [P]
+  title   = {In-Context Learning Is Provably Bayesian Inference: A Generalization Theory
+             for Meta-Learning},
+  author  = {Wakayama, Tomoya and Imaizumi, Masaaki},
+  journal = {arXiv preprint arXiv:2510.10981},
+  year    = {2025},
+  note    = {[P] verify given names}
+}
+
+@article{zhang2026,                                                          % [P]
+  title   = {Bayesian Optimality of In-Context Learning with Selective State Spaces},
+  author  = {Zhang, Yifan and others},
+  journal = {arXiv preprint arXiv:2602.17744},
+  year    = {2026},
+  note    = {[P] expand author list}
+}
+
+@article{dangelo2026,                                                        % [P]
+  title   = {Transformers Learn Latent Mixture Models In-Context via Mirror Descent},
+  author  = {D'Angelo, Francesco and Flammarion, Nicolas},
+  journal = {arXiv preprint arXiv:2604.10848},
+  year    = {2026},
+  note    = {[P] verify given names}
+}
+
+% ---------------------------------------------------- denoising, FFN, architecture [P]
+@inproceedings{smart2025,
+  title     = {In-context Denoising with One-layer Transformers: Connections between
+               Attention and Associative Memory Retrieval},
+  author    = {Smart, Matthew and others},
+  booktitle = {International Conference on Machine Learning},
+  year      = {2025},
+  note      = {arXiv:2502.05164. [P] expand author list}
+}
+
+@article{sun2025,                                                            % [P]
+  title   = {On the Role of Transformer Feed-Forward Layers in Nonlinear In-Context Learning},
+  author  = {Sun, Haoyuan and others},
+  journal = {arXiv preprint arXiv:2501.18187},
+  year    = {2025},
+  note    = {[P] expand author list}
+}
+
+% ------------------------------------------------- symmetry, gauge, parameterisation [P]
+@article{silverstein2026,
+  title   = {Symmetry Breaking in Transformers for Efficient and Interpretable Training},
+  author  = {Silverstein, Louis and others},
+  journal = {arXiv preprint arXiv:2601.22257},
+  year    = {2026},
+  note    = {[P] expand author list}
+}
+
+@inproceedings{kobayashi2024,                                                % [P]
+  title     = {Weight Decay Induces Low-rank Attention Layers},
+  author    = {Kobayashi, Seijin and others},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2024},
+  note      = {arXiv:2410.23819. [P] expand author list}
+}
+
+% ------------------------------------------------------------------- foundational [C]
+@inproceedings{vaswani2017,
+  title     = {Attention Is All You Need},
+  author    = {Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and
+               Jones, Llion and Gomez, Aidan N. and Kaiser, Lukasz and Polosukhin, Illia},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2017}
+}
+
+@inproceedings{brown2020,
+  title     = {Language Models Are Few-Shot Learners},
+  author    = {Brown, Tom B. and Mann, Benjamin and Ryder, Nick and Subbiah, Melanie and
+               Kaplan, Jared and Dhariwal, Prafulla and Neelakantan, Arvind and others},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2020},
+  note      = {[P] expand author list if cited prominently}
+}
+
+@inproceedings{garg2022,
+  title     = {What Can Transformers Learn In-Context? A Case Study of Simple Function Classes},
+  author    = {Garg, Shivam and Tsipras, Dimitris and Liang, Percy and Valiant, Gregory},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2022}
+}
+
+@inproceedings{xie2022,
+  title     = {An Explanation of In-context Learning as Implicit Bayesian Inference},
+  author    = {Xie, Sang Michael and Raghunathan, Aditi and Liang, Percy and Ma, Tengyu},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2022}
+}
+
+@inproceedings{vonoswald2023,
+  title     = {Transformers Learn In-Context by Gradient Descent},
+  author    = {von Oswald, Johannes and Niklasson, Eyvind and Randazzo, Ettore and
+               Sacramento, Jo{\~a}o and Mordvintsev, Alexander and Zhmoginov, Andrey and
+               Vladymyrov, Max},
+  booktitle = {International Conference on Machine Learning},
+  year      = {2023}
+}
+
+@inproceedings{akyurek2023,
+  title     = {What Learning Algorithm Is In-Context Learning? Investigations with Linear Models},
+  author    = {Aky{\"u}rek, Ekin and Schuurmans, Dale and Andreas, Jacob and Ma, Tengyu and
+               Zhou, Denny},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2023}
+}
+
+\end{filecontents*}
+
+\documentclass{article} % For LaTeX2e
+\usepackage{iclr2027_conference,times}
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\input{math_commands.tex}
+
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb,amsthm}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+
+% ---------------------------------------------------------------------------
+% TODO before submitting:
+%   * Keep \iclrfinalcopy COMMENTED OUT. A non-anonymous submission is
+%     desk-rejected without review (ICLR 2027 author guidelines).
+%   * Main text limit: 9 pages. References are UNLIMITED and do not count.
+%     Appendices are unlimited. The AI Use Statement, Ethics Statement and
+%     Reproducibility Statement do NOT count toward the page limit.
+%   * Produce US Letter, not A4.
+%   * Do not alter margins, font sizes or any style-file parameter.
+% ---------------------------------------------------------------------------
+
+% Title shortlist is kept in CLAUDE.md section 10.7.
+% NOTE: the ICLR style sets the title as a JUSTIFIED full-width paragraph in \LARGE small caps
+% (see \@maketitle in iclr2027_conference.sty). A title longer than roughly 40 characters wraps,
+% and LaTeX then stretches the inter-word spaces of the first line to justify it. Control the
+% break yourself with \\ -- the template's own title does exactly this. Do NOT edit the .sty.
+\title{How Gradient Descent Builds a\\Noise-Skipping Induction Head}
+
+% Authors are hidden while \iclrfinalcopy is commented out.
+\author{Anonymous}
+
+%\iclrfinalcopy % Uncomment for camera-ready version, but NOT for submission.
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+% ICLR requires the abstract to be a SINGLE paragraph.
+Induction heads explain how transformers infer causal structure from context rather than from
+their weights, but existing analyses place the informative token adjacent to the query, or at one
+of a small enumerable set of candidate lags. We study in-context learning when the causal parent
+is instead separated from its child by an unbounded run of uninformative material. Sequences are
+drawn from a Markov chain whose transition table is resampled for every sequence, so nothing about
+it can be stored in the weights, and a tunable fraction of positions emit a symbol from a disjoint
+distractor sub-vocabulary that leaves the chain state unchanged. Prediction then requires an
+additional primitive we call state recovery: the model must first skip backwards over a run of
+distractors of unbounded length to locate the last state-bearing symbol, and only then can the
+induction match be posed. Neither a previous-token head nor a selector over finitely many lags can
+express this. We give a two-layer construction that solves the task, in which the first layer
+performs state recovery and the second performs counting induction on the recovered state, and we
+then analyse how gradient descent builds it. Starting from zero initialisation, where the model
+computes the in-context unigram predictor and every gradient is available in closed form, we prove
+that the first layer's gradient vanishes identically, so the two layers cannot form
+simultaneously; that the second layer's gradient admits a closed form rewarding keys whose symbol
+matches the target; and that, because the transition table is resampled, the channel corresponding
+to weight-stored bigram statistics receives no signal in expectation. In-context learning is
+therefore not merely preferred over in-weights learning in this setting but is the only direction
+available to gradient descent at the start of training. The second layer then recruits the first,
+which is driven towards state recovery, so the circuit is assembled outwards from the readout
+rather than inwards from the input. The analysis further predicts that state recovery is learned
+only when distractors are sufficiently common, since the positions that demand it are exactly
+those the distractor process creates; we confirm this empirically, observing a sharp transition
+beyond which the model abandons state recovery in favour of copying the previous symbol. As the
+distractor rate vanishes the task, the construction and the dynamics all reduce to the noiseless
+setting studied in prior work, which we recover as a boundary case.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+A language model shown a short passage can often continue it correctly even when the pattern it
+must follow appears nowhere in its training data. The pattern is supplied by the passage itself,
+and the model applies it on the spot. This ability --- in-context learning \citep{brown2020} --- has been
+studied through the function classes a transformer can acquire from a prompt \citep{garg2022},
+through its interpretation as implicit Bayesian inference \citep{xie2022}, and through the
+algorithms attention can emulate internally \citep{vonoswald2023,akyurek2023}. It is now
+understood to rest, at least in part, on a specific and identifiable circuit. An \emph{induction head}
+\citep{elhage2021,olsson2022} scans the context for an earlier occurrence of the current symbol
+and copies whatever followed it. Two attention layers suffice: the first records, at every
+position, the identity of the symbol that preceded it; the second searches for positions whose
+recorded predecessor matches the symbol at hand, and averages what it finds. The circuit is simple
+enough to write down by hand, and simple enough that one can ask how gradient descent arrives at
+it.
+
+That question has been studied in settings built to isolate it. The usual construction draws each
+sequence from a Markov chain whose transition table is resampled every time, so that nothing about
+the table can be stored in the weights and all of the achievable performance must come from the
+context \citep{edelman2024,nichani2024,unveiling2024}. In such settings the relevant evidence is
+always close at hand: the symbol that determines the next one is the immediately preceding symbol,
+or a parent at a known offset, or one of a handful of candidate lags among which the model
+chooses \citep{selective2025}.
+
+\paragraph{When the evidence is not adjacent.}
+Sequences encountered in practice are rarely so orderly. Between two causally linked symbols there
+may be an arbitrary amount of material that says nothing about the link: filler, formatting,
+digression, interruption. A mechanism that can only compare against the previous position, or
+against a fixed menu of positions, is structurally unable to see across such material. What it
+does instead is the question this paper is about.
+
+We therefore study the simplest task in which the difficulty is unavoidable. As before, each
+sequence is generated by a Markov chain with its own freshly drawn transition table. In addition,
+each position independently emits --- with probability $1-\alpha$ --- a symbol from a
+\emph{distractor} sub-vocabulary disjoint from the chain's own alphabet, and such a symbol
+\emph{does not advance the chain}. A symbol and its causal parent are consequently separated by a
+run of distractors whose length is geometric with mean $(1-\alpha)^{-1}$, and which is not bounded
+by any constant. Before the induction match can even be posed, the model must first carry out what
+we call \emph{state recovery}: skip backwards across that run to find the last symbol that
+actually moved the chain. The single parameter $\alpha$ tunes how severe this is, and at
+$\alpha=1$ the distractors disappear and the task becomes exactly the one previously
+studied.\footnote{The two axes are complementary rather than competing. \citet{selective2025} vary
+the dependency distance while holding the transition structure fixed; we resample the structure
+and leave the distance to be discovered. A selector over $k$ candidate lags cannot represent a
+geometric lag distribution for any finite $k$.}
+
+\paragraph{How the circuit gets built.}
+We first confirm that the task is solvable in this architecture by exhibiting a two-layer
+construction (Section~\ref{sec:construction}): the first layer vetoes distractor keys and applies
+a recency preference among the survivors, so that it retrieves the most recent state-bearing
+symbol at whatever distance it lies; the second performs the familiar induction match on that
+recovered state. We then turn to the question the paper is named for --- how gradient descent
+assembles this --- and analyse it where it is tractable, at initialisation.
+
+Initialising both attention matrices to zero makes every attention distribution uniform, so the
+model begins by predicting the running frequency of the symbols it has seen: the in-context
+unigram predictor. Every gradient at that point is available in closed form, and three facts
+follow (Theorem~\ref{thm:dynamics}). First, the gradient with respect to the first layer is
+\emph{identically zero}: every path from its parameters to the loss passes through the second
+layer's attention scores, and that derivative carries the second layer's weights as a
+multiplicative factor. The two layers cannot form at the same time. Second, the second layer's
+gradient has a closed form, and it raises the score of exactly those positions whose symbol equals
+the target. Third --- and this is what ties the mechanism to the task --- when that update is
+decomposed into interpretable blocks, the block that would implement a weight-stored bigram table
+receives no structured signal at all, because averaging over the resampled table makes every
+signal symbol equally likely to follow every other. In-weights learning is not merely worse here
+than in-context learning; it is invisible to the gradient. The only direction available at the
+first step is already an in-context one.
+
+What happens next follows from the first fact. Once the second layer has moved, it \emph{recruits}
+the first: the first layer's gradient becomes proportional to precisely those blocks of the second
+layer that consume the recovered state, and it is driven to suppress distractors and sharpen onto
+the most recent state-bearing position. The circuit is assembled outwards from the readout rather
+than inwards from the input.
+
+\paragraph{A prediction, and its confirmation.}
+This account carries a consequence. The pressure to build state recovery originates only at
+positions where the state is not directly visible --- those that follow a distractor --- and such
+positions are a fraction $1-\alpha$ of the sequence. As distractors become rarer, that pressure
+weakens, while a shortcut remains available: simply treat the previous symbol as the state, which
+is correct a fraction $\alpha$ of the time. We find that the transition between the two regimes is
+abrupt. Below a threshold in $\alpha$ the trained model almost never errs about which symbols may
+follow the current state; above it, the model is wrong about half the time, which is close to what
+ignoring the state entirely would give.\footnote{The direction of the effect is worth emphasising.
+The regime in which the model fails is the one with \emph{less} noise, where the task is easier by
+every aggregate measure: both the cross-entropy and its Bayes floor are lower. The failure is
+confined to the one sub-task that distinguishes this setting from the noiseless one, and the
+aggregate objective barely weights it.}
+
+\paragraph{Contributions.}
+\begin{itemize}
+\item We formulate in-context learning of Markov structure \emph{under distraction}, in which the
+causal parent lies at an unbounded distance, and give a two-layer construction solving it that
+introduces state recovery as an explicit primitive (Section~\ref{sec:construction}).
+\item We analyse gradient descent from zero initialisation and prove three properties of the first
+step: the layers form sequentially, the second layer's gradient is available in closed form, and
+the in-weights channel receives no signal in expectation (Section~\ref{sec:dynamics}; proofs in
+Appendix~\ref{app:dynamics}).
+\item We report a sharp phase transition in distractor density, anticipated by that analysis, in
+which state recovery ceases to be learned once distractors become rare
+(Section~\ref{sec:transition}).
+\item We show that the task, the construction and the dynamics all reduce to the noiseless setting
+as $\alpha\to1$, recovering prior results as a boundary case rather than competing with them
+(Section~\ref{sec:reduction}).
+\end{itemize}
+
+\section{Setup}
+\label{sec:setup}
+
+\paragraph{Task.}
+Fix a vocabulary $\mathcal{V}=\mathcal{S}\cup\mathcal{D}$ partitioned into $V_s$ \emph{signal}
+symbols and $V_d$ \emph{distractors}. For each sequence we draw a transition table $\pi$
+independently, assigning to every $s\in\mathcal{S}$ a successor set
+$\mathrm{succ}_\pi(s)\subset\mathcal{S}$ of size two, and generate $v_{0:T-1}$ by
+\begin{equation}
+v_t=\begin{cases}
+\text{uniform from }\mathrm{succ}_\pi(\mathrm{st}(t\!-\!1)), & \text{w.p. }\alpha
+\quad\text{(state advances)},\\[2pt]
+\text{uniform from }\mathcal{D}, & \text{w.p. }1-\alpha
+\quad\text{(state unchanged)},
+\end{cases}
+\end{equation}
+where $\mathrm{st}(t)$ denotes the chain state after position $t$. The target is
+$y_t=v_{t+1}$ and the loss is averaged over the second half of the sequence,
+$t\in\mathcal{T}=[T/2,T)$, so that every scored position has a context long enough to identify
+the table. Because $\pi$ is resampled, no function of the weights alone can predict better than
+the marginal; all of the achievable performance is in-context.
+
+\paragraph{The state and why it is not the previous symbol.}
+Distractors do not advance the chain, so the state at position $t$ is the most recent
+\emph{signal} symbol at or before $t$. The number of distractors separating a symbol from its
+causal parent is geometric with mean $(1-\alpha)^{-1}$ and is unbounded. A previous-token head,
+or a selector over any finite set of lags, cannot express this dependency.
+
+\paragraph{Architecture.}
+The input embedding is a concatenation of two one-hots and is not learned,
+$x_t=[\,e_{v_t}\,;\,e_t\,]\in\mathbb{R}^{d}$ with $d=V+T$. Two attention layers concatenate their
+output onto the residual stream,\footnote{Concatenation rather than addition keeps the two layers'
+contributions in disjoint coordinates, which is what makes the block decomposition of
+Section~\ref{sec:dynamics} exact rather than approximate.} and both use a strictly causal mask.
+With combined query--key matrices $W^{(1)}\in\mathbb{R}^{d\times d}$,
+$W^{(2)}\in\mathbb{R}^{2d\times 2d}$,
+\begin{equation}
+h_t=\sum_{u<t} a^{(1)}_{t,u}\,e_{v_u},\qquad
+x^{(2)}_t=[\,x_t\,;\,h_t\,],\qquad
+f_t=\sum_{u<t} a^{(2)}_{t,u}\,e_{v_u},
+\label{eq:arch}
+\end{equation}
+where $a^{(i)}_{t,\cdot}=\mathrm{softmax}\bigl(x^{(i)}_tW^{(i)}x^{(i)\top}_{\cdot}/\sqrt d+M\bigr)$
+and the value circuits are fixed to the selector that passes the symbol one-hot. Appendix
+\ref{app:gauge} shows that fixing the first layer's value circuit costs no generality --- it is a
+choice of coordinates --- while fixing the second layer's is a genuine restriction, which we
+state as such.
+
+\paragraph{Readout.}
+Since $f_t$ in \eqref{eq:arch} is a convex combination of one-hots it is already a distribution,
+with $\sum_w f_t[w]=1$ identically. We therefore read out by renormalisation against a fixed
+bias, with no unembedding, no logarithm and no output softmax:
+\begin{equation}
+p_t=\frac{f_t+b}{\sum_w\bigl(f_t[w]+b_w\bigr)},\qquad
+b_w=\begin{cases} b_s, & w\in\mathcal{S},\\ b_d, & w\in\mathcal{D},\end{cases}
+\qquad
+b_d=\frac{(1-\alpha)(1+V_s b_s)}{V_d\,\alpha}.
+\label{eq:readout}
+\end{equation}
+The choice of $b_d$ is forced: it is the unique value for which a model with a perfect distractor
+filter assigns exactly $(1-\alpha)/V_d$ to each distractor. Appendix~\ref{app:readout} derives it
+and shows that this readout is what an unembedding followed by a softmax computes when the
+intervening nonlinearity is $\log(f+b_s)$.
+
+\begin{table}[!ht]
+\caption{Notation.}
+\label{tab:notation}
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+$\mathcal{S},\mathcal{D}$ & signal and distractor sub-vocabularies, sizes $V_s$, $V_d$ \\
+$\alpha$ & probability that a position emits a signal symbol and advances the chain \\
+$\pi$ & per-sequence transition table; $\mathrm{succ}_\pi(s)$ its successor set \\
+$\mathrm{st}(t)$ & chain state after position $t$; the most recent signal symbol \\
+$h_t, f_t$ & output of layer 1 and layer 2 at position $t$, both in the simplex \\
+$m_t$ & running symbol frequency $\tfrac1t\sum_{u<t}e_{v_u}$ of the context \\
+$P,Q,R,C$ & the four $d\times d$ blocks of $W^{(2)}$ (Section~\ref{sec:dynamics}) \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+\section{The state-recovering induction head}
+\label{sec:construction}
+
+We first establish that the task is solvable by this architecture, and how. The construction
+divides the work between the layers.
+
+\begin{theorem}[Construction]
+\label{thm:construction}
+There exist weights $W^{(1)},W^{(2)}$ such that, up to softmax saturation, layer 1 places all of
+its attention on the most recent signal position and layer 2 outputs the empirical successor
+frequency of the current state:
+\begin{equation}
+h_t=e_{\mathrm{st}(t)},\qquad
+f_t[w]=\frac{\#\{u<t:\ \mathrm{st}(u\!-\!1)=\mathrm{st}(t),\ v_u=w\}}
+{\#\{u<t:\ \mathrm{st}(u\!-\!1)=\mathrm{st}(t)\}} .
+\end{equation}
+Composed with the readout \eqref{eq:readout}, the model realises add-$b_s$ smoothed
+context-Bayes prediction.
+\end{theorem}
+
+The mechanism, proved in Appendix~\ref{app:construction}, uses three devices. First, layer 1
+assigns score $-\infty$ to every key whose symbol is a distractor, so the attention is supported
+on signal positions only. Second, among those it applies a recency ramp linear in $t-u$, so the
+softmax concentrates on the most recent one; the ramp is what makes the unbounded lag expressible
+with a fixed number of parameters. Third, layer 2 compares the query's own symbol against the key's
+recovered state $h_u$, and averages the symbols it finds --- turning an attention average into a
+count, since the attended set is exactly the set of past transitions out of the current state.
+
+Two remarks. The first layer is \emph{not} a previous-token head: it is a previous-\emph{signal}-token
+head, and the distinction is the whole content of the construction. And the query in layer 2
+matches on its own symbol when that symbol is a signal, falling back to the recovered state when it
+is a distractor; a single head suffices because those two branches ask the same question.
+
+\section{A distractor-density phase transition}
+\label{sec:transition}
+
+Theorem~\ref{thm:construction} says the circuit exists. It does not say gradient descent finds it,
+and the central empirical result of this paper is that whether it does depends sharply on
+$\alpha$.
+
+We train the model of Section~\ref{sec:setup} at each $\alpha$ and then measure, on held-out
+sequences and using each sequence's own table $\pi$, the rate at which the model predicts a signal
+symbol that is \emph{not} a successor of the current state. We report this separately at
+post-distractor positions --- where the state must be recovered by skipping backwards --- and at
+post-signal positions, where the state is directly visible.
+
+\begin{table}[!ht]
+\caption{Post-distractor error: the rate at which the trained model predicts a signal symbol that
+is not a successor of the current state, at positions immediately following a distractor.
+Held-out sequences, each scored against its own transition table. The change between
+$\alpha=0.7$ and $\alpha=0.8$ is a factor of $143$.}
+\label{tab:transition}
+\begin{center}
+\begin{tabular}{lccccccccc}
+\toprule
+$\alpha$ & 0.1 & 0.2 & 0.3 & 0.4 & 0.5 & 0.6 & 0.7 & 0.8 & 0.9 \\
+\midrule
+post-distractor error & 0.89\% & 0.31\% & 0.27\% & 1.16\% & 0.51\% & 0.44\% & 0.36\%
+  & \textbf{51.59\%} & \textbf{49.94\%} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+The transition is abrupt and has no intermediate value in our sweep. Below it the model is
+essentially never wrong about which symbols may follow the current state; above it, it is wrong
+half the time --- close to what a model that ignores the state entirely and reports the marginal
+would achieve.
+
+\paragraph{Interpretation.}
+The aggregate cross-entropy does not reveal this. It decreases monotonically in $\alpha$, because
+distractors are individually easy to predict (they are uniform on $\mathcal{D}$, and the readout
+bias $b_d$ supplies exactly the right mass). The failure is confined to the sub-task that the
+aggregate barely weights. A model that has not learned state recovery can still do well overall by
+copying the previous symbol, which is the correct state a fraction $\alpha$ of the time; at
+$\alpha=0.8$ that shortcut is right four times in five, and the remaining fifth is too small a
+share of the loss to force the harder circuit into existence.
+
+% TODO: add the post-signal control column. The claim "state recovery specifically fails" requires
+% the post-signal error to stay flat while the post-distractor column explodes. Our current
+% measurement of the control had an off-by-one in the state update and is not reportable.
+% TODO: seed bands. Table 1 is a single seed.
+% TODO: confirm the transition replicates in the reduced-vocabulary configuration used for
+% Section 5; Table 1 is measured in the larger configuration (Appendix D).
+
+\section{Learning dynamics from zero initialisation}
+\label{sec:dynamics}
+
+To explain Table~\ref{tab:transition} we ask what gradient descent does at the very beginning,
+where everything is computable. Initialise $W^{(1)}=W^{(2)}=0$. Both softmaxes are then uniform
+over the admissible keys and, by \eqref{eq:arch},
+\begin{equation}
+h_t=f_t=m_t:=\frac1t\sum_{u<t}e_{v_u},
+\end{equation}
+the running symbol frequency: the model begins as the in-context unigram predictor.
+
+Split $W^{(2)}$ into $d\times d$ blocks according to $x^{(2)}=[x;h]$, so that the score
+decomposes into four interpretable terms,
+\begin{equation}
+W^{(2)}=\begin{bmatrix}P & Q\\ R & C\end{bmatrix},\qquad
+\sqrt d\,S^{(2)}_{t,u}=\underbrace{x_tPx_u^\top}_{\text{symbol--symbol}}
++\underbrace{x_tQh_u^\top}_{\text{induction}}
++\underbrace{h_tRx_u^\top}_{\text{cross}}
++\underbrace{h_tCh_u^\top}_{\text{state--state}}.
+\label{eq:blocks}
+\end{equation}
+The symbol--symbol block $P$ is the in-weights channel: it scores a key by its own symbol against
+the query's, which is what a model would use to store a fixed bigram table. The induction block
+$Q$ is the in-context channel: it scores a key by the \emph{state} that preceded it.
+
+\begin{theorem}[Dynamics at initialisation]
+\label{thm:dynamics}
+At $W^{(1)}=W^{(2)}=0$, writing $\omega_t=(m_t[y_t]+b_{y_t})^{-1}>0$:
+\begin{enumerate}
+\item[(i)] \textup{(Gating.)} $\partial L/\partial W^{(1)}=0$ identically. The first layer cannot
+move until the second has left the origin.
+\item[(ii)] \textup{(Closed form.)}
+$\displaystyle -\frac{\partial L}{\partial W^{(2)}}
+=\frac{1}{|\mathcal{T}|\sqrt d}\sum_{t\in\mathcal{T}}\frac{\omega_t}{t}\sum_{u<t}
+\bigl(\mathbf 1[v_u=y_t]-m_t[y_t]\bigr)\,x^{(2)}_t\otimes x^{(2)}_u .$
+\item[(iii)] \textup{(The in-weights channel is dead.)} In expectation over the resampled table,
+the induced update to $P$ has no diagonal component, because
+$\mathbb{E}_\pi[\mathbf 1[w=y_t]\mid \mathrm{st}(t)=v]=\alpha/V_s$ independently of
+$w\in\mathcal{S}$. The corresponding update to $Q$ does have one.
+\end{enumerate}
+\end{theorem}
+
+Part (iii) is the reason the title of this section is about in-context learning. The marginal
+bigram statistic is uninformative \emph{by construction of the task}: averaged over the resampled
+table, every signal symbol is equally likely to follow every other. The model cannot take a step
+towards storing a transition table even if such a step would help, because the gradient in that
+direction is zero. The first direction available to it is the one that reads the context.
+
+Measured at $\alpha=0.6$, the diagonal-minus-off-diagonal statistic of the first descent
+direction, restricted to the signal sub-block, is $-1.48\times10^{-4}$ on $P$ against
+$+9.62\times10^{-5}$ on $Q$ and $+9.80\times10^{-6}$ on $C$; the cosine between the induction
+block and the construction's is $+0.867$, against a random-matrix baseline of $0.010$. The first
+gradient does not merely avoid the wrong direction --- it points most of the way to the right one.
+
+\paragraph{Steps one and two.}
+Appendix~\ref{app:dynamics} continues the analysis. After one step the first layer's gradient
+becomes non-zero and is proportional to those blocks of the second layer's update that contract
+with $h$, so the second layer \emph{recruits} the first
+(Lemma~\ref{lem:step1}). After two steps the first layer is driven towards suppressing distractor
+keys and sharpening onto the most recent signal position, which is state recovery
+(Lemma~\ref{lem:step2}). The circuit is built outwards from the readout rather than inwards from
+the input.
+
+\paragraph{Connecting to the transition.}
+The coefficient in Theorem~\ref{thm:dynamics}(ii) is supported on positions whose target is a
+successor of the current state. The positions at which state recovery is \emph{required} --- those
+following a distractor --- form a fraction $1-\alpha$ of the scored window. As $\alpha\to1$ that
+share vanishes, and with it the gradient pressure to build the first layer at all.
+% TODO: make this quantitative. This is the step that turns Section 5 into an explanation of
+% Section 4 rather than a plausible story alongside it.
+
+\section{Reduction to the noiseless case}
+\label{sec:reduction}
+
+Our setting contains the standard one as a boundary.
+
+\begin{theorem}[Reduction]
+\label{thm:reduction}
+As $\alpha\to1$ the distractor sub-vocabulary is never emitted; the state at $t$ is $v_t$ itself;
+the construction of Theorem~\ref{thm:construction} degenerates to a previous-token head composed
+with an induction head; and the task becomes in-context learning of a Markov chain with a
+per-sequence transition table, as studied by \citet{edelman2024}.
+\end{theorem}
+
+This positions the prior work as our $\alpha=1$ limit rather than as a competing account, and it
+provides a consistency check: our measurements at $\alpha=1.0$ should reproduce the qualitative
+behaviour reported there, and they do.
+% TODO: state which quantities are compared and give the numbers.
+
+\section{Related work}
+\label{sec:related}
+
+\paragraph{Induction heads.}
+The induction head was identified as a concrete attention circuit by \citet{elhage2021} and
+linked to the emergence of in-context learning in language models by \citet{olsson2022}. Its
+canonical form is a two-layer composition: a previous-token head writes the identity of the
+preceding symbol into the residual stream, and a second head attends to positions whose written
+predecessor matches the current symbol, copying what followed. \citet{bietti2023} study a
+two-layer model in which a globally stored component and an in-context component coexist, a
+decomposition structurally analogous to our signal/distractor split, though their axis separates
+what is memorised from what is inferred, whereas ours separates positions that carry state from
+positions that do not.
+
+\paragraph{In-context learning of Markov structure.}
+The setting closest to ours is \citet{edelman2024}, who train two-layer attention-only
+transformers on sequences whose transition matrix is resampled per sequence and document a
+multi-phase trajectory: uniform predictions, then an in-context unigram solution, then a rapid
+transition to the in-context bigram solution, with the unigram stage acting as a distractor that
+delays the final one. Our model at zero initialisation \emph{is} that unigram solution, which
+Theorem~\ref{thm:dynamics} makes precise, and their setting is the $\alpha\to1$ boundary of ours
+(Theorem~\ref{thm:reduction}). \citet{ekbote2025} characterise which Markov orders two-layer
+transformers can represent, \citet{shi2025} analyse transformers trained on random walks, and
+\citet{dai2026} examine whether pre-trained language models infer hidden Markov models in
+context; \citet{hao2025} treat the hidden-state case as multi-task feature decoupling. None of
+these introduces material that is interleaved with the chain and carries no state.
+
+\paragraph{Training dynamics and the emergence of the circuit.}
+\citet{nichani2024} prove that gradient descent recovers the causal structure of a latent graph,
+and \citet{unveiling2024} prove a three-stage convergence for a two-layer transformer on $n$-gram
+chains in which a feed-forward selector chooses among parents at fixed offsets. \citet{varre2025}
+show that sub-$n$-gram solutions are near-stationary points of the in-context $n$-gram objective,
+which is the mechanism by which intermediate solutions trap optimisation; \citet{musat2026} and
+\citet{wang2025} analyse the emergence and the approximation--dynamics trade-off more broadly, and
+\citet{yuksel2026} track the incremental appearance of sparse attention patterns. All
+of these analyse architectures in which the informative position lies at a bounded and enumerable
+displacement from the query. Our first layer must instead locate a parent at an unbounded,
+geometrically distributed lag, and our analysis concerns how that additional primitive is
+acquired --- and, for small distractor rates, why it is not.
+
+\paragraph{Selecting causal structure in context.}
+\citet{selective2025} study interleaved chains in which the \emph{lag} varies across sequences
+while the transition probabilities are held fixed, and construct a three-layer selective induction
+head that identifies the operative lag from context. The two settings vary complementary axes:
+they vary the dependency distance with the structure fixed, we resample the structure with a
+distance that is not selected from a finite menu but must be found by skipping uninformative
+material. The mechanisms differ accordingly --- a selector over $k$ candidate lags cannot
+represent a geometric lag distribution for any finite $k$, while our first layer expresses it with
+a recency ramp and a distractor veto.
+
+\paragraph{Shortcuts, data distribution, and algorithm selection.}
+Our empirical finding --- that a capability required on a vanishing fraction of positions is not
+acquired, and a shortcut correct on the remainder is acquired instead --- belongs to a line of
+work on how the training distribution selects among algorithms a model could in principle
+implement. \citet{kawata2025} show that data diversity governs whether a transformer settles on a
+shortcut or on a genuine induction head, and \citet{zucchet2025} show how the data distribution
+and repetition structure control the emergence of sparse attention. \citet{lavie2026} give a
+Bayesian account of phase transitions in copy-head emergence. Relative to these, the axis we vary
+is not diversity or repetition but the \emph{density of positions that require a specific
+sub-circuit}, and the resulting transition is sharp and non-monotone in task difficulty: the
+aggregate objective becomes easier as distractors become rarer, while the sub-task governed by
+them becomes catastrophically worse.
+
+\paragraph{Denoising and Bayesian views of attention.}
+\citet{smart2025} study in-context denoising with a one-layer transformer, relating attention to
+associative memory retrieval; their noise corrupts the observations whereas ours occupies whole
+positions and displaces the causal parent. \citet{sun2025} isolate the role of the feed-forward
+block in nonlinear in-context learning, which is the component our readout deliberately
+replaces with a fixed renormalisation (Appendix~\ref{app:readout}). Bayesian treatments of attention
+\citep{agarwal2026,wakayama2025}, of latent mixture models learned by mirror descent
+\citep{dangelo2026}, and of selective state-space models \citep{zhang2026} supply the normative
+reference against which we measure: our construction
+realises the context-Bayes predictor under add-$\beta$ smoothing, and the phase transition is a
+failure of optimisation to reach it, not a failure of the architecture to express it.
+
+\paragraph{Parameterisation and symmetry.}
+Weight-space comparisons between a learned circuit and a hand construction are only meaningful
+modulo the architecture's exact symmetries. \citet{silverstein2026} quantify how much of an
+optimiser's motion is spent on such gauge directions rather than on function change, and
+\citet{kobayashi2024} show that weight decay drives attention layers towards low rank, which is a
+further implicit restriction of the reachable set. Appendix~\ref{app:gauge} records the symmetries
+of our architecture and uses them to separate the freezing choices that cost generality from those
+that do not.
+
+\section{Discussion and limitations}
+\label{sec:limitations}
+
+The phenomenon we report is a failure of a rare sub-task to attract gradient, and the mechanism is
+not specific to distractors: whenever a capability is required on a vanishing fraction of the
+training distribution, and a shortcut exists that is correct on the remainder, the shortcut is
+what training will produce. What makes the present setting useful is that the rare sub-task, the
+shortcut and the correct circuit are all explicitly identifiable.
+
+Several limitations should be stated plainly. The task is synthetic, the vocabulary small and the
+model two layers deep; we make no claim about trained language models. The value circuits are
+held fixed, which Appendix~\ref{app:gauge} shows is free in the first layer and a real restriction
+in the second. Theorem~\ref{thm:dynamics}(iii) is proved for the expectation of the in-weights
+block; the corresponding lower bound for the in-context block is verified numerically but its
+proof requires control of the chain's mixing, which we do not yet have. Finally, weight-space
+agreement with the construction is not monotone during training: it peaks within the first ten
+steps and then declines while the loss continues to improve. We report this but cannot explain it.
+
+
+\subsubsection*{Reproducibility statement}
+
+The data-generating process is specified completely in Section~\ref{sec:setup}; the construction
+of Theorem~\ref{thm:construction} is given in closed form in Appendix~\ref{app:construction} and
+requires no fitting. Architecture, optimiser, initialisation, the two configurations used and the
+evaluation protocol for Table~\ref{tab:transition} are in Appendix~\ref{app:exp}. Proofs of
+Theorem~\ref{thm:dynamics} are in Appendix~\ref{app:dynamics}, with the one step that is currently
+verified numerically rather than proved marked explicitly there. Source code, the data-generation
+script and the checkpoints used for every reported number are included in the supplementary
+material.
+% TODO: confirm the supplementary actually contains these before submitting.
+
+\subsubsection*{AI use statement}
+
+% MANDATORY for ICLR 2027; does not count toward the page limit.
+% TODO -- THE AUTHORS MUST EDIT THIS TO MATCH WHAT ACTUALLY HAPPENED AND TAKE RESPONSIBILITY
+% FOR IT. The draft below reflects our understanding of how the work was carried out; please
+% correct anything that is inaccurate. ICLR treats a substantial falsehood produced by an LLM as
+% a Code of Ethics violation, so every number, citation and claim in the final text must be
+% checked by the authors by hand.
+We used an AI assistant for the following tasks: implementing the training and evaluation code;
+executing numerical experiments and tabulating their outputs; searching for and summarising
+related literature; and drafting portions of this manuscript. The research question, the task
+design, the construction of Section~\ref{sec:construction} and the theoretical claims were
+developed by the authors. All numerical results reported here were reproduced by the authors from
+the released code, and all cited works were consulted by the authors in the original. The authors
+take full responsibility for the content of this paper, including any errors.
+
+\bibliography{iclr2027_conference}
+\bibliographystyle{iclr2027_conference}
+
+\appendix
+
+\section{Learning dynamics from zero initialisation: proofs}
+\label{app:dynamics}
+
+\subsection{Notation}
+\label{app:notation}
+
+Let $\mathcal{S}=\{0,\dots,V_s-1\}$ be the signal symbols and
+$\mathcal{D}=\{V_s,\dots,V-1\}$ the distractors, $V=V_s+V_d$. A sequence is
+$v_{0:T-1}$ with $y_t=v_{t+1}$ the target at position $t$; the loss is averaged over the scored
+window $t\in\mathcal{T}=[T/2,T)$. For each sequence a transition table $\pi$ is drawn
+independently, assigning to every $s\in\mathcal{S}$ a successor set
+$\mathrm{succ}_\pi(s)\subset\mathcal{S}$ of size two. Writing $\mathrm{st}(t)$ for the chain state
+after position $t$, the generative rule is: with probability $\alpha$ emit a uniform element of
+$\mathrm{succ}_\pi(\mathrm{st}(t-1))$ and advance the state; with probability $1-\alpha$ emit a
+uniform element of $\mathcal{D}$ and leave the state unchanged.
+
+The input embedding is the concatenation of two one-hots,
+$x_t=[\,e_{v_t}\,;\,e_t\,]\in\mathbb{R}^{d}$ with $d=V+T$; there is no learned embedding. Both
+layers use a strictly causal mask $M_{t,u}=-\infty$ for $u\ge t$. With
+$W^{(1)}\in\mathbb{R}^{d\times d}$ and $W^{(2)}\in\mathbb{R}^{2d\times 2d}$ the combined
+query--key matrices,
+\begin{align}
+S^{(1)}_{t,u} &= \tfrac{1}{\sqrt d}\,x_t W^{(1)} x_u^\top + M_{t,u},
+& a^{(1)}_{t,\cdot} &= \mathrm{softmax}\bigl(S^{(1)}_{t,\cdot}\bigr),
+& h_t &= \sum_{u} a^{(1)}_{t,u}\,e_{v_u}, \\
+x^{(2)}_t &= [\,x_t\,;\,h_t\,]\in\mathbb{R}^{2d},
+& S^{(2)}_{t,u} &= \tfrac{1}{\sqrt d}\,x^{(2)}_t W^{(2)} x^{(2)\top}_u + M_{t,u},
+& f_t &= \sum_{u} a^{(2)}_{t,u}\,e_{v_u},
+\end{align}
+where we have used that the value circuits are fixed to the selector that passes the symbol
+one-hot (Appendix~\ref{app:gauge}). Note that $f_t$ depends on $h$ \emph{only} through the
+scores $S^{(2)}$. The readout is a renormalisation with a fixed bias $b$,
+\begin{equation}
+p_t=\frac{f_t+b}{\textstyle\sum_w (f_t[w]+b_w)},\qquad
+L=-\frac{1}{|\mathcal{T}|}\sum_{t\in\mathcal{T}}\log p_t[y_t].
+\end{equation}
+Because $f_t$ is a convex combination of one-hots, $\sum_w f_t[w]=1$ identically, so the
+denominator $S:=1+V_s b_s+V_d b_d$ is a constant independent of the context.
+
+It is convenient to split $W^{(2)}$ into $d\times d$ blocks according to
+$x^{(2)}=[x;h]$:
+\begin{equation}
+W^{(2)}=\begin{bmatrix} P & Q \\ R & C\end{bmatrix},
+\qquad
+S^{(2)}_{t,u}\sqrt d = \underbrace{x_tPx_u^\top}_{\text{symbol--symbol}}
++\underbrace{x_tQh_u^\top}_{\text{induction}}
++\underbrace{h_tRx_u^\top}_{\text{cross}}
++\underbrace{h_tCh_u^\top}_{\text{state--state}} .
+\end{equation}
+
+\subsection{Lemma 1: the gradient at initialisation}
+\label{app:lemma1}
+
+\begin{lemma}[Step $0$]
+\label{lem:step0}
+Let $W^{(1)}=W^{(2)}=0$. Then both attention distributions are uniform on the admissible keys,
+$a^{(1)}_{t,u}=a^{(2)}_{t,u}=1/t$ for $u<t$, and consequently
+\begin{equation}
+h_t=f_t=m_t:=\frac{1}{t}\sum_{u<t}e_{v_u},
+\end{equation}
+the running symbol frequency of the context. Writing
+$\omega_t:=\bigl(m_t[y_t]+b_{y_t}\bigr)^{-1}>0$, the gradients are
+\begin{align}
+-\frac{\partial L}{\partial W^{(2)}}
+&=\frac{1}{|\mathcal{T}|\sqrt d}\sum_{t\in\mathcal{T}}\frac{\omega_t}{t}
+\sum_{u<t}\Bigl(\mathbf 1[v_u=y_t]-m_t[y_t]\Bigr)\;
+x^{(2)}_t\otimes x^{(2)}_u ,
+\label{eq:g2}\\[2pt]
+\frac{\partial L}{\partial W^{(1)}}&=0 .
+\label{eq:g1}
+\end{align}
+\end{lemma}
+
+\begin{proof}
+At $W^{(1)}=W^{(2)}=0$ every score is $0$, so each softmax is uniform over $\{u<t\}$ and the
+first display follows. For \eqref{eq:g2}, treat $f_t$ as a free variable and set
+$g_t[w]:=\partial L_t/\partial f_t[w] = -\delta_{w,y_t}\omega_t + 1/S$. Since
+$f_t=\sum_u a^{(2)}_{t,u}e_{v_u}$, the softmax Jacobian gives
+\begin{equation}
+\frac{\partial L_t}{\partial S^{(2)}_{t,u}}
+= a^{(2)}_{t,u}\Bigl(g_t[v_u]-\sum_{u'}a^{(2)}_{t,u'}g_t[v_{u'}]\Bigr)
+= a^{(2)}_{t,u}\bigl(g_t[v_u]-g_t\!\cdot\! f_t\bigr).
+\end{equation}
+Using $\sum_w f_t[w]=1$ we get $g_t\!\cdot\!f_t=-m_t[y_t]\omega_t+1/S$, whence
+$g_t[v_u]-g_t\!\cdot\!f_t=-\omega_t(\mathbf 1[v_u=y_t]-m_t[y_t])$. Composing with
+$\partial S^{(2)}_{t,u}/\partial W^{(2)}=x^{(2)}_t\otimes x^{(2)}_u/\sqrt d$ gives \eqref{eq:g2}.
+
+For \eqref{eq:g1}, observe that $h$ enters the loss only through $S^{(2)}$, and
+\begin{equation}
+\frac{\partial S^{(2)}_{t,u}}{\partial h_u}=\frac{1}{\sqrt d}\bigl(x^{(2)}_tW^{(2)}\bigr)_{d:2d},
+\qquad
+\frac{\partial S^{(2)}_{t,u}}{\partial h_t}=\frac{1}{\sqrt d}\bigl(W^{(2)}x^{(2)\top}_u\bigr)_{d:2d},
+\end{equation}
+both of which carry $W^{(2)}$ as a multiplicative factor and therefore vanish at
+$W^{(2)}=0$. Since every path from $W^{(1)}$ to $L$ passes through $h$, the chain rule gives
+$\partial L/\partial W^{(1)}=0$.
+\end{proof}
+
+Equation \eqref{eq:g2} has a direct reading: the first step raises the score of exactly those
+keys whose \emph{symbol equals the target}, relative to a baseline $m_t[y_t]$. Equation
+\eqref{eq:g1} is a gating statement --- the two layers cannot form simultaneously.
+
+\begin{corollary}[The in-weights channel receives no signal]
+\label{cor:bigram}
+Decompose \eqref{eq:g2} into the blocks of Section~\ref{app:notation}. The symbol--symbol block
+is
+\begin{equation}
+P^\star[v,w]\;\propto\;\sum_{t:\,v_t=v}\frac{\omega_t}{t}
+\sum_{u<t:\,v_u=w}\bigl(\mathbf 1[w=y_t]-m_t[y_t]\bigr).
+\end{equation}
+Taking expectations over the resampled table $\pi$, for $w\in\mathcal{S}$,
+\begin{equation}
+\mathbb{E}_\pi\bigl[\mathbf 1[w=y_t]\,\big|\,\mathrm{st}(t)=v\bigr]
+=\frac{\alpha}{2}\,\mathbb{P}_\pi\bigl[w\in\mathrm{succ}_\pi(v)\bigr]
+=\frac{\alpha}{V_s},
+\end{equation}
+which is independent of $w$. Hence $\mathbb{E}[P^\star]$ has no diagonal component: the marginal
+bigram statistic carries no information, and the in-weights solution is not merely suboptimal but
+\emph{gradient-inaccessible} at initialisation.
+\end{corollary}
+
+By contrast the induction block $Q^\star[v,\cdot]$ pairs the coefficient
+$\mathbf 1[v_u=y_t]-m_t[y_t]$ with the key feature $h_u=m_u$. Conditioned on $v_u=w$ with
+$w\in\mathrm{succ}_\pi(v)$, occurrences of $w$ are generated by transitions out of the
+predecessors of $w$, of which $v$ is one; therefore $m_u[v]$ is elevated relative to its
+unconditional value, and the elevation occurs exactly on the diagonal $v=v$. This is the
+in-context correlation that survives the average over $\pi$.
+
+\paragraph{Status of Corollary~\ref{cor:bigram}.}
+% TODO -- THE MAIN REMAINING TECHNICAL WORK.
+The first display of the corollary is exact. The concluding paragraph is a mechanism sketch:
+turning ``$m_u[v]$ is elevated'' into a quantitative lower bound on the diagonal of
+$\mathbb{E}[Q^\star]$ requires control of the chain's mixing, since $m_u$ is an average over the
+whole prefix rather than over the single position preceding $u$. We currently verify the
+conclusion numerically. At $\alpha=0.6$, single seed, the diagonal-minus-off-diagonal statistic
+of the first descent direction restricted to the signal sub-block is
+$-1.48\times10^{-4}$ for $P^\star$, $+9.62\times10^{-5}$ for $Q^\star$ and
+$+9.80\times10^{-6}$ for $C^\star$; the cosine against the construction is $+0.867$ on the
+induction block against a random-matrix baseline of $0.010$.
+
+\subsection{Lemma 2: the first layer unlocks}
+\label{app:lemma2}
+
+\begin{lemma}[After step $1$]
+\label{lem:step1}
+Let $W^{(2)}_1=\eta G^{(2)}$ be the result of one gradient step from Lemma~\ref{lem:step0}, with
+$G^{(2)}=-\partial L/\partial W^{(2)}$, and $W^{(1)}_1=0$ by \eqref{eq:g1}. Then:
+\begin{enumerate}
+\item[(i)] the first layer is unchanged, so $h_t=m_t$ still;
+\item[(ii)] the second layer's attention is perturbed to first order,
+$a^{(2)}_{t,u}=\tfrac1t\bigl(1+\tfrac{\eta}{\sqrt d}(\sigma_{t,u}-\bar\sigma_t)\bigr)+O(\eta^2)$
+with $\sigma_{t,u}=x^{(2)}_tG^{(2)}x^{(2)\top}_u$ and $\bar\sigma_t=\tfrac1t\sum_{u<t}\sigma_{t,u}$;
+\item[(iii)] the first layer's gradient becomes non-zero and is of order $\eta$:
+\begin{equation}
+-\frac{\partial L}{\partial W^{(1)}}\Big|_{1}
+=\eta\,\Phi\bigl(G^{(2)}\bigr)+O(\eta^{2}),
+\end{equation}
+where $\Phi$ is linear in the blocks of $G^{(2)}$ that contract with $h$, namely $Q,R$ and $C$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(i) is \eqref{eq:g1}. (ii) is a first-order expansion of the softmax about the uniform
+distribution. For (iii), the derivatives of $S^{(2)}$ with respect to $h$ displayed in the proof
+of Lemma~\ref{lem:step0} are now evaluated at $W^{(2)}=\eta G^{(2)}$ rather than $0$, so they are
+$\eta$ times the corresponding blocks of $G^{(2)}$; composing with
+$\partial h/\partial W^{(1)}$, which is $O(1)$ and non-zero, gives the claim. Only the blocks
+that multiply $h$ survive the contraction, which are $Q$, $R$ and $C$.
+\end{proof}
+
+The content of Lemma~\ref{lem:step1} is that the second layer \emph{recruits} the first. The
+first layer receives gradient only in proportion to how much the second layer has already
+learned to read $h$, and the direction it receives is dictated by the blocks of $G^{(2)}$ that
+consume $h$ --- predominantly $Q^\star$, whose diagonal structure was established above.
+
+% TODO: the Adam caveat. Our experiments use Adam, whose first update has magnitude set by the
+% learning rate and is essentially independent of the gradient scale. The O(eta) bookkeeping
+% above is therefore the gradient-flow / plain-GD statement. State which regime the empirical
+% section reports, or repeat the measurement under plain GD.
+
+\subsection{Lemma 3: what the first layer is pushed to compute}
+\label{app:lemma3}
+
+\begin{lemma}[After step $2$]
+\label{lem:step2}
+To leading order the update to $W^{(1)}$ increases $S^{(1)}_{u,s}$ for pairs $(u,s)$ with $s<u$
+such that $v_s\in\mathcal{S}$, and decreases it for $v_s\in\mathcal{D}$; among admissible $s$ the
+increase is monotone in $s$. Consequently $h_u$ moves from the uniform prefix average $m_u$
+towards the indicator of the most recent signal symbol before $u$.
+\end{lemma}
+
+% TODO: PROOF NOT YET WRITTEN. The intended argument:
+%   * By Lemma 2(iii) the layer-1 gradient is Phi(G^{(2)}), dominated by the Q block.
+%   * Q^star[v, .] rewards keys u whose h_u places mass on v, when v is the query symbol.
+%   * h_u places mass on v in proportion to how often v occurs in the prefix of u; the update
+%     therefore sharpens h_u onto whichever symbol best predicts v_u, which by the generative
+%     process is the state, i.e. the most recent signal symbol.
+%   * The distractor suppression and the recency ordering come from the two terms of the
+%     coefficient (indicator minus baseline).
+% This is the step that completes the story and it is the second piece of remaining work.
+
+\paragraph{Summary of the three steps.}
+At step $0$ the model is the in-context unigram predictor; the first layer is frozen by
+\eqref{eq:g1}, and the only structured gradient available to the second layer lies in the
+induction block, because the resampled table annihilates the marginal bigram
+(Corollary~\ref{cor:bigram}). At step $1$ the second layer has moved, which unlocks the first
+(Lemma~\ref{lem:step1}). At step $2$ the first layer is driven towards state recovery
+(Lemma~\ref{lem:step2}). The circuit is therefore built outwards from the readout, not inwards
+from the input, and the first direction it can take is already an in-context one.
+
+% TODO: connect to Section 4. The coefficient in \eqref{eq:g2} is supported on positions whose
+% target is a successor; the share of the scored window on which state recovery is *required*
+% -- the post-distractor positions -- is proportional to (1 - alpha). Making this quantitative
+% is what converts the dynamics into an explanation of the phase transition.
+
+\section{Proof of Theorem~\ref{thm:construction}}
+\label{app:construction}
+
+We exhibit weights and verify the two claims. Write $\lambda>0$ for a recency slope, $K>0$ for a
+match bonus and $B>0$ for a veto depth; all three are free and only their ratios matter.
+
+\paragraph{Layer 1 (state recovery).}
+Set $W^{(1)}$ so that the score decomposes as
+\begin{equation}
+\sqrt d\,S^{(1)}_{t,u}\;=\;\underbrace{-B\,\mathbf 1[v_u\in\mathcal{D}]}_{\text{distractor veto}}
+\;\underbrace{-\,\lambda\,(t-u)}_{\text{recency}} .
+\label{eq:l1score}
+\end{equation}
+Concretely the symbol rows of the key side carry $-B$ on the distractor coordinates and the
+position block carries $-\lambda(t-u)$; the query side is a scaled identity, so the
+$\sqrt d$ cancels. Among admissible keys ($u<t$) the score is maximised by the largest $u$ with
+$v_u\in\mathcal{S}$. Two candidates separated by one position differ by $\lambda$, so for
+$B\gg\lambda\gg1$ the softmax places mass $1-O(e^{-\lambda})$ on the most recent signal position
+and $O(e^{-B})$ on every distractor. Hence $h_t=e_{\mathrm{st}(t)}$ up to those errors, and
+crucially the lag is unbounded: \eqref{eq:l1score} is linear in $t-u$ and so ranks correctly at
+every separation with a fixed number of parameters.\footnote{A capped ramp,
+$-\lambda\min(t-u,c)$, behaves identically because only the argmax matters, and is what our
+trained models approximate.}
+
+\paragraph{Layer 2 (counting induction).}
+Set $W^{(2)}$ so that
+\begin{equation}
+\sqrt d\,S^{(2)}_{t,u}\;=\;K\,\mathbf 1\bigl[h_u=e_{v_t}\bigr]
+\;+\;\tfrac{K}{20}\,\mathbf 1\bigl[h_u=h_t\bigr]\;-\;B\,\mathbf 1[v_u\in\mathcal{D}] .
+\label{eq:l2score}
+\end{equation}
+The first term is the induction match: it rewards keys whose \emph{recovered state} equals the
+query's own symbol. The second is the same question asked of the query's recovered state, and
+takes over when $v_t$ is a distractor, in which case the first term is identically zero because
+$e_{v_t}$ has no support on $\mathcal{S}$. The third removes distractor keys from the average.
+
+Let $A_t=\{u<t: v_u\in\mathcal{S},\ \mathrm{st}(u-1)=\mathrm{st}(t)\}$ be the set of past
+positions whose predecessor state equals the current state. By \eqref{eq:l2score} every
+$u\in A_t$ scores $K(1+\tfrac1{20})$ and every other admissible $u$ scores at most $0$, so
+$a^{(2)}_{t,u}=\mathbf 1[u\in A_t]/|A_t|+O(e^{-K})$ and
+\begin{equation}
+f_t[w]=\sum_u a^{(2)}_{t,u}\mathbf 1[v_u=w]
+=\frac{\#\{u\in A_t: v_u=w\}}{|A_t|}+O(e^{-K}),
+\end{equation}
+which is the claimed empirical successor frequency. Two consequences are worth recording:
+$\sum_w f_t[w]=1$ exactly, and $f_t[w]=0$ for $w\in\mathcal{D}$, since $A_t$ contains only signal
+positions. Composing with \eqref{eq:readout} and Appendix~\ref{app:readout} gives add-$b_s$
+smoothed context-Bayes prediction. \qed
+
+\section{The readout, and why no softmax is needed}
+\label{app:readout}
+
+\paragraph{Derivation of $b_d$.}
+Write $D=\sum_w(f_t[w]+b_w)$. A model with a perfect distractor filter has $f_t$ supported on
+$\mathcal{S}$ with $\sum_w f_t[w]=1$, so $D=1+V_sb_s+V_db_d$, a constant independent of the
+context.\footnote{This is the property that makes a single scalar bias sufficient. It fails if the
+value circuit is trained, since then $\sum_w f_t[w]$ varies with the context and no fixed $b_d$
+delivers a fixed distractor mass.} Demanding that each distractor receives exactly
+$(1-\alpha)/V_d$,
+\begin{equation}
+\frac{b_d}{D}=\frac{1-\alpha}{V_d}
+\;\Longrightarrow\;
+V_db_d=(1-\alpha)D
+\;\Longrightarrow\;
+D=\bigl(1+V_sb_s\bigr)+(1-\alpha)D
+\;\Longrightarrow\;
+D=\frac{1+V_sb_s}{\alpha},
+\end{equation}
+whence $b_d=(1-\alpha)(1+V_sb_s)/(V_d\alpha)$ as in \eqref{eq:readout}, and the signal side
+receives $p_t[w]=\alpha(f_t[w]+b_s)/(1+V_sb_s)$, exactly proportional to the smoothed count.
+
+\paragraph{Relation to a log-plus-softmax readout.}
+A conventional readout would apply an unembedding and a softmax. If the intervening nonlinearity
+is $z_w=\log(f_t[w]+b_s)$ on signal coordinates and a constant $\beta$ on distractor coordinates,
+then $\mathrm{softmax}(z)_w=(f_t[w]+b_s)/\sum_{w'}e^{z_{w'}}$, which is \eqref{eq:readout} with
+$b_d=e^{\beta}$. The logarithm and the exponential cancel and the pair implements precisely the
+renormalisation we use.\footnote{Measured difference between the two implementations on our
+checkpoints: $5.6\times10^{-17}$.} The logarithm is not optional decoration: without it the
+softmax would return $e^{f_t[w]}$, exponential rather than linear in the count, and no rescaling
+repairs this because $\mathrm{softmax}(\kappa f)$ is a different function of $f$ than
+$f/\sum f$ for every $\kappa$.
+
+\section{Experimental details}
+\label{app:exp}
+
+\paragraph{Data.}
+Sequences are generated as in Section~\ref{sec:setup} with successor sets drawn uniformly without
+replacement and with equiprobable successors. Train and test tables are drawn independently; no
+table is shared between splits, so test performance measures in-context inference and not table
+memorisation.
+
+\paragraph{Two configurations.}
+% TODO: this is a real scope issue and should be resolved before submission.
+Table~\ref{tab:transition} is measured in the larger configuration
+($V_s=V_d=10$, $T=200$, scored on $[100,200)$) with a trained unembedding and the log-plus-softmax
+readout of Appendix~\ref{app:readout}. The dynamics of Section~\ref{sec:dynamics} are measured in
+a reduced configuration ($V_s=V_d=4$, $T=100$, scored on $[50,100)$) with the fixed readout
+\eqref{eq:readout}, which is what makes the closed forms of Theorem~\ref{thm:dynamics} available.
+The two configurations should be reconciled: either the phase transition should be replicated in
+the reduced configuration, or the dynamics should be re-derived for the larger one.
+
+\paragraph{Optimisation.}
+Full-batch Adam, constant learning rate, zero initialisation of both query--key matrices, with the
+value circuits and readout fixed throughout. Checkpoint selection is on held-out loss.
+
+\paragraph{Reported numbers.}
+Table~\ref{tab:transition} uses 1500 held-out sequences per $\alpha$ and scores every position in
+the window whose state is defined. The gradient statistics in Section~\ref{sec:dynamics} are exact
+full-batch gradients at initialisation, not stochastic estimates.
+% TODO: all reported numbers are a single seed. Add seed bands before submission.
+
+\section{Weight-space agreement is not monotone}
+\label{app:peak}
+
+We record an observation we cannot yet explain. Measuring the agreement between the trained
+$W^{(2)}$ and the construction of Theorem~\ref{thm:construction}, after quotienting the exact
+symmetries of Appendix~\ref{app:gauge}, the agreement rises to its maximum within the first ten
+steps and then \emph{declines}, while the loss continues to improve:
+
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+& peak agreement & at step & final agreement & loss over that interval \\
+\midrule
+$\alpha=0.6$ & 0.911 & 5 & 0.779 & $1.950\to1.698$ \\
+$\alpha=0.8$ & 0.885 & 7 & 0.740 & $1.690\to1.384$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Gradient descent reaches the construction almost immediately and then trades roughly $0.14$ of
+agreement for roughly $0.3$ nats. The construction is therefore a way-station and not the
+destination, and characterising what is gained in that trade is open.
+
+\section{Why the value circuit may be held fixed}
+\label{app:gauge}
+
+% TODO. The asymmetry, which justifies the setup in Section 5:
+%  * For any invertible A, transforming the first layer's value matrix by A and compensating in
+%    the second layer's query-key and value matrices leaves every output bit-identical.
+%    Fixing the first layer's value circuit is therefore a choice of coordinates, not an
+%    assumption. (Verified: cross-entropy unchanged to 0.00e+00 under a random A.)
+%  * No perturbation of the second layer's value circuit admits a compensating change in the
+%    query-key matrices, because the former sits outside the attention softmax and the latter
+%    inside it. Fixing it is a genuine restriction, and we state it as such.
+
+\end{document}
