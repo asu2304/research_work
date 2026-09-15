@@ -1,0 +1,27 @@
+{"time":"2026-09-14T23:45:27.528653877+05:30","level":"INFO","msg":"wandb-core"}
+{"time":"2026-09-14T23:45:27.528926033+05:30","level":"INFO","msg":"stream: starting","core version":"0.28.1"}
+{"time":"2026-09-14T23:45:27.637957309+05:30","level":"INFO","msg":"stream: created new stream","id":"ks88tgxo"}
+{"time":"2026-09-14T23:45:27.638055108+05:30","level":"INFO","msg":"handler: started"}
+{"time":"2026-09-14T23:45:27.638141185+05:30","level":"INFO","msg":"stream: started"}
+{"time":"2026-09-14T23:45:27.638198926+05:30","level":"INFO","msg":"writer: started","stream_id":"ks88tgxo"}
+{"time":"2026-09-14T23:45:27.638209646+05:30","level":"INFO","msg":"sender: started"}
+{"time":"2026-09-14T23:45:30.903919448+05:30","level":"INFO","msg":"filestream: sending request","total_files":1,"console_offset":0,"console_lines":1}
+{"time":"2026-09-14T23:45:32.288709797+05:30","level":"INFO","msg":"filestream: request sent","status":"200 OK"}
+{"time":"2026-09-14T23:45:45.904078898+05:30","level":"INFO","msg":"filestream: sending request","total_files":4,"history_offset":0,"history_lines":19,"events_offset":0,"events_lines":2,"console_offset":1,"console_lines":4,"uploaded_len":2}
+{"time":"2026-09-14T23:45:46.526964035+05:30","level":"INFO","msg":"filestream: request sent","status":"200 OK"}
+{"time":"2026-09-14T23:46:00.903998227+05:30","level":"INFO","msg":"filestream: sending request","total_files":4,"history_offset":19,"history_lines":20,"events_offset":2,"events_lines":2,"console_offset":5,"console_lines":1}
+{"time":"2026-09-14T23:46:01.309780817+05:30","level":"INFO","msg":"filestream: request sent","status":"200 OK"}
+{"time":"2026-09-14T23:46:15.904250146+05:30","level":"INFO","msg":"filestream: sending request","total_files":4,"history_offset":39,"history_lines":20,"events_offset":4,"events_lines":2,"console_offset":6,"console_lines":2}
+{"time":"2026-09-14T23:46:16.298009632+05:30","level":"INFO","msg":"filestream: request sent","status":"200 OK"}
+{"time":"2026-09-14T23:46:30.904212911+05:30","level":"INFO","msg":"filestream: sending request","total_files":4,"history_offset":59,"history_lines":21,"events_offset":6,"events_lines":2,"console_offset":8,"console_lines":1}
+{"time":"2026-09-14T23:46:31.355349963+05:30","level":"INFO","msg":"filestream: request sent","status":"200 OK"}
+{"time":"2026-09-14T23:46:36.932669139+05:30","level":"ERROR","msg":"runfiles: CreateRunFiles returned error: POST https://api.wandb.ai/graphql giving up after 1 attempt(s): context canceled"}
+{"time":"2026-09-14T23:46:36.932938379+05:30","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2026-09-14T23:46:36.933069582+05:30","level":"INFO","msg":"filestream: sending request","total_files":3,"history_offset":80,"history_lines":8,"console_offset":9,"console_lines":2,"complete":true,"exit_code":0}
+{"time":"2026-09-14T23:46:36.9331304+05:30","level":"ERROR+4","msg":"filestream: fatal error: filestream: error making HTTP request: POST https://api.wandb.ai/files/da24s006-indian-institue-of-technology-madras-/full_free_softmax/ks88tgxo/file_stream giving up after 1 attempt(s): context canceled. got response: <nil>"}
+{"time":"2026-09-14T23:46:36.935526046+05:30","level":"ERROR","msg":"sender: sendSummary called after exit"}
+{"time":"2026-09-14T23:46:36.935691966+05:30","level":"ERROR","msg":"sender: received exit more than once, ignoring"}
+{"time":"2026-09-14T23:46:36.935776239+05:30","level":"INFO","msg":"stream: finishing up"}
+{"time":"2026-09-14T23:46:36.93581303+05:30","level":"INFO","msg":"handler: closed"}
+{"time":"2026-09-14T23:46:36.935912091+05:30","level":"INFO","msg":"sender: closed"}
+{"time":"2026-09-14T23:46:36.935924796+05:30","level":"INFO","msg":"stream: all finished"}

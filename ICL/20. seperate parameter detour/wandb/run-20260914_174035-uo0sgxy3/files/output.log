@@ -1,0 +1,11 @@
+  alpha=0.8  free entries 48,384 of 104,976  (W_q + W_k only; W_ov frozen)
+    grad norms at init: layer1.W_q=1.463e-11  layer1.W_k=1.388e-11  layer2.W_q=3.960e-05  layer2.W_k=3.923e-05
+    snapshots: ['layer1.W_q', 'layer1.W_k', 'layer2.W_q', 'layer2.W_k']
+               every 1 step(s), weights + gradients, 37 MB -> /home/hariguru/ashutosh/ICL/20. seperate parameter detour/runs/sepqk_opt-adam_lr-0.005_init-eps_wov-fixed_blocks-relevant_readout-bias_ep-100
+    init: train 1.76326  test 1.76138   gauge-fixed cos vs construction  L1 -0.0085  L2 -0.0053
+    step     1/100  train 1.76325  test 1.76137  best_test 1.76137  cos L1 -0.0085 L2 +0.1724  |W_qk|max 4.96e-05/0.000544
+    step     5/100  train 1.76185  test 1.75997  best_test 1.75997  cos L1 -0.0074 L2 +0.1691  |W_qk|max 4.97e-05/0.0285
+    step    10/100  train 1.75621  test 1.75433  best_test 1.75433  cos L1 +0.0009 L2 +0.1517  |W_qk|max 0.00469/0.142
+    step    15/100  train 1.74527  test 1.74338  best_test 1.74338  cos L1 +0.0023 L2 +0.1521  |W_qk|max 0.0637/0.389
+
+    [interrupted -- saving what exists and moving to the next threshold]

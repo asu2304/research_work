@@ -1,0 +1,9 @@
+  alpha=0.6  trainable entries 93,320 of 93,320   beta init -1.752539
+    grad norms at init: b=1.832e-01  layer1.W_qk=0.000e+00  layer1.W_ov=0.000e+00  layer2.W_qk=7.358e-04  layer2.W_ov=9.767e-02
+    snapshots: ['b', 'layer1.W_qk', 'layer1.W_ov', 'layer2.W_qk', 'layer2.W_ov']
+               every 1 step(s), weights + gradients, 357 MB -> /home/hariguru/ashutosh/ICL/20. seperate parameter detour/runs/free_qk-combined_opt-adam_lr-0.1_init-zeros_wov-train-corner_bias-train-logalpha_blocks-full_readout-softmax_ep-500
+    init: train 2.23023  test 2.22878   cos L1 +0.0000  L2(xx) +0.0000
+    step     1/500  train 2.06920  test 2.06831  best_test 2.06831  cos L1 +0.0000 L2xx -0.1430  |Wov-I| 0/3.03  b_noise -1.653
+    step    25/500  train 1.95530  test 1.95624  best_test 1.95624  cos L1 +0.0913 L2xx +0.0689  |Wov-I| 8.08/9.37  b_noise -1.482
+
+    [interrupted -- saving what exists and moving to the next threshold]

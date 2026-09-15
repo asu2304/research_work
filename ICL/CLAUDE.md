@@ -324,3 +324,99 @@ above, the order is forced: layer 2 moves first, layer 1 only once layer 2 is no
   FFN won't beat ctx-count; gains only with sparsity/structure.
 - folder 7: finish the structural GD-vs-construction comparison (does GD's W_qk/W_ov match W* up to
   gauge/temperature, or a genuinely different solution?).
+
+---
+
+## 10. PAPER PLAN — ICLR, noise-centred framing (decided 2026-09-15)
+
+### 10.1 Why the framing changed
+The original plan (Thm 1 construction / Thm 2 zero-init dynamics / Thm 3 gauge) was checked against
+the literature on 2026-09-15 and **large parts are already published**. Recorded here so the
+decision is not re-litigated:
+
+| prior work | what it already does | overlaps our |
+|---|---|---|
+| **Selective Induction Heads**, arXiv 2509.08184, ICLR 2025 | interleaved Markov chains, **lag varies, transitions FIXED**; 3-layer construction; proves asymptotic convergence to the ML solution | the NAME, and the "select causal structure in context" framing |
+| **Edelman et al. 2024**, arXiv 2402.11004, NeurIPS | **transition matrix resampled per sequence** (= our data minus noise); multi-phase dynamics uniform -> in-context UNIGRAM -> phase transition -> in-context bigram; unigram identified as a distractor | our data setup, and our "starts at the unigram" observation |
+| **Unveiling Induction Heads**, arXiv 2409.10559, NeurIPS 2024 | provable 3-stage convergence for a 2-layer transformer on n-gram Markov chains under gradient flow + CE | Thm 2 as originally framed |
+| **transformer-gauge-symmetry** (NeurReps 2025) + arXiv 2601.22257 | gauge-fixing on GPT-2, V-orthonormalisation; measuring optimiser velocity "wasted" on gauge motion | Thm 3 as originally framed |
+
+Measured consequence of Edelman's overlap: at zero init our model computes `f_t = m_t`, the running
+token frequency — i.e. **we START at Edelman's unigram phase**. That is not a new observation.
+
+### 10.2 What is actually ours
+No paper found with a **noise sub-vocabulary of swept density**. Three things survive:
+
+1. **State recovery is a new primitive.** Layer 1 is NOT a previous-token head — it must skip an
+   unbounded, geometrically-distributed run of noise to recover the Markov state. A lag-selector
+   over a small fixed set (2509.08184) cannot express this; an n-gram parent at a fixed offset
+   (2409.10559) cannot either.
+2. **The alpha phase transition** (section 2): post-noise wrong-successor rate ~0.3% for alpha<=0.7
+   but ~50% for alpha>=0.8. LESS noise makes the model WORSE at handling noise.
+3. **Peak-then-decline** in weight-space agreement (section 8.8).
+
+### 10.3 The flow
+Working title: *How Gradient Descent Learns to Ignore — in-context learning of causal structure
+under distraction*.
+
+1. **Setup & construction.** The state-recovering induction head. Kept SHORT — it is the
+   instrument, not the contribution. Do not stage it as "Theorem 1"; a referee maps that onto
+   2509.08184 immediately.
+2. **The phase transition (THE CONTRIBUTION).** Swept in alpha. The counterintuitive direction is
+   the hook: **when distractors are rare, GD never builds state recovery** — it settles for
+   "copy the previous token", correct alpha of the time, and the post-noise sub-task is abandoned.
+3. **Why — the dynamics.** The post-noise sub-task's share of the gradient scales as (1-alpha), so
+   below a threshold there is not enough signal to build the circuit. This is where the zero-init
+   analysis goes, now answering an **alpha-dependent** question that none of the prior work can ask.
+4. **Theorem 3 — reduction to the known case.** As alpha -> 1 the noise vanishes, layer 1's state
+   recovery degenerates to a plain previous-token head, and the setup becomes Edelman's exactly.
+   Show our construction and our dynamics reduce to theirs in that limit. This CONTAINS the overlap
+   instead of denying it: prior work is our boundary case.
+5. **Appendix — the freezing justification.** The gauge asymmetry: `W_ov1` is pure gauge (freezing
+   it to I is a coordinate choice, proved), `W_ov2` admits no compensating `W_qk` (a genuine
+   restriction, stated). NOT a headline theorem — that ground is taken.
+
+### 10.4 BLOCKING: verify before writing anything
+**A CLAUDE.md headline number has already failed re-measurement.** Section 8.8 records the layer-2
+ICL score peaking at 0.99 (step 12) and falling to 0.83. Re-measured 2026-09-15 from
+`18. reducing_parameters/runs/master_opt-adam_lr-1.0_init-zeros_wov-fixed_blocks-relevant-strict_readout-bias_ep-500`:
+
+    alpha=0.8   peak 0.8852 at step 7   ->  final 0.7399 at step 500   (CE 1.68999 -> 1.38435)
+    alpha=0.6   peak 0.9109 at step 5   ->  final 0.7786 at step 500   (CE 1.94957 -> 1.69823)
+
+The phenomenon is real and the shape is identical, but the figures do not match. Possibly a
+different run, mask (`relevant` vs `relevant-strict`) or gauge convention.
+
+**=> The phase transition of section 2 is also a CLAUDE.md number and the ENTIRE paper now rests on
+it. Re-measure the post-noise wrong-successor rate across alpha from current checkpoints BEFORE
+writing.** ~30 min against existing runs.
+
+### 10.5 Zero-init facts already verified (2026-09-15, folder 21 model, W_ov = I, alpha=0.6)
+Usable in the paper as-is:
+
+    ||dL/dW_qk1|| = 0.000e+00  EXACTLY at W_qk=0   (gating: layer 1 cannot move until layer 2 does)
+
+    first descent direction -g, diag minus off-diag of the signal 4x4:
+      A  token x token   (bigram)      -1.475e-04   <- NO signal
+      B  token x L1-out  (induction)   +9.621e-05   <- signal
+      C  L1-out x L1-out (state)       +9.804e-06   <- signal
+
+    cos(-g2, construction):  B block +0.8670   C block +0.8737   A block +0.6909
+                             gauge-fixed whole matrix +0.6160   random baseline 0.0099
+
+Mechanism: the transition table is resampled per sequence, so E[next=w | current=v] is constant
+across signal w — the MARGINAL bigram carries no information and the A block gets no diagonal
+gradient. In-weights learning is not merely worse, it is **gradient-inaccessible**.
+CAVEAT: this expectation argument is numerically verified, NOT proved. Closing it needs the
+chain's mixing properties. That proof is the main remaining technical work.
+
+### 10.6 Order of work (2-3 active days, deadline ~2026-10-08)
+1. Re-measure the alpha phase transition (10.4). BLOCKING.
+2. Launch multi-seed in the background (5 seeds x 3 alpha x 500 steps ~ 2h wall) for error bars.
+3. Close the mixing argument in 10.5. This is the paper's technical core.
+4. Figures: (a) phase transition vs alpha with seed bands; (b) A-block-negative vs
+   B-block-positive across alpha; (c) the alpha -> 1 reduction.
+5. Write.
+
+CUT from the paper: the reduction-to-five-numbers line (folder 19) and the convex-W_ov sweep
+(folder 21) — both are different papers.

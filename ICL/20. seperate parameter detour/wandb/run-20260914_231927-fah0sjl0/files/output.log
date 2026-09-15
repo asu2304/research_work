@@ -1,0 +1,35 @@
+  alpha=0.6  trainable entries 93,320 of 93,320   beta init -1.752539
+    grad norms at init: b=1.832e-01  layer1.W_qk=0.000e+00  layer1.W_ov=0.000e+00  layer2.W_qk=7.358e-04  layer2.W_ov=9.767e-02
+    snapshots: ['b', 'layer1.W_qk', 'layer1.W_ov', 'layer2.W_qk', 'layer2.W_ov']
+               every 1 step(s), weights + gradients, 357 MB -> /home/hariguru/ashutosh/ICL/20. seperate parameter detour/runs/free_qk-combined_opt-adam_lr-0.1_init-zeros_wov-train-corner_bias-train-logalpha_blocks-full_readout-softmax_ep-500
+    init: train 2.23023  test 2.22878   cos L1 +0.0000  L2(xx) +0.0000
+    step     1/500  train 2.06920  test 2.06831  best_test 2.06831  cos L1 +0.0000 L2xx -0.1430  |Wov-I| 0/3.03  b_noise -1.653
+    step    25/500  train 1.95530  test 1.95624  best_test 1.95624  cos L1 +0.0913 L2xx +0.0689  |Wov-I| 8.08/9.37  b_noise -1.482
+    step    50/500  train 1.93347  test 1.93636  best_test 1.93636  cos L1 +0.3174 L2xx +0.0546  |Wov-I| 7.06/9.38  b_noise -1.493
+    step    75/500  train 1.88615  test 1.89203  best_test 1.89203  cos L1 +0.5701 L2xx +0.0545  |Wov-I| 12.2/10.4  b_noise -1.484
+    step   100/500  train 1.85274  test 1.85983  best_test 1.85983  cos L1 +0.6010 L2xx +0.0521  |Wov-I| 15.4/11.3  b_noise -1.483
+    step   125/500  train 1.82546  test 1.83420  best_test 1.83420  cos L1 +0.5846 L2xx +0.0551  |Wov-I| 18.7/10.4  b_noise -1.498
+    step   150/500  train 1.81401  test 1.82500  best_test 1.82478  cos L1 +0.5529 L2xx +0.0576  |Wov-I| 20.6/10  b_noise -1.517
+
+    [interrupted -- saving what exists and moving to the next threshold]
+Traceback (most recent call last):
+  File "/home/hariguru/ashutosh/ICL/20. seperate parameter detour/train_full_free.py", line 1038, in <module>
+    main()
+  File "/home/hariguru/ashutosh/ICL/20. seperate parameter detour/train_full_free.py", line 1031, in main
+    train_one(thr, device, ref)
+  File "/home/hariguru/ashutosh/ICL/20. seperate parameter detour/train_full_free.py", line 887, in train_one
+    final = report(model, ref)
+            ^^^^^^^^^^^^^^^^^^
+  File "/home/hariguru/miniconda3/envs/ashu_env/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 115, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hariguru/ashutosh/ICL/20. seperate parameter detour/train_full_free.py", line 737, in report
+    out['L1_cos'] = free_gauge_cos(qk, ref['W_qk1'], 1)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hariguru/ashutosh/ICL/20. seperate parameter detour/train_full_free.py", line 452, in free_gauge_cos
+    na, nb = np.linalg.norm(a), np.linalg.norm(b)
+                                ^^^^^^^^^^^^^^^^^
+  File "/home/hariguru/miniconda3/envs/ashu_env/lib/python3.11/site-packages/numpy/linalg/linalg.py", line 2552, in norm
+    sqnorm = x.dot(x)
+             ^^^^^^^^
+KeyboardInterrupt

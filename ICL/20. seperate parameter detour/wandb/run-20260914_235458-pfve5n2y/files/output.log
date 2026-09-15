@@ -1,0 +1,25 @@
+  alpha=0.6  trainable entries 93,320 of 93,320   beta init -1.752539
+    grad norms at init: b=1.832e-01  layer1.W_qk=1.191e-06  layer1.W_ov=2.358e-04  layer2.W_qk=7.360e-04  layer2.W_ov=9.765e-02
+    init: train 2.23019  test 2.22874   cos L1 -0.0042  L2(xx) -0.0150
+    step     1/250  train 2.20945  test 2.20806  best_test 2.20806  cos L1 -0.0043 L2xx -0.0338  |Wov-I| 1/0.303  b_noise -1.743
+    step    12/250  train 2.02488  test 2.02438  best_test 2.02438  cos L1 +0.0111 L2xx -0.0560  |Wov-I| 4.26/2.65  b_noise -1.674
+    step    24/250  train 2.01678  test 2.01634  best_test 2.01559  cos L1 +0.1115 L2xx +0.0064  |Wov-I| 3.89/3.39  b_noise -1.647
+    step    36/250  train 2.00507  test 2.00448  best_test 2.00448  cos L1 +0.1259 L2xx +0.0437  |Wov-I| 4.74/3.5  b_noise -1.643
+    step    48/250  train 1.98869  test 1.98825  best_test 1.98825  cos L1 +0.1216 L2xx +0.0629  |Wov-I| 9.64/3.81  b_noise -1.637
+    step    60/250  train 1.97283  test 1.97250  best_test 1.97250  cos L1 +0.1254 L2xx +0.0740  |Wov-I| 15.7/3.93  b_noise -1.638
+    step    72/250  train 1.96022  test 1.96008  best_test 1.96008  cos L1 +0.1341 L2xx +0.0769  |Wov-I| 20.9/4.08  b_noise -1.639
+    step    84/250  train 1.95448  test 1.95458  best_test 1.95458  cos L1 +0.1376 L2xx +0.0734  |Wov-I| 23.3/4.26  b_noise -1.638
+    step    96/250  train 1.95209  test 1.95252  best_test 1.95252  cos L1 +0.1331 L2xx +0.0677  |Wov-I| 23.7/4.43  b_noise -1.638
+    step   108/250  train 1.95035  test 1.95103  best_test 1.95103  cos L1 +0.1290 L2xx +0.0623  |Wov-I| 23.8/4.54  b_noise -1.637
+    step   120/250  train 1.94853  test 1.94953  best_test 1.94953  cos L1 +0.1273 L2xx +0.0576  |Wov-I| 24.1/4.59  b_noise -1.637
+    step   132/250  train 1.94664  test 1.94799  best_test 1.94799  cos L1 +0.1254 L2xx +0.0537  |Wov-I| 24.6/4.63  b_noise -1.637
+    step   144/250  train 1.94473  test 1.94644  best_test 1.94644  cos L1 +0.1224 L2xx +0.0504  |Wov-I| 25/4.71  b_noise -1.637
+    step   156/250  train 1.94279  test 1.94488  best_test 1.94488  cos L1 +0.1197 L2xx +0.0476  |Wov-I| 25.2/4.81  b_noise -1.637
+    step   168/250  train 1.94077  test 1.94324  best_test 1.94324  cos L1 +0.1189 L2xx +0.0451  |Wov-I| 25.2/4.92  b_noise -1.636
+    step   180/250  train 1.93866  test 1.94144  best_test 1.94144  cos L1 +0.1216 L2xx +0.0430  |Wov-I| 24.8/5.03  b_noise -1.636
+    step   192/250  train 1.93639  test 1.93944  best_test 1.93944  cos L1 +0.1287 L2xx +0.0410  |Wov-I| 24.4/5.15  b_noise -1.636
+    step   204/250  train 1.93381  test 1.93712  best_test 1.93712  cos L1 +0.1395 L2xx +0.0392  |Wov-I| 23.9/5.27  b_noise -1.635
+    step   216/250  train 1.93070  test 1.93424  best_test 1.93424  cos L1 +0.1532 L2xx +0.0375  |Wov-I| 23.5/5.4  b_noise -1.635
+    step   228/250  train 1.92700  test 1.93077  best_test 1.93077  cos L1 +0.1696 L2xx +0.0360  |Wov-I| 23.2/5.55  b_noise -1.634
+    step   240/250  train 1.92250  test 1.92655  best_test 1.92655  cos L1 +0.1875 L2xx +0.0347  |Wov-I| 23.1/5.71  b_noise -1.633
+    step   250/250  train 1.91832  test 1.92261  best_test 1.92261  cos L1 +0.2028 L2xx +0.0337  |Wov-I| 23.3/5.84  b_noise -1.632

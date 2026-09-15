@@ -14,3 +14,8 @@ config: {'data_dir': '/home/hariguru/ashutosh/ICL/14. elimination final converge
 2026-09-13 19:11:26,795 INFO    MainThread:2839302 [wandb_run.py:_redirect():2540] Wrapping output streams.
 2026-09-13 19:11:26,795 INFO    MainThread:2839302 [wandb_run.py:_redirect():2563] Redirects installed.
 2026-09-13 19:11:26,796 INFO    MainThread:2839302 [wandb_init.py:init():1016] run started, returning control to user process
+2026-09-13 19:18:30,095 INFO    MainThread:2839302 [wandb_run.py:_finish():2383] finishing run da24s006-indian-institue-of-technology-madras-/reducing_even_more_five_params/hwmlmvtm
+2026-09-13 19:18:30,095 INFO    MainThread:2839302 [wandb_run.py:_atexit_cleanup():2588] got exitcode: 0
+2026-09-13 19:18:30,096 INFO    MainThread:2839302 [wandb_run.py:_restore():2570] restore
+2026-09-13 19:18:30,096 INFO    MainThread:2839302 [wandb_run.py:_restore():2576] restore done
+2026-09-13 19:18:32,926 INFO    MainThread:2839302 [wandb_run.py:_footer_sync_info():3993] logging synced files

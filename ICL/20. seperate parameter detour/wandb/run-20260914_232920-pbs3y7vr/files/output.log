@@ -1,0 +1,27 @@
+  alpha=0.6  trainable entries 93,320 of 93,320   beta init -1.752539
+    grad norms at init: b=1.832e-01  layer1.W_qk=0.000e+00  layer1.W_ov=0.000e+00  layer2.W_qk=7.358e-04  layer2.W_ov=9.767e-02
+    snapshots: ['b', 'layer1.W_qk', 'layer1.W_ov', 'layer2.W_qk', 'layer2.W_ov']
+               every 1 step(s), weights + gradients, 357 MB -> /home/hariguru/ashutosh/ICL/20. seperate parameter detour/runs/free_qk-combined_opt-adam_lr-0.5_init-zeros_wov-train-corner_bias-train-logalpha_blocks-full_readout-softmax_ep-500
+    init: train 2.23023  test 2.22878   cos L1 +0.0000  L2(xx) +0.0000
+    step     1/500  train 2.79764  test 2.79888  best_test 2.22878  cos L1 +0.0000 L2xx -0.1430  |Wov-I| 0/15.2  b_noise -1.253
+    step    25/500  train 1.97209  test 1.97565  best_test 1.97565  cos L1 +0.4225 L2xx +0.0878  |Wov-I| 7.24/16.6  b_noise -1.247
+
+    [interrupted -- saving what exists and moving to the next threshold]
+Traceback (most recent call last):
+  File "/home/hariguru/ashutosh/ICL/20. seperate parameter detour/train_full_free.py", line 1041, in <module>
+    main()
+  File "/home/hariguru/ashutosh/ICL/20. seperate parameter detour/train_full_free.py", line 1034, in main
+    train_one(thr, device, ref)
+  File "/home/hariguru/ashutosh/ICL/20. seperate parameter detour/train_full_free.py", line 891, in train_one
+    final = report(model, ref)
+            ^^^^^^^^^^^^^^^^^^
+  File "/home/hariguru/miniconda3/envs/ashu_env/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 115, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hariguru/ashutosh/ICL/20. seperate parameter detour/train_full_free.py", line 739, in report
+    out['L2_cos_xx'] = free_gauge_cos(qk, ref['W_qk2'], 2, sub=slice(0, d1))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hariguru/ashutosh/ICL/20. seperate parameter detour/train_full_free.py", line 453, in free_gauge_cos
+    return float(a @ b / (na * nb)) if na > 0 and nb > 0 else 0.0
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt

@@ -1,0 +1,24 @@
+  alpha=0.6  W_qk free 10,256 of 58,320   b_noise 0.173333   f >= 0 (min +6.25e-02), sum(f) in [1.0000, 1.0000]
+    f varies with context: max|f - mean f| = 0.162
+    init: train 2.11119  test 2.11087
+    step     1/500  train 2.09401  test 2.09369  best_train 2.09401  best_test 2.09369
+    step    25/500  train 1.97710  test 1.97684  best_train 1.97710  best_test 1.97684
+    step    50/500  train 1.92819  test 1.92790  best_train 1.92819  best_test 1.92790
+    step    75/500  train 1.88660  test 1.88636  best_train 1.88660  best_test 1.88636
+    step   100/500  train 1.86865  test 1.86844  best_train 1.86865  best_test 1.86844
+    step   125/500  train 1.85258  test 1.85241  best_train 1.85258  best_test 1.85241
+    step   150/500  train 1.83776  test 1.83792  best_train 1.83776  best_test 1.83792
+    step   175/500  train 1.83424  test 1.83446  best_train 1.83424  best_test 1.83446
+    step   200/500  train 1.83262  test 1.83288  best_train 1.83262  best_test 1.83288
+    step   225/500  train 1.83165  test 1.83193  best_train 1.83165  best_test 1.83193
+    step   250/500  train 1.83100  test 1.83131  best_train 1.83100  best_test 1.83131
+    step   275/500  train 1.83053  test 1.83084  best_train 1.83053  best_test 1.83084
+    step   300/500  train 1.83018  test 1.83050  best_train 1.83018  best_test 1.83050
+    step   325/500  train 1.82990  test 1.83024  best_train 1.82990  best_test 1.83024
+    step   350/500  train 1.82967  test 1.83003  best_train 1.82967  best_test 1.83003
+    step   375/500  train 1.82949  test 1.82985  best_train 1.82949  best_test 1.82985
+    step   400/500  train 1.82932  test 1.82970  best_train 1.82932  best_test 1.82970
+    step   425/500  train 1.82918  test 1.82956  best_train 1.82918  best_test 1.82956
+    step   450/500  train 1.82905  test 1.82944  best_train 1.82905  best_test 1.82944
+    step   475/500  train 1.82894  test 1.82934  best_train 1.82894  best_test 1.82934
+    step   500/500  train 1.82885  test 1.82925  best_train 1.82885  best_test 1.82925

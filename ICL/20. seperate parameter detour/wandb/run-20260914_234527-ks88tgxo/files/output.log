@@ -1,0 +1,11 @@
+  alpha=0.6  trainable entries 93,320 of 93,320   beta init -1.752539
+    grad norms at init: b=1.832e-01  layer1.W_qk=0.000e+00  layer1.W_ov=0.000e+00  layer2.W_qk=7.358e-04  layer2.W_ov=9.767e-02
+    init: train 2.23023  test 2.22878   cos L1 +0.0000  L2(xx) +0.0000
+    step     1/300  train 2.13681  test 2.13564  best_test 2.13564  cos L1 +0.0000 L2xx -0.1430  |Wov-I| 0/1.52  b_noise -1.703
+    step    15/300  train 1.99638  test 1.99578  best_test 1.99578  cos L1 +0.1436 L2xx +0.0369  |Wov-I| 2.74/6.67  b_noise -1.532
+    step    30/300  train 1.96147  test 1.96139  best_test 1.96139  cos L1 +0.0933 L2xx +0.0734  |Wov-I| 4.01/7.63  b_noise -1.524
+    step    45/300  train 1.95221  test 1.95292  best_test 1.95292  cos L1 +0.1161 L2xx +0.0674  |Wov-I| 6.99/8.75  b_noise -1.496
+    step    60/300  train 1.94598  test 1.94700  best_test 1.94700  cos L1 +0.1740 L2xx +0.0598  |Wov-I| 8.74/8.59  b_noise -1.501
+    step    75/300  train 1.93750  test 1.93932  best_test 1.93932  cos L1 +0.2736 L2xx +0.0605  |Wov-I| 9.58/8.82  b_noise -1.499
+
+    [interrupted -- saving what exists and moving to the next threshold]

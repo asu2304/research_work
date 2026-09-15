@@ -1,0 +1,29 @@
+  alpha=0.6  trainable entries 93,320 of 93,320   beta init -1.752539
+    grad norms at init: b=1.832e-01  layer1.W_qk=0.000e+00  layer1.W_ov=0.000e+00  layer2.W_qk=7.358e-04  layer2.W_ov=9.767e-02
+    init: train 2.23023  test 2.22878   cos L1 +0.0000  L2(xx) +0.0000
+    step     1/300  train 2.20978  test 2.20838  best_test 2.20838  cos L1 +0.0000 L2xx -0.1430  |Wov-I| 0/0.303  b_noise -1.743
+    step    15/300  train 2.03393  test 2.03357  best_test 2.02713  cos L1 -0.0025 L2xx -0.1096  |Wov-I| 3.63/4.06  b_noise -1.619
+    step    30/300  train 2.01731  test 2.01670  best_test 2.01667  cos L1 +0.2250 L2xx -0.0002  |Wov-I| 1.94/4.12  b_noise -1.616
+    step    45/300  train 2.00455  test 2.00401  best_test 2.00401  cos L1 +0.1760 L2xx +0.0381  |Wov-I| 2.3/4.69  b_noise -1.600
+    step    60/300  train 1.99229  test 1.99174  best_test 1.99174  cos L1 +0.1365 L2xx +0.0604  |Wov-I| 3.05/4.79  b_noise -1.601
+    step    75/300  train 1.97954  test 1.97905  best_test 1.97905  cos L1 +0.1164 L2xx +0.0713  |Wov-I| 4.98/4.99  b_noise -1.600
+
+    [interrupted -- saving what exists and moving to the next threshold]
+Traceback (most recent call last):
+  File "/home/hariguru/ashutosh/ICL/20. seperate parameter detour/train_full_free.py", line 904, in <module>
+    main()
+  File "/home/hariguru/ashutosh/ICL/20. seperate parameter detour/train_full_free.py", line 897, in main
+    train_one(thr, device, ref)
+  File "/home/hariguru/ashutosh/ICL/20. seperate parameter detour/train_full_free.py", line 770, in train_one
+    final = report(model, ref)
+            ^^^^^^^^^^^^^^^^^^
+  File "/home/hariguru/miniconda3/envs/ashu_env/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 115, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hariguru/ashutosh/ICL/20. seperate parameter detour/train_full_free.py", line 638, in report
+    out['L1_cos'] = free_gauge_cos(qk, ref['W_qk1'], 1)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/hariguru/ashutosh/ICL/20. seperate parameter detour/train_full_free.py", line 451, in free_gauge_cos
+    return float(a @ b / (na * nb)) if na > 0 and nb > 0 else 0.0
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt

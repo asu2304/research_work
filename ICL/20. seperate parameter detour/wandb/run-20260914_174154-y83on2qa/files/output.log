@@ -1,0 +1,19 @@
+  alpha=0.8  free entries 48,384 of 104,976  (W_q + W_k only; W_ov frozen)
+    grad norms at init: layer1.W_q=1.463e-11  layer1.W_k=1.388e-11  layer2.W_q=3.960e-05  layer2.W_k=3.923e-05
+    snapshots: ['layer1.W_q', 'layer1.W_k', 'layer2.W_q', 'layer2.W_k']
+               every 1 step(s), weights + gradients, 37 MB -> /home/hariguru/ashutosh/ICL/20. seperate parameter detour/runs/sepqk_opt-adam_lr-0.01_init-eps_wov-fixed_blocks-relevant_readout-bias_ep-100
+    init: train 1.76326  test 1.76138   gauge-fixed cos vs construction  L1 -0.0085  L2 -0.0053
+    step     1/100  train 1.76326  test 1.76137  best_test 1.76137  cos L1 -0.0085 L2 +0.0509  |W_qk|max 4.96e-05/0.00187
+    step     5/100  train 1.75795  test 1.75606  best_test 1.75606  cos L1 +0.0004 L2 +0.1621  |W_qk|max 0.0008/0.11
+    step    10/100  train 1.73946  test 1.73756  best_test 1.73756  cos L1 +0.0032 L2 +0.1554  |W_qk|max 0.106/0.545
+    step    15/100  train 1.71484  test 1.71295  best_test 1.71295  cos L1 +0.0065 L2 +0.1610  |W_qk|max 0.588/1.48
+    step    20/100  train 1.70022  test 1.69832  best_test 1.69832  cos L1 +0.0144 L2 +0.1651  |W_qk|max 1.69/2.94
+    step    25/100  train 1.69661  test 1.69475  best_test 1.69475  cos L1 +0.0266 L2 +0.1660  |W_qk|max 3.48/4.73
+    step    30/100  train 1.69530  test 1.69354  best_test 1.69354  cos L1 +0.0416 L2 +0.1679  |W_qk|max 5.65/6.67
+    step    35/100  train 1.69379  test 1.69223  best_test 1.69223  cos L1 +0.0645 L2 +0.1721  |W_qk|max 8.18/8.68
+    step    40/100  train 1.69228  test 1.69101  best_test 1.69101  cos L1 +0.0950 L2 +0.1783  |W_qk|max 10.8/9.9
+    step    45/100  train 1.69075  test 1.68981  best_test 1.68981  cos L1 +0.1144 L2 +0.1866  |W_qk|max 13.8/9.81
+    step    50/100  train 1.68880  test 1.68816  best_test 1.68816  cos L1 +0.1285 L2 +0.1950  |W_qk|max 18.2/10.7
+    step    55/100  train 1.68530  test 1.68479  best_test 1.68479  cos L1 +0.1439 L2 +0.2037  |W_qk|max 25.4/13
+
+    [interrupted -- saving what exists and moving to the next threshold]

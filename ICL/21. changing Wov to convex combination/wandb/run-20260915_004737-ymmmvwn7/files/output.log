@@ -1,0 +1,13 @@
+  alpha=0.6  W_qk free 58,320 of 58,320   b_noise 0.173333   f >= 0 (min +0.00e+00), sum(f) in [1.0000, 1.0000]
+    [!] DEGENERATE: max|f - mean f| = 3.28e-07 -- layer 2's output is the SAME vector for
+        every context, because every row of the W_ov block is equal, so the token
+        identity is destroyed. dL/dW_qk is 0 and nothing will train. See ov_block().
+    init: train 2.05937  test 2.05908
+    step     1/500  train 2.05937  test 2.05908  best_train 2.05937  best_test 2.05908
+    step    25/500  train 2.05937  test 2.05908  best_train 2.05937  best_test 2.05908
+    step    50/500  train 2.05937  test 2.05908  best_train 2.05937  best_test 2.05908
+    step    75/500  train 2.05937  test 2.05908  best_train 2.05937  best_test 2.05908
+    step   100/500  train 2.05937  test 2.05908  best_train 2.05937  best_test 2.05908
+    step   125/500  train 2.05937  test 2.05908  best_train 2.05937  best_test 2.05908
+
+    [interrupted -- saving what exists and moving to the next threshold]

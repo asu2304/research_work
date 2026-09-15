@@ -1,0 +1,26 @@
+  alpha=0.6  free entries 48,384 of 104,976  (W_q + W_k only; W_ov frozen)
+    grad norms at init: layer1.W_q=1.756e-11  layer1.W_k=1.820e-11  layer2.W_q=5.423e-05  layer2.W_k=5.299e-05
+    snapshots: ['layer1.W_q', 'layer1.W_k', 'layer2.W_q', 'layer2.W_k']
+               every 1 step(s), weights + gradients, 37 MB -> /home/hariguru/ashutosh/ICL/20. seperate parameter detour/runs/sepqk_opt-adam_lr-0.005_init-eps_wov-fixed_blocks-relevant_readout-bias_ep-100
+    init: train 2.04070  test 2.04017   gauge-fixed cos vs construction  L1 -0.0085  L2 -0.0053
+    step     1/100  train 2.04068  test 2.04014  best_test 2.04014  cos L1 -0.0085 L2 +0.3224  |W_qk|max 4.96e-05/0.000685
+    step     5/100  train 2.03841  test 2.03788  best_test 2.03788  cos L1 -0.0086 L2 +0.1588  |W_qk|max 0.000119/0.0286
+    step    10/100  train 2.02982  test 2.02932  best_test 2.02932  cos L1 -0.0008 L2 +0.1366  |W_qk|max 0.014/0.137
+    step    15/100  train 2.01275  test 2.01231  best_test 2.01231  cos L1 -0.0066 L2 +0.1374  |W_qk|max 0.103/0.371
+    step    20/100  train 1.98804  test 1.98766  best_test 1.98766  cos L1 -0.0165 L2 +0.1417  |W_qk|max 0.325/0.773
+    step    25/100  train 1.96107  test 1.96073  best_test 1.96073  cos L1 -0.0202 L2 +0.1458  |W_qk|max 0.737/1.37
+    step    30/100  train 1.93970  test 1.93935  best_test 1.93935  cos L1 -0.0145 L2 +0.1501  |W_qk|max 1.39/2.13
+    step    35/100  train 1.92821  test 1.92781  best_test 1.92781  cos L1 -0.0035 L2 +0.1525  |W_qk|max 2.3/2.99
+    step    40/100  train 1.92402  test 1.92358  best_test 1.92358  cos L1 +0.0147 L2 +0.1526  |W_qk|max 3.41/3.91
+    step    45/100  train 1.92280  test 1.92233  best_test 1.92233  cos L1 +0.0324 L2 +0.1514  |W_qk|max 4.53/4.77
+    step    50/100  train 1.92235  test 1.92188  best_test 1.92188  cos L1 +0.0380 L2 +0.1504  |W_qk|max 5.49/5.53
+    step    55/100  train 1.92207  test 1.92158  best_test 1.92158  cos L1 +0.0246 L2 +0.1502  |W_qk|max 6.41/5.92
+    step    60/100  train 1.92182  test 1.92135  best_test 1.92135  cos L1 -0.0065 L2 +0.1505  |W_qk|max 7.28/6.24
+    step    65/100  train 1.92161  test 1.92116  best_test 1.92116  cos L1 -0.0411 L2 +0.1508  |W_qk|max 8.11/6.58
+    step    70/100  train 1.92144  test 1.92101  best_test 1.92101  cos L1 -0.0662 L2 +0.1511  |W_qk|max 8.89/6.85
+    step    75/100  train 1.92132  test 1.92089  best_test 1.92089  cos L1 -0.0761 L2 +0.1514  |W_qk|max 10.4/7.08
+    step    80/100  train 1.92123  test 1.92080  best_test 1.92080  cos L1 -0.0733 L2 +0.1518  |W_qk|max 12.1/7.28
+    step    85/100  train 1.92115  test 1.92073  best_test 1.92073  cos L1 -0.0639 L2 +0.1522  |W_qk|max 13.8/7.47
+    step    90/100  train 1.92108  test 1.92066  best_test 1.92066  cos L1 -0.0525 L2 +0.1525  |W_qk|max 15.4/7.65
+    step    95/100  train 1.92100  test 1.92061  best_test 1.92061  cos L1 -0.0435 L2 +0.1526  |W_qk|max 16.5/7.82
+    step   100/100  train 1.92091  test 1.92054  best_test 1.92054  cos L1 -0.0389 L2 +0.1524  |W_qk|max 16.9/7.99

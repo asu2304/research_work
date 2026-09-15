@@ -1,0 +1,20 @@
+{"time":"2026-09-14T17:40:35.992752151+05:30","level":"INFO","msg":"wandb-core"}
+{"time":"2026-09-14T17:40:35.992903473+05:30","level":"INFO","msg":"stream: starting","core version":"0.28.1"}
+{"time":"2026-09-14T17:40:36.102331089+05:30","level":"INFO","msg":"stream: created new stream","id":"uo0sgxy3"}
+{"time":"2026-09-14T17:40:36.102449958+05:30","level":"INFO","msg":"handler: started"}
+{"time":"2026-09-14T17:40:36.102560221+05:30","level":"INFO","msg":"stream: started"}
+{"time":"2026-09-14T17:40:36.102577134+05:30","level":"INFO","msg":"writer: started","stream_id":"uo0sgxy3"}
+{"time":"2026-09-14T17:40:36.102656236+05:30","level":"INFO","msg":"sender: started"}
+{"time":"2026-09-14T17:40:38.084413697+05:30","level":"INFO","msg":"filestream: sending request","total_files":1,"console_offset":0,"console_lines":1}
+{"time":"2026-09-14T17:40:38.517377545+05:30","level":"INFO","msg":"filestream: request sent","status":"200 OK"}
+{"time":"2026-09-14T17:40:47.617273911+05:30","level":"ERROR","msg":"runupserter: failed to upload changes","error":"POST https://api.wandb.ai/graphql giving up after 1 attempt(s): context canceled"}
+{"time":"2026-09-14T17:40:47.618057403+05:30","level":"ERROR","msg":"runfiles: CreateRunFiles returned error: POST https://api.wandb.ai/graphql giving up after 1 attempt(s): context canceled"}
+{"time":"2026-09-14T17:40:47.618306202+05:30","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2026-09-14T17:40:47.618517701+05:30","level":"INFO","msg":"filestream: sending request","total_files":3,"history_offset":0,"history_lines":18,"console_offset":1,"console_lines":10,"uploaded_len":2}
+{"time":"2026-09-14T17:40:47.618567667+05:30","level":"ERROR+4","msg":"filestream: fatal error: filestream: error making HTTP request: POST https://api.wandb.ai/files/da24s006-indian-institue-of-technology-madras-/separate_qk_detour/uo0sgxy3/file_stream giving up after 1 attempt(s): context canceled. got response: <nil>"}
+{"time":"2026-09-14T17:40:47.655587519+05:30","level":"ERROR","msg":"sender: sendSummary called after exit"}
+{"time":"2026-09-14T17:40:47.655787786+05:30","level":"ERROR","msg":"sender: received exit more than once, ignoring"}
+{"time":"2026-09-14T17:40:47.655875775+05:30","level":"INFO","msg":"stream: finishing up"}
+{"time":"2026-09-14T17:40:47.6558942+05:30","level":"INFO","msg":"handler: closed"}
+{"time":"2026-09-14T17:40:47.656416309+05:30","level":"INFO","msg":"sender: closed"}
+{"time":"2026-09-14T17:40:47.656438521+05:30","level":"INFO","msg":"stream: all finished"}

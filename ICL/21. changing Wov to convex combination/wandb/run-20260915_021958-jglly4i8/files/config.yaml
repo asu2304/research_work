@@ -1,0 +1,114 @@
+_wandb:
+    value:
+        cli_version: 0.28.1
+        e:
+            lmdwhnwn1gkz6wqy2oc4pf4cza66pm0t:
+                codePath: ICL/21. changing Wov to convex combination/train_convex_wov.py
+                codePathLocal: train_convex_wov.py
+                cpu_count: 64
+                cpu_count_logical: 64
+                cudaVersion: "13.2"
+                disk:
+                    /:
+                        total: "5814857658368"
+                        used: "5762924371968"
+                email: da24s006@smail.iitm.ac.in
+                executable: /home/hariguru/miniconda3/envs/ashu_env/bin/python
+                git:
+                    commit: 48b76f4e6654d3ef6af168f86c1a2bf6b14f3405
+                    remote: git@github-ashutosh:asu2304/research_work.git
+                gpu: NVIDIA A100 80GB PCIe
+                gpu_count: 4
+                gpu_nvidia:
+                    - architecture: Ampere
+                      cudaCores: 6912
+                      memoryTotal: "85899345920"
+                      name: NVIDIA A100 80GB PCIe
+                      uuid: GPU-6308af7a-72a7-f0b6-b940-6733379a4c1c
+                    - architecture: Ampere
+                      cudaCores: 6912
+                      memoryTotal: "85899345920"
+                      name: NVIDIA A100 80GB PCIe
+                      uuid: GPU-87a45f4c-ac5c-fbf2-9a78-855261b3ff40
+                    - architecture: Ampere
+                      cudaCores: 6912
+                      memoryTotal: "85899345920"
+                      name: NVIDIA A100 80GB PCIe
+                      uuid: GPU-f4a4cb4c-73a5-10e5-22d2-05d660c0da78
+                    - architecture: Ampere
+                      cudaCores: 6912
+                      memoryTotal: "85899345920"
+                      name: NVIDIA A100 80GB PCIe
+                      uuid: GPU-ddc46dc9-250c-db17-ed82-5e5731ce6b7a
+                host: ip-91-203-132-11
+                memory:
+                    total: "474466017280"
+                os: Linux-6.8.0-139-generic-x86_64-with-glibc2.39
+                program: /home/hariguru/ashutosh/ICL/21. changing Wov to convex combination/train_convex_wov.py
+                python: CPython 3.11.13
+                root: /home/hariguru/ashutosh/ICL/21. changing Wov to convex combination
+                startedAt: "2026-09-14T20:49:58.459545Z"
+                writerId: lmdwhnwn1gkz6wqy2oc4pf4cza66pm0t
+        m: []
+        python_version: 3.11.13
+        t:
+            "1":
+                - 1
+            "2":
+                - 1
+            "3":
+                - 2
+                - 13
+                - 16
+                - 61
+                - 62
+            "4": 3.11.13
+            "5": 0.28.1
+            "10":
+                - 20
+            "12": 0.28.1
+            "13": linux-x86_64
+b_noise:
+    value: 1e-09
+b_sig:
+    value: 0.01
+data_dir:
+    value: /home/hariguru/ashutosh/ICL/14. elimination final convergence confusion/dataset
+device:
+    value: cuda:2
+epochs:
+    value: 500
+eval_chunk:
+    value: 8192
+grad_chunk:
+    value: 8192
+init:
+    value: zeros
+log_every:
+    value: 0
+lr:
+    value: 1
+n_noise:
+    value: 4
+noise_floor:
+    value: 1e-09
+optimizer:
+    value: adam
+ov:
+    value: mix
+qk_mask:
+    value: full
+runs_dir:
+    value: /home/hariguru/ashutosh/ICL/21. changing Wov to convex combination/runs
+seed:
+    value: 0
+seq_len:
+    value: 100
+threshold:
+    value: 1
+token_start:
+    value: 50
+v_sig:
+    value: 4
+weight_decay:
+    value: 0
