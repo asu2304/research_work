@@ -32,13 +32,13 @@ trans_arr = order[:, :, :2]      # first two of a random permutation of ALL of S
 So $\mathrm{succ}_\pi(v)$ is a uniform random 2-subset of **all** of $\mathcal S$, **including
 $v$ itself**.
 
-> **Fact 1.** $\;\mathbb P\bigl(w \in \mathrm{succ}_\pi(v)\bigr) = \dfrac{2}{V_s}\;$ for **every**
-> $w \in \mathcal S$, including $w = v$.
+**FACT 1.** $\mathbb P\bigl(w \in \mathrm{succ}_\pi(v)\bigr) = 2/V_s$ for **every**
+$w \in \mathcal S$, including $w = v$.
 
 *Verified numerically:* 3000 tables at $V_s=4$; fraction of state-entries where the state is its
 own successor $= 49.95\%$, against $2/4 = 50\%$.
 
-> **Fact 2.** The law of $\pi$ is invariant under any permutation (relabelling) of $\mathcal S$.
+**FACT 2.** The law of $\pi$ is invariant under any permutation (relabelling) of $\mathcal S$.
 
 Generation, writing $\mathrm{st}(t)$ for the state after position $t$:
 
@@ -69,16 +69,17 @@ Two attention layers, **strictly causal** mask ($u<t$, never $u=t$), combined qu
 $W^{(1)} \in \mathbb R^{d\times d}$ and $W^{(2)} \in \mathbb R^{2d\times 2d}$. Value circuits are
 **fixed** to the selector that passes the symbol one-hot.
 
-$$
-\begin{aligned}
-S^{(1)}_{t,u} &= \tfrac{1}{\sqrt d}\, x_t W^{(1)} x_u^\top + M_{t,u},
-&\quad a^{(1)}_{t,\cdot} &= \mathrm{softmax}\bigl(S^{(1)}_{t,\cdot}\bigr),
-&\quad h_t &= \sum_{u<t} a^{(1)}_{t,u}\, e_{v_u},\\[4pt]
-x^{(2)}_t &= [\,x_t \,;\, h_t\,] \in \mathbb R^{2d},
-&\quad S^{(2)}_{t,u} &= \tfrac{1}{\sqrt d}\, x^{(2)}_t W^{(2)} x^{(2)\top}_u + M_{t,u},
-&\quad f_t &= \sum_{u<t} a^{(2)}_{t,u}\, e_{v_u}.
-\end{aligned}
-$$
+**Layer 1.**
+
+$$S^{(1)}_{t,u} = \tfrac{1}{\sqrt d}\, x_t W^{(1)} x_u^\top + M_{t,u},
+\qquad a^{(1)}_{t,\cdot} = \mathrm{softmax}\bigl(S^{(1)}_{t,\cdot}\bigr),
+\qquad h_t = \sum_{u<t} a^{(1)}_{t,u}\, e_{v_u}$$
+
+**Layer 2**, reading the concatenation $x^{(2)}_t = [\,x_t \,;\, h_t\,] \in \mathbb R^{2d}$:
+
+$$S^{(2)}_{t,u} = \tfrac{1}{\sqrt d}\, x^{(2)}_t W^{(2)} x^{(2)\top}_u + M_{t,u},
+\qquad a^{(2)}_{t,\cdot} = \mathrm{softmax}\bigl(S^{(2)}_{t,\cdot}\bigr),
+\qquad f_t = \sum_{u<t} a^{(2)}_{t,u}\, e_{v_u}$$
 
 > **Structural point that drives everything.** $f_t$ is built from $e_{v_u}$, the key's **own
 > symbol** — not from $h_u$. So $h$ influences the loss **only through the scores** $S^{(2)}$,
@@ -116,14 +117,15 @@ in-context unigram predictor.
 
 ## 4. LEMMA 1 — the gradient at initialisation &nbsp; **[PROVED]**
 
-> **Lemma 1.** At $W^{(1)}=W^{(2)}=0$, with $\omega_t := \bigl(m_t[y_t]+b_{y_t}\bigr)^{-1} > 0$:
->
-> **(i) Gating.** $\;\dfrac{\partial L}{\partial W^{(1)}} = 0\;$ identically.
->
-> **(ii) Closed form.**
-> $$-\frac{\partial L}{\partial W^{(2)}}
-> \;=\; \frac{1}{|\mathcal T|\sqrt d}\sum_{t\in\mathcal T}\frac{\omega_t}{t}
-> \sum_{u<t}\Bigl(\mathbf 1[v_u=y_t]-m_t[y_t]\Bigr)\; x^{(2)}_t \otimes x^{(2)}_u .$$
+**LEMMA 1.** At $W^{(1)}=W^{(2)}=0$, with $\omega_t := \bigl(m_t[y_t]+b_{y_t}\bigr)^{-1} > 0$:
+
+**(i) Gating.** $\partial L/\partial W^{(1)} = 0$ identically.
+
+**(ii) Closed form.**
+
+$$-\frac{\partial L}{\partial W^{(2)}}
+\;=\; \frac{1}{|\mathcal T|\sqrt d}\sum_{t\in\mathcal T}\frac{\omega_t}{t}
+\sum_{u<t}\Bigl(\mathbf{1}[v_u=y_t]-m_t[y_t]\Bigr)\; x^{(2)}_t \otimes x^{(2)}_u$$
 
 ### 4.1 Proof of (ii)
 
@@ -150,7 +152,7 @@ $$g_t \cdot f_t \;=\; \sum_w f_t[w]\,g_t[w] \;=\; -\,m_t[y_t]\,\omega_t + \frac{
 
 so the two $1/\mathcal Z$ terms cancel and
 
-$$g_t[v_u] - g_t\!\cdot\! f_t \;=\; -\,\omega_t\bigl(\mathbf 1[v_u=y_t]-m_t[y_t]\bigr).$$
+$$g_t[v_u] - g_t\!\cdot\! f_t \;=\; -\,\omega_t\bigl(\mathbf{1}[v_u=y_t]-m_t[y_t]\bigr).$$
 
 **Step 4 — chain to the weights.** With
 $\partial S^{(2)}_{t,u}/\partial W^{(2)} = x^{(2)}_t \otimes x^{(2)}_u/\sqrt d$ and
@@ -193,14 +195,14 @@ $$W^{(2)}=\begin{bmatrix} P & Q \\ R & C \end{bmatrix},
 
 Restricting to the signal sub-blocks and reading off Lemma 1(ii), for $v,w\in\mathcal S$:
 
-$$G_P[v,w] \;\propto\; \sum_{t} \mathbf 1[v_t{=}v]\,\frac{\omega_t}{t}
-\sum_{u<t}\bigl(\mathbf 1[v_u{=}y_t]-m_t[y_t]\bigr)\,\mathbf 1[v_u{=}w]$$
+$$G_P[v,w] \;\propto\; \sum_{t} \mathbf{1}[v_t{=}v]\,\frac{\omega_t}{t}
+\sum_{u<t}\bigl(\mathbf{1}[v_u{=}y_t]-m_t[y_t]\bigr)\,\mathbf{1}[v_u{=}w]$$
 
-$$G_Q[v,w] \;\propto\; \sum_{t} \mathbf 1[v_t{=}v]\,\frac{\omega_t}{t}
-\sum_{u<t}\bigl(\mathbf 1[v_u{=}y_t]-m_t[y_t]\bigr)\, m_u[w]$$
+$$G_Q[v,w] \;\propto\; \sum_{t} \mathbf{1}[v_t{=}v]\,\frac{\omega_t}{t}
+\sum_{u<t}\bigl(\mathbf{1}[v_u{=}y_t]-m_t[y_t]\bigr)\, m_u[w]$$
 
-The outer product $x^{(2)}_t\otimes x^{(2)}_u$ supplies $\mathbf 1[v_t{=}v]$ on the query side;
-on the key side it supplies $\mathbf 1[v_u{=}w]$ for $P$ and $h_u[w]=m_u[w]$ for $Q$.
+The outer product $x^{(2)}_t\otimes x^{(2)}_u$ supplies $\mathbf{1}[v_t{=}v]$ on the query side;
+on the key side it supplies $\mathbf{1}[v_u{=}w]$ for $P$ and $h_u[w]=m_u[w]$ for $Q$.
 
 | block | the rule a positive diagonal would encode | what must be true for it to help |
 |---|---|---|
@@ -232,11 +234,11 @@ and nothing forces it to equal the others.
 
 With $N_t(w) := \#\{u<t : v_u = w\}$ the prefix count of $w$,
 
-$$G_P[v,w] \;=\; \sum_t \mathbf 1[v_t{=}v]\frac{\omega_t}{t}
-\Bigl[\;\underbrace{\mathbf 1[w{=}y_t]\,N_t(w)}_{\text{term A}}
+$$G_P[v,w] \;=\; \sum_t \mathbf{1}[v_t{=}v]\frac{\omega_t}{t}
+\Bigl[\;\underbrace{\mathbf{1}[w{=}y_t]\,N_t(w)}_{\text{term A}}
 \;-\; \underbrace{m_t[y_t]\,N_t(w)}_{\text{term B}}\;\Bigr]$$
 
-- **Term A.** By **Fact 1**, $\mathbb E\bigl[\mathbf 1[w{=}y_t]\mid \mathrm{st}(t)=v\bigr] = \alpha/V_s$
+- **Term A.** By **Fact 1**, $\mathbb E\bigl[\mathbf{1}[w{=}y_t]\mid \mathrm{st}(t)=v\bigr] = \alpha/V_s$
   for *every* $w$, including $w=v$. So term A contributes **equally** to diagonal and off-diagonal.
 - **Term B** carries the asymmetry. Conditioned on $v_t=v$, the prefix count $N_t(v)$ is
   **elevated** relative to $N_t(w)$ — the chain has just visited $v$, and states recur. So the
@@ -296,10 +298,10 @@ which is $v$ itself.
 
 ### 7.2 Reduction to a three-point correlation
 
-Expanding $m_u[w] = \frac1u\sum_{s<u}\mathbf 1[v_s{=}w]$, the quantity to bound is
+Expanding $m_u[w] = \frac1u\sum_{s<u}\mathbf{1}[v_s{=}w]$, the quantity to bound is
 
-$$\mathbb E\bigl[\mathbf 1[v_u{=}y_t]\; m_u[w]\bigr]
-\;=\; \frac1u \sum_{s<u} \mathbb E\bigl[\mathbf 1[v_u{=}y_t]\,\mathbf 1[v_s{=}w]\bigr],
+$$\mathbb E\bigl[\mathbf{1}[v_u{=}y_t]\; m_u[w]\bigr]
+\;=\; \frac1u \sum_{s<u} \mathbb E\bigl[\mathbf{1}[v_u{=}y_t]\,\mathbf{1}[v_s{=}w]\bigr],
 \qquad s < u < t .$$
 
 So (b) is a **three-point correlation** in the chain, averaged over the random table.
@@ -361,15 +363,22 @@ a different function of $f$ than $f/\sum f$ for every $\kappa$.
 
 ## 9. LEMMA 2 — layer 1 unlocks &nbsp; **[PROVED, modulo the Adam caveat]**
 
-> **Lemma 2.** Let $W^{(2)}_1 = \eta G^{(2)}$ be one gradient step from Lemma 1, and
-> $W^{(1)}_1 = 0$ by Lemma 1(i). Then
->
-> **(i)** layer 1 is unchanged, so $h_t = m_t$ still;
-> **(ii)** $a^{(2)}_{t,u} = \tfrac1t\bigl(1+\tfrac{\eta}{\sqrt d}(\sigma_{t,u}-\bar\sigma_t)\bigr)+O(\eta^2)$
-> with $\sigma_{t,u} = x^{(2)}_t G^{(2)} x^{(2)\top}_u$;
-> **(iii)** $\;-\dfrac{\partial L}{\partial W^{(1)}}\Big|_1 = \eta\,\Phi\bigl(G^{(2)}\bigr) + O(\eta^2)$,
-> where $\Phi$ is **linear in exactly those blocks of $G^{(2)}$ that contract with $h$** — namely
-> $Q$, $R$, $C$.
+**LEMMA 2.** Let $W^{(2)}_1 = \eta G^{(2)}$ be one gradient step from Lemma 1, and
+$W^{(1)}_1 = 0$ by Lemma 1(i). Then:
+
+**(i)** layer 1 is unchanged, so $h_t = m_t$ still.
+
+**(ii)** the second layer's attention is perturbed to first order, with
+$\sigma_{t,u} = x^{(2)}_t G^{(2)} x^{(2)\top}_u$ and $\bar\sigma_t$ its mean over $u<t$:
+
+$$a^{(2)}_{t,u} = \frac1t\Bigl(1+\frac{\eta}{\sqrt d}\bigl(\sigma_{t,u}-\bar\sigma_t\bigr)\Bigr)+O(\eta^2)$$
+
+**(iii)** the first layer's gradient becomes non-zero, of order $\eta$:
+
+$$-\frac{\partial L}{\partial W^{(1)}}\Big|_{1} \;=\; \eta\,\Phi\bigl(G^{(2)}\bigr) + O(\eta^2)$$
+
+where $\Phi$ is **linear in exactly those blocks of $G^{(2)}$ that contract with $h$** — namely
+$Q$, $R$ and $C$.
 
 *Proof.* (i) is Lemma 1(i). (ii) is a first-order softmax expansion about uniform. For (iii), the
 derivatives of §4.2 are now evaluated at $W^{(2)}=\eta G^{(2)}$ rather than $0$, so they equal
@@ -389,10 +398,10 @@ plain GD.
 
 ## 10. LEMMA 3 — what layer 1 is pushed to compute &nbsp; **[STATEMENT ONLY — NOT PROVED]**
 
-> **Lemma 3 (intended).** To leading order the update to $W^{(1)}$ increases $S^{(1)}_{u,s}$ for
-> pairs $s<u$ with $v_s\in\mathcal S$, decreases it for $v_s\in\mathcal D$, and among admissible
-> $s$ the increase is monotone in $s$. Hence $h_u$ moves from the uniform prefix average $m_u$
-> toward the indicator of the most recent signal symbol before $u$ — i.e. **state recovery**.
+**LEMMA 3 (intended).** To leading order the update to $W^{(1)}$ increases $S^{(1)}_{u,s}$ for
+pairs $s<u$ with $v_s\in\mathcal S$, decreases it for $v_s\in\mathcal D$, and among admissible
+$s$ the increase is monotone in $s$. Hence $h_u$ moves from the uniform prefix average $m_u$
+toward the indicator of the most recent signal symbol before $u$ — i.e. **state recovery**.
 
 Intended argument:
 
@@ -415,7 +424,7 @@ All at $\alpha=0.6$ unless stated; single seed; exact full-batch gradients, not 
 | quantity | measured | relates to |
 |---|---|---|
 | CE at zero init | $2.039121$ | §3, matches unigram closed form |
-| $\|\partial L/\partial W^{(1)}\|$ at zero init | $0.000\mathrm{e}{+}00$ exactly | Lemma 1(i) |
+| gradient norm $\lVert \partial L/\partial W^{(1)} \rVert$ at zero init | $0.000\mathrm{e}{+}00$ exactly | Lemma 1(i) |
 | $G_P$ diag $-$ off-diag | $-1.475\times10^{-4}$ | statement (a), sign |
 | $G_Q$ diag $-$ off-diag | $+9.621\times10^{-5}$ | statement (b), sign |
 | $G_C$ diag $-$ off-diag | $+9.804\times10^{-6}$ | |
