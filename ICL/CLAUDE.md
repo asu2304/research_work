@@ -420,3 +420,28 @@ chain's mixing properties. That proof is the main remaining technical work.
 
 CUT from the paper: the reduction-to-five-numbers line (folder 19) and the convex-W_ov sweep
 (folder 21) — both are different papers.
+
+### 10.7 Title shortlist (2026-09-15)
+Currently in the .tex: **#2**. The differentiator to keep visible is that the causal parent sits
+at an UNBOUNDED distance behind noise, so the verb is "skip" or "recover", not "ignore".
+
+Dynamics-first:
+1. Learning to Skip: Gradient Dynamics of In-Context Learning with Interleaved Noise
+2. **How Gradient Descent Builds a Noise-Skipping Induction Head**   <- IN USE
+3. From the First Gradient: In-Context Learning Under Distraction
+4. Where the First Gradient Points: In-Context Learning with Distractor Tokens
+
+Mechanism-first:
+5. State Recovery in Context: How Transformers Learn to Skip Noise
+6. Skipping Noise In Context: Dynamics of State-Recovering Induction Heads
+
+Setting-first:
+7. In-Context Learning When the Causal Parent Is Far: Dynamics from Zero Initialisation
+8. Induction Heads Under Distraction
+
+Two judgement calls recorded so they are not re-argued:
+- "induction head" IN the title makes the right reviewers find it, but frames the paper as one
+  more induction-head paper and invites the comparison to the four prior works of 10.1. #2 takes
+  that trade deliberately; #1 and #5 avoid it.
+- "Ignore" is the wrong verb -- the model does not ignore the noise, it jumps over it to reach
+  the state. Dropped from the shortlist for that reason.
