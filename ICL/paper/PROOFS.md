@@ -15,8 +15,8 @@ Every claim is labelled **PROVED**, **VERIFIED NUMERICALLY** (with the measureme
 
 Vocabulary $\mathcal V = \mathcal S \cup \mathcal D$, of sizes $V_s$ and $V_d$:
 
-- **signal** symbols $\mathcal S = \{0,\dots,V_s-1\}$ — these carry the Markov state;
-- **distractor** symbols $\mathcal D = \{V_s,\dots,V-1\}$ — these carry nothing.
+- **signal** symbols $\mathcal S = \lbrace 0,\dots,V_s-1\rbrace $ — these carry the Markov state;
+- **distractor** symbols $\mathcal D = \lbrace V_s,\dots,V-1\rbrace $ — these carry nothing.
 
 For **each sequence independently** we draw a transition table $\pi$, assigning to every state
 $s \in \mathcal S$ a successor set $\mathrm{succ}_\pi(s) \subset \mathcal S$ of size 2.
@@ -46,7 +46,7 @@ $$
 v_t \;=\;
 \begin{cases}
 \text{uniform from } \mathrm{succ}_\pi\bigl(\mathrm{st}(t-1)\bigr), & \text{w.p. } \alpha
-\quad\text{(state advances)},\\[4pt]
+\quad\text{(state advances)},\\
 \text{uniform from } \mathcal D, & \text{w.p. } 1-\alpha
 \quad\text{(state unchanged)} .
 \end{cases}
@@ -100,7 +100,7 @@ is a **constant**, independent of the context. The value of $b_d$ is derived in 
 
 ## 3. The state at zero initialisation
 
-Set $W^{(1)} = W^{(2)} = 0$. Every score is $0$, so both softmaxes are uniform over $\{u<t\}$,
+Set $W^{(1)} = W^{(2)} = 0$. Every score is $0$, so both softmaxes are uniform over $\lbrace u<t\rbrace $,
 giving $a^{(1)}_{t,u} = a^{(2)}_{t,u} = 1/t$ and therefore
 
 $$h_t \;=\; f_t \;=\; m_t \;:=\; \frac1t \sum_{u<t} e_{v_u} .$$
@@ -144,7 +144,7 @@ $\partial a_{t,u'}/\partial S_{t,u} = a_{t,u}(\delta_{uu'}-a_{t,u'})$, hence
 
 $$\frac{\partial L_t}{\partial S^{(2)}_{t,u}}
 = a^{(2)}_{t,u}\Bigl(g_t[v_u] - \sum_{u'} a^{(2)}_{t,u'} g_t[v_{u'}]\Bigr)
-= a^{(2)}_{t,u}\bigl(g_t[v_u] - g_t\!\cdot\! f_t\bigr).$$
+= a^{(2)}_{t,u}\bigl(g_t[v_u] - g_t \cdot f_t\bigr).$$
 
 **Step 3 — the bracket collapses.** Using $\sum_w f_t[w]=1$,
 
@@ -152,7 +152,7 @@ $$g_t \cdot f_t \;=\; \sum_w f_t[w]\,g_t[w] \;=\; -\,m_t[y_t]\,\omega_t + \frac{
 
 so the two $1/\mathcal Z$ terms cancel and
 
-$$g_t[v_u] - g_t\!\cdot\! f_t \;=\; -\,\omega_t\bigl(\mathbf{1}[v_u=y_t]-m_t[y_t]\bigr).$$
+$$g_t[v_u] - g_t \cdot f_t \;=\; -\,\omega_t\bigl(\mathbf{1}[v_u=y_t]-m_t[y_t]\bigr).$$
 
 **Step 4 — chain to the weights.** With
 $\partial S^{(2)}_{t,u}/\partial W^{(2)} = x^{(2)}_t \otimes x^{(2)}_u/\sqrt d$ and
@@ -232,7 +232,7 @@ and nothing forces it to equal the others.
 
 ### 6.2 The two terms
 
-With $N_t(w) := \#\{u<t : v_u = w\}$ the prefix count of $w$,
+With $N_t(w) := \lvert \lbrace u<t : v_u = w \rbrace \rvert$ the prefix count of $w$,
 
 $$G_P[v,w] \;=\; \sum_t \mathbf{1}[v_t{=}v]\frac{\omega_t}{t}
 \Bigl[\;\underbrace{\mathbf{1}[w{=}y_t]\,N_t(w)}_{\text{term A}}
