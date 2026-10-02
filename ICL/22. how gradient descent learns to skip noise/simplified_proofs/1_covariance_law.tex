@@ -90,6 +90,42 @@ Raising key $j$'s score helps the correct token if key $j$ is \textbf{better tha
 ($\mathrm{hit}_j=1>f[y]$) and hurts if it is \textbf{worse than average} ($\mathrm{hit}_j=0<f[y]$).
 \end{idea}
 
+\begin{tcolorbox}[colback=orange!5,colframe=orange!60!black,title=What ``better than average'' means --- a worked example]
+\textbf{The ``average''} is $f[y]$: of all the attention, the share that sits on keys holding the right
+token. A key is \textbf{better than average} if it is a hit (it is 100\% right, which beats any mix that
+is less than 100\% right), and \textbf{worse than average} if it is a miss (0\% right).
+
+\medskip
+\textbf{Why raising a score works like this.} Raising $s_j$ does two things at once (Step 2):
+\begin{enumerate}
+\item key $j$ \textbf{gains} attention;
+\item that attention is \textbf{taken from all the other keys}, in proportion to what they had, so it
+comes from a pool that is about $f[y]$ right.
+\end{enumerate}
+So attention moves \emph{from a mix that is $f[y]$ right} \emph{to key $j$}. If key $j$ is a hit,
+the right share goes up. If it is a miss, it goes down.
+
+\medskip
+\textbf{Numbers.} Four keys, attention $A=(0.4,\,0.4,\,0.1,\,0.1)$, hits $=(1,\,0,\,1,\,0)$, so
+$f[y]=0.4+0.1=0.5$ (half the attention is on right keys).
+
+\smallskip
+\emph{Raise key 1 (a hit) by $0.1$.} Key 1 gains $0.4\cdot0.6\cdot0.1=0.024$. The others lose
+$A_k\cdot0.4\cdot0.1$: key 2 loses $0.016$, key 3 $0.004$, key 4 $0.004$. The change in
+$f[y]$ counts only the hits: $+0.024$ (key 1) $-0.004$ (key 3) $=\mathbf{+0.020}$.
+Formula: $A_1(\mathrm{hit}_1-f[y])\cdot0.1=0.4\cdot(1-0.5)\cdot0.1=+0.020$. \checkmark
+
+\smallskip
+\emph{Raise key 2 (a miss) by $0.1$.} Key 2 gains $0.024$, but it is a miss, so that adds nothing. The hits
+lose: key 1 $0.016$, key 3 $0.004$. Change in $f[y]$: $\mathbf{-0.020}$.
+Formula: $0.4\cdot(0-0.5)\cdot0.1=-0.020$. \checkmark
+
+\medskip
+\textbf{Two edge cases.} If \emph{every} key is a hit ($f[y]=1$), raising any score changes nothing
+($\mathrm{hit}_j-f[y]=0$): you can't do better than all right. A key with little attention
+($A_j$ small) moves $f[y]$ only a little: that is the factor $A_j$ in front.
+\end{tcolorbox}
+
 \section{Step 5: from the prediction to the loss}
 \paragraph{The readout.} The model's final probabilities are
 \[

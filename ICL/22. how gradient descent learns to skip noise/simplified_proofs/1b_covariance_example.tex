@@ -1,0 +1,112 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,booktabs,xcolor,tcolorbox}
+\newtcolorbox{idea}{colback=blue!4,colframe=blue!40,title=In plain words}
+\title{Simplified proof 1b: the covariance law on one concrete sequence}
+\author{Folder 22 / simplified\_proofs --- companion to \texttt{1\_covariance\_law.pdf}}
+\date{}
+\begin{document}\maketitle
+
+\section{The sequence}
+Real tokens are 0--3, noise tokens are 4--7. The model stands at position $i=12$ and must predict
+position 13. The true next token is $y=3$.
+\[
+\begin{array}{c|ccccccccccc|c}
+j & 1&2&3&4&5&6&7&8&9&10&11 & 12\ (\text{query})\\\hline
+x_j & 2&3&1&2&0&6&2&5&3&1&2 & 4
+\end{array}
+\]
+
+\section{The three ingredients for every position $j$}
+\begin{itemize}
+\item $\mathrm{hit}_j = 1$ if $x_j = y$ (the token there is 3), else $0$.
+\item $\varphi_j = \dfrac{\partial s_j}{\partial \kappa}$: what the chosen weight $\kappa$ multiplies in position $j$'s score
+\[
+s_j = a_2\,\nu_j + b_2\,\sigma_i\,r_j[x_i] + c_2\,\langle r_i, r_j\rangle .
+\]
+\item $A_j$: the attention on position $j$. To keep the numbers simple, take \textbf{equal attention}:
+$A_j = \tfrac{1}{11}$ for every $j$ (this is what the model does at the start of training).
+\end{itemize}
+
+Here $r_j$ is ``the last real token before $j$'' (layer 1, once it has learned), and $r_{12}=2$.
+\[
+\begin{array}{l|ccccccccccc}
+j & 1&2&3&4&5&6&7&8&9&10&11\\\hline
+x_j & 2&3&1&2&0&6&2&5&3&1&2\\
+r_j & -&2&3&1&2&0&0&2&2&3&1\\\hline
+\mathrm{hit}_j & 0&\mathbf 1&0&0&0&0&0&0&\mathbf 1&0&0\\
+\varphi_j\ \text{for } a_2\ (=\nu_j) & 0&0&0&0&0&\mathbf 1&0&\mathbf 1&0&0&0\\
+\varphi_j\ \text{for } b_2\ (=\sigma_{12}\,r_j[4]) & 0&0&0&0&0&0&0&0&0&0&0\\
+\varphi_j\ \text{for } c_2\ (=\langle r_{12},r_j\rangle) & 0&\mathbf 1&0&0&\mathbf 1&0&0&\mathbf 1&\mathbf 1&0&0
+\end{array}
+\]
+($\varphi_j=0$ for $b_2$ at every $j$ because the query token 4 is noise, so $\sigma_{12}=0$.)
+
+\section{The formula we start from}
+Steps 1--6 of \texttt{1\_covariance\_law.pdf} give
+\[
+-\frac{\partial \ell}{\partial \kappa} \;=\; w \sum_{j} A_j\,\big(\mathrm{hit}_j - f[y]\big)\,\varphi_j,
+\qquad
+f[y] = \sum_j A_j\,\mathrm{hit}_j,
+\qquad
+w = \frac{1}{f[y] + b_y}.
+\]
+Here: $f[y] = 2\cdot\tfrac1{11} = \tfrac{2}{11}$ and $w = 1/(\tfrac2{11}+0.01)\approx 5.2$.
+
+\section{What ``average'' and ``covariance'' mean here}
+Pick one position $J$ at random, with probability $A_J$. For any quantity $g$,
+\[
+\mathbb E[g] \;=\; \sum_j A_j\, g_j \qquad\text{(the attention-weighted average).}
+\]
+So $f[y] = \mathbb E[\mathrm{hit}]$. The covariance of two quantities is
+\[
+\mathrm{Cov}(\mathrm{hit},\varphi) \;=\; \mathbb E[\mathrm{hit}\cdot\varphi] \;-\; \mathbb E[\mathrm{hit}]\;\mathbb E[\varphi].
+\]
+\begin{idea}
+$\mathbb E[\mathrm{hit}\cdot\varphi]$ = how often a position is \emph{both} right \emph{and} pushed up by $\kappa$.\\
+$\mathbb E[\mathrm{hit}]\,\mathbb E[\varphi]$ = how often that would happen \emph{by pure chance}.\\
+Covariance $>0$: the weight pushes up right positions more than chance. $<0$: less than chance.
+\end{idea}
+
+\section{Why the gradient sum IS the covariance}
+Write the sum as an average:
+\[
+\sum_j A_j\,(\mathrm{hit}_j - f[y])\,\varphi_j
+= \sum_j A_j\,\mathrm{hit}_j\,\varphi_j \;-\; f[y]\sum_j A_j\,\varphi_j
+= \mathbb E[\mathrm{hit}\cdot\varphi] - \mathbb E[\mathrm{hit}]\,\mathbb E[\varphi]
+= \mathrm{Cov}(\mathrm{hit},\varphi).
+\]
+(First equality: multiply out the bracket. Second: $\sum_jA_j(\cdot)=\mathbb E[\cdot]$ and $f[y]=\mathbb E[\mathrm{hit}]$.) Hence
+\[
+\boxed{\;-\frac{\partial \ell}{\partial \kappa} \;=\; w\cdot \mathrm{Cov}(\mathrm{hit},\varphi)\;}
+\]
+
+\section{The numbers, weight by weight}
+\renewcommand{\arraystretch}{1.6}
+\[
+\begin{array}{l|c|c|c|c|c}
+\kappa & \mathbb E[\mathrm{hit}] & \mathbb E[\varphi] & \mathbb E[\mathrm{hit}\cdot\varphi] & \mathrm{Cov} & \text{GD moves }\kappa\\\hline
+c_2 & \tfrac{2}{11} & \tfrac{4}{11}\ (\text{pos }2,5,8,9) & \tfrac{2}{11}\ (\text{pos }2,9) & \tfrac{2}{11}-\tfrac{8}{121}=+\tfrac{14}{121} & \text{up}\\
+a_2 & \tfrac{2}{11} & \tfrac{2}{11}\ (\text{pos }6,8) & 0 & 0-\tfrac{4}{121}=-\tfrac{4}{121} & \text{down}\\
+b_2 & \tfrac{2}{11} & 0 & 0 & 0 & \text{no move}
+\end{array}
+\]
+
+\paragraph{Check $c_2$ with the sum directly.} Only $j$ with $\varphi_j=1$ contribute:
+\[
+\tfrac1{11}\Big[\underbrace{(1-\tfrac2{11})}_{j=2}+\underbrace{(0-\tfrac2{11})}_{j=5}+\underbrace{(0-\tfrac2{11})}_{j=8}+\underbrace{(1-\tfrac2{11})}_{j=9}\Big]
+=\tfrac1{11}\cdot\tfrac{9-2-2+9}{11}=\tfrac{14}{121}. \checkmark
+\]
+\paragraph{Check $a_2$.}
+\[
+\tfrac1{11}\Big[\underbrace{(0-\tfrac2{11})}_{j=6}+\underbrace{(0-\tfrac2{11})}_{j=8}\Big]=-\tfrac{4}{121}. \checkmark
+\]
+So on this query: $-\partial\ell/\partial c_2 = 5.2\times\tfrac{14}{121}\approx +0.60$ (raise $c_2$), and
+$-\partial\ell/\partial a_2 = 5.2\times(-\tfrac{4}{121})\approx -0.17$ (lower $a_2$, i.e.\ look at noise less).
+
+\begin{idea}
+The covariance law is one formula used three times. Each weight has its own $\varphi$ (what it multiplies in
+the score). Gradient descent raises a weight exactly when the positions it pushes up hold the right answer
+more often than chance.
+\end{idea}
+\end{document}
