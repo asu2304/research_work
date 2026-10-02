@@ -1,0 +1,208 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,booktabs,xcolor,tcolorbox}
+\tcbuselibrary{skins}
+\newtcolorbox{idea}{colback=blue!4,colframe=blue!40,title=In plain words}
+\newtcolorbox{quickcheck}{colback=green!4,colframe=green!40!black,title=Quick check}
+\newcommand{\1}{\mathbf{1}}
+\title{Simplified proof 1: the covariance law\\[4pt]
+\large every step written out}
+\author{Folder 22 / simplified\_proofs --- companion to \texttt{proofs/1\_exact\_statements.pdf}, Proposition 3}
+\date{}
+\begin{document}\maketitle
+
+\begin{idea}
+We want to know: if we increase one layer-2 weight a little (say $c_2$), does the loss go down?
+The answer we will prove is: \textbf{yes, exactly when that weight moves attention towards keys that
+hold the correct next token more often than the keys attention is already on.} The rest of this
+document derives that sentence, one small step at a time.
+\end{idea}
+
+\section{What we are looking at}
+Fix \textbf{one query position} $i$. To keep the notation light, we drop the index $i$ wherever we can.
+\begin{itemize}
+\item There are $n$ earlier positions (``keys''), numbered $j=1,\dots,n$.
+\item Key $j$ holds the token $x_j$ (one of the 8 tokens).
+\item The correct next token for our query is $y$.
+\item $\mathrm{hit}_j=1$ if key $j$ holds the correct token ($x_j=y$), and $0$ otherwise.
+\item Each key gets a \textbf{score} $s_j$ from layer 2. We will only change one weight, called $\kappa$
+(it can be $a_2$, $b_2$ or $c_2$).
+\end{itemize}
+
+\section{Step 1: scores become attention (softmax)}
+The attention on key $j$ is
+\[
+A_j=\frac{e^{s_j}}{\sum_{k=1}^n e^{s_k}} .
+\]
+Two facts we will use:
+\begin{itemize}
+\item every $A_j$ is between 0 and 1, and
+\item they add up to one: $\sum_j A_j=\frac{\sum_je^{s_j}}{\sum_ke^{s_k}}=1$. So the $A_j$ behave like probabilities.
+\end{itemize}
+
+\section{Step 2: how attention changes when one score changes}
+We need $\frac{\partial A_k}{\partial s_j}$: how the attention on key $k$ moves if we nudge the score of key
+$j$. Write $E=\sum_m e^{s_m}$, so $A_k=e^{s_k}/E$, and note that $\frac{\partial E}{\partial s_j}=e^{s_j}$.
+
+\paragraph{Case $k=j$.} Quotient rule on $e^{s_j}/E$:
+\[
+\frac{\partial A_j}{\partial s_j}=\frac{e^{s_j}\cdot E-e^{s_j}\cdot e^{s_j}}{E^2}
+=\frac{e^{s_j}}{E}-\Big(\frac{e^{s_j}}{E}\Big)^2=A_j-A_j^2=A_j(1-A_j).
+\]
+\paragraph{Case $k\neq j$.} Now the numerator $e^{s_k}$ does not depend on $s_j$; only $E$ does:
+\[
+\frac{\partial A_k}{\partial s_j}=-\frac{e^{s_k}\cdot e^{s_j}}{E^2}=-A_kA_j .
+\]
+\paragraph{Both cases in one formula.} Using $\1[k=j]$ (1 if $k=j$, else 0):
+\[
+\boxed{\ \frac{\partial A_k}{\partial s_j}=A_k\big(\1[k=j]-A_j\big)\ }
+\]
+(check: for $k=j$ this gives $A_j(1-A_j)$, for $k\ne j$ it gives $-A_kA_j$). Raising one key's score
+takes attention away from all the other keys, in proportion to how much attention they had.
+
+\section{Step 3: the prediction is a mix of the key tokens}
+Layer 2 copies tokens (that is what $W_{ov}=I$ means). So the predicted distribution is
+\[
+f=\sum_{k=1}^nA_k\,e_{x_k},
+\]
+where $e_{x_k}$ is the one-hot vector of token $x_k$. Its entry for the correct token $y$ is
+\[
+f[y]=\sum_kA_k\,\1[x_k=y]=\sum_kA_k\,\mathrm{hit}_k .
+\]
+\begin{idea}
+$f[y]$ is the attention-weighted fraction of keys that hold the right token: \textbf{the current
+average correctness}.
+\end{idea}
+
+\section{Step 4: how the correct-token probability changes when one score changes}
+Differentiate $f[y]=\sum_kA_k\mathrm{hit}_k$ with respect to $s_j$, using Step 2 ($\mathrm{hit}_k$ does not depend
+on scores):
+\[
+\frac{\partial f[y]}{\partial s_j}=\sum_k\mathrm{hit}_k\,A_k\big(\1[k=j]-A_j\big)
+=\underbrace{\mathrm{hit}_j\,A_j}_{\text{the }k=j\text{ term}}\;-\;A_j\underbrace{\sum_kA_k\mathrm{hit}_k}_{=f[y]} .
+\]
+So
+\[
+\boxed{\ \frac{\partial f[y]}{\partial s_j}=A_j\,\big(\mathrm{hit}_j-f[y]\big)\ }
+\]
+\begin{idea}
+Raising key $j$'s score helps the correct token if key $j$ is \textbf{better than average}
+($\mathrm{hit}_j=1>f[y]$) and hurts if it is \textbf{worse than average} ($\mathrm{hit}_j=0<f[y]$).
+\end{idea}
+
+\section{Step 5: from the prediction to the loss}
+\paragraph{The readout.} The model's final probabilities are
+\[
+q=\frac{f+b}{Z},\qquad Z=\sum_{t=0}^{7}\big(f[t]+b[t]\big),
+\]
+where $b$ is the small fixed bias (it gives every token a little probability).
+
+\paragraph{$Z$ is a constant.} Since $f$ is a mix of one-hot vectors with weights adding to 1, its entries
+add to 1: $\sum_tf[t]=\sum_kA_k\sum_t\1[x_k=t]=\sum_kA_k\cdot1=1$. Therefore $Z=1+\sum_tb[t]$, which does
+not depend on the scores at all.
+
+\paragraph{The loss.} $\ell=-\log q[y]=-\log\big(f[y]+b[y]\big)+\log Z$. Only the first term changes with
+the scores, and $\frac{d}{du}(-\log u)=-\frac1u$, so
+\[
+\frac{\partial\ell}{\partial f[y]}=-\frac{1}{f[y]+b[y]}=:-w .
+\]
+We name $w=\frac1{f[y]+b[y]}$ the \textbf{surprise}: it is large when the model gives the correct token
+little probability.
+
+\paragraph{Chain rule (loss $\leftarrow$ $f[y]$ $\leftarrow$ score $s_j$).} Combine with Step 4:
+\[
+\boxed{\ \frac{\partial\ell}{\partial s_j}=\frac{\partial\ell}{\partial f[y]}\cdot\frac{\partial f[y]}{\partial s_j}
+=-w\,A_j\,\big(\mathrm{hit}_j-f[y]\big)\ }
+\]
+
+\section{Step 6: from a score to the weight $\kappa$}
+Layer 2's score is
+\[
+s_j=a_2\,\nu_j+b_2\,\sigma_i\,r_j[x_i]+c_2\,\langle r_i,r_j\rangle .
+\]
+Each weight appears \textbf{once}, multiplied by something that does not contain that weight. So the
+derivative of the score with respect to a weight is just its multiplier, which we call the
+\textbf{feature} $\phi_j$:
+\begin{center}
+\begin{tabular}{lll}\toprule
+weight $\kappa$ & feature $\phi_j=\partial s_j/\partial\kappa$ & meaning\\\midrule
+$a_2$ & $\nu_j$ & key $j$ is a noise token\\
+$b_2$ & $\sigma_i\,r_j[x_i]$ & key $j$ came after my token\\
+$c_2$ & $\langle r_i,r_j\rangle$ & key $j$ has the same recovered state as me\\\bottomrule
+\end{tabular}
+\end{center}
+\paragraph{Why nothing else moves.} These three weights live in layer 2. Layer 1 does not use them, so
+$r_i,r_j$ do not change when $\kappa$ changes. The \emph{only} thing $\kappa$ changes is the scores $s_j$.
+
+\paragraph{Chain rule again (loss $\leftarrow$ all scores $\leftarrow$ $\kappa$).} Changing $\kappa$ changes every score,
+so we add up over all keys:
+\[
+\frac{\partial\ell}{\partial\kappa}=\sum_j\frac{\partial\ell}{\partial s_j}\cdot\frac{\partial s_j}{\partial\kappa}
+=\sum_j\Big(-w\,A_j\,(\mathrm{hit}_j-f[y])\Big)\phi_j .
+\]
+Multiply by $-1$ (we want the direction that \emph{lowers} the loss):
+\[
+\boxed{\ -\frac{\partial\ell}{\partial\kappa}=w\sum_jA_j\,\big(\mathrm{hit}_j-f[y]\big)\,\phi_j\ }
+\]
+
+\section{Step 7: why this sum is a covariance}
+Treat the attention $A_j$ as probabilities: pick a random key $J$ with $\Pr(J=j)=A_j$. Then
+\begin{itemize}
+\item the average correctness is $\mathbb E[\mathrm{hit}_J]=\sum_jA_j\mathrm{hit}_j=f[y]$ (Step 3);
+\item the covariance of two quantities is $\mathrm{Cov}(X,Y)=\mathbb E\big[(X-\mathbb EX)(Y-\mathbb EY)\big]$.
+\end{itemize}
+Our sum is $\mathbb E\big[(\mathrm{hit}_J-f[y])\,\phi_J\big]$. It equals the covariance, because subtracting the mean of
+$\phi$ changes nothing:
+\[
+\mathbb E\big[(\mathrm{hit}_J-f[y])(\phi_J-\mathbb E\phi)\big]
+=\mathbb E\big[(\mathrm{hit}_J-f[y])\phi_J\big]-\mathbb E\phi\cdot\underbrace{\mathbb E\big[\mathrm{hit}_J-f[y]\big]}_{=f[y]-f[y]=0}.
+\]
+So, finally,
+\[
+\boxed{\ -\frac{\partial\ell}{\partial\kappa}=w\cdot\mathrm{Cov}_{J\sim A}\big(\mathrm{hit}_J,\ \phi_J\big)\ }
+\]
+and for the whole loss (the average over query positions $i$) we just average:
+$-\frac{\partial L}{\partial\kappa}=\frac1N\sum_iw_i\,\mathrm{Cov}_i(\mathrm{hit},\phi)$.
+
+\begin{idea}
+\textbf{Covariance $>0$}: the keys the weight lifts are more often correct than the current average,
+so gradient descent \textbf{increases} the weight. \textbf{Covariance $<0$}: it lifts mostly wrong keys,
+so gradient descent \textbf{decreases} it. The surprise $w\ge0$ never changes the sign; it only makes
+positions where the model is wrong count more.
+\end{idea}
+
+\section{A worked example}
+One query, 4 keys, $b[y]=0.01$:
+\begin{center}
+\begin{tabular}{ccccc}\toprule
+key $j$ & $A_j$ & $\mathrm{hit}_j$ & $\phi_j$ & $A_j(\mathrm{hit}_j-f[y])\phi_j$\\\midrule
+1 & 0.4 & 1 & 1 & $0.4\times0.5\times1=0.20$\\
+2 & 0.4 & 0 & 0 & $0$\\
+3 & 0.1 & 1 & 1 & $0.1\times0.5\times1=0.05$\\
+4 & 0.1 & 0 & 0 & $0$\\\bottomrule
+\end{tabular}
+\end{center}
+\begin{enumerate}
+\item $f[y]=0.4+0.1=0.5$ (Step 3).
+\item $w=1/(0.5+0.01)\approx1.96$.
+\item Sum of the last column $=0.25$, so $-\partial\ell/\partial\kappa\approx1.96\times0.25=0.49>0$: \textbf{raise} $\kappa$.
+\end{enumerate}
+Change the feature to $\phi=(0,1,0,1)$ (it now lifts the two wrong keys): the column becomes
+$0,\ 0.4\times(-0.5),\ 0,\ 0.1\times(-0.5)$, sum $-0.25$, so \textbf{lower} $\kappa$.
+
+\begin{quickcheck}
+(1) If every key has $\phi_j=1$, what is the covariance? (Hint: subtract the mean of $\phi$.) Why does that
+make sense --- what does raising $\kappa$ do to the attention if every score goes up by the same amount?\\
+(2) Where in the derivation did we use that layer 2 \emph{copies} tokens? (Hint: Step 5.)
+\end{quickcheck}
+
+\section{Why this matters for the rest of the project}
+For the state weight $c_2$, the feature is ``key $j$ has the same recovered state as me''.
+\begin{itemize}
+\item \textbf{After a noise token}, my recovered state \emph{is} the current state, so the lifted keys came after
+the current state: they are its successors, often correct. Covariance $>0$, so $c_2$ goes \textbf{up}.
+\item \textbf{After a signal token}, my recovered state is the \emph{previous} state, so the lifted keys are
+successors of the previous state: mostly wrong. Covariance $<0$, so $c_2$ goes \textbf{down}.
+\end{itemize}
+That is the tug-of-war of figure \texttt{f4}: one law, two opposite signs.
+\end{document}
