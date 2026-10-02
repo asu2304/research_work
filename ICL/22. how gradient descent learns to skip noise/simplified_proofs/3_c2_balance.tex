@@ -1,0 +1,194 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,booktabs,xcolor,tcolorbox}
+\newtcolorbox{idea}{colback=blue!4,colframe=blue!40,title=In plain words}
+\newtcolorbox{quickcheck}{colback=green!4,colframe=green!40!black,title=Quick check}
+\newcommand{\1}{\mathbf{1}}
+\title{Simplified proof 3: where the state weight $c_2$ settles\\[4pt]
+\large $c_2^\ast=\tfrac{b_2}{2}+\tfrac12\log\tfrac{1-\alpha}{\alpha}+0.514$ --- every step written out}
+\author{Folder 22 / simplified\_proofs --- companion to \texttt{proofs/2\_c2\_b2\_balance.pdf} and part (iv) of \texttt{proofs/7\_complete\_theorem.pdf}}
+\date{}
+\begin{document}\maketitle
+
+\begin{idea}
+$c_2$ is pulled in two directions. \textbf{After a noise token} it helps: it points attention at the
+successors of the current state. \textbf{After a real token} it hurts: it points attention at the
+successors of the \emph{previous} state, which are usually wrong. The help shrinks like $e^{-c_2}$; the harm
+grows like $e^{c_2-b_2}$. Gradient descent stops where they are equal. Solving ``help $=$ harm'' gives the
+formula. Noise enters because help happens at a fraction $1-\alpha$ of positions and harm at a fraction $\alpha$.
+\end{idea}
+
+\section{Step 0: the simplified situation we analyse (late training)}
+We study the moment after layer 1 has learned its job. Three simplifying assumptions:
+\begin{enumerate}
+\item \textbf{Layer 1 is perfect:} $r_t$ is exactly the one-hot vector of $\mathrm{pv}(t)$, the last signal token
+before $t$.
+\item \textbf{Layer 2 ignores noise keys} ($a_2$ very negative). Only signal keys get attention.
+\item \textbf{Long context:} every state has appeared many times. State $u$ produced a fraction $\pi_u$ of
+the signal keys (its long-run frequency), and of the keys produced by $u$, half are each of its two
+successors.
+\end{enumerate}
+In real training these are approximately true late on (layer 1 puts 95--99.9\% of its attention on the
+right token). Assumption 3 is the weakest when noise is dense; that is where the formula is least accurate.
+
+\section{Step 1: keys come in groups}
+Each signal key $j$ was emitted \emph{from} some state $u=\mathrm{pv}(j)$. Call that $j$'s \textbf{group}. By
+assumption 1, the two layer-2 features only look at groups:
+\[
+r_j[x_i]=\1[\mathrm{pv}(j)=x_i],\qquad \langle r_i,r_j\rangle=\1[\mathrm{pv}(j)=\mathrm{pv}(i)] .
+\]
+So all keys in the same group get the \textbf{same score}. Call it $\mathrm{score}(u)$.
+
+\section{Step 2: attention per group}
+If group $u$ has $n_u$ keys, each with weight $e^{\mathrm{score}(u)}$, the total attention on the group is
+\[
+w_u=\frac{n_u\,e^{\mathrm{score}(u)}}{\sum_{u'}n_{u'}e^{\mathrm{score}(u')}}
+=\frac{\pi_u\,e^{\mathrm{score}(u)}}{\sum_{u'}\pi_{u'}e^{\mathrm{score}(u')}}
+\]
+(divide top and bottom by the total number of signal keys; $n_u/\text{total}=\pi_u$).
+
+\section{Step 3: the prediction is a mix of groups}
+Group $u$'s keys are half one successor and half the other, so on average a group ``votes''
+$\mu_u=$ \emph{$\tfrac12$ on each successor of $u$, $0$ elsewhere}. The prediction is the mix
+\[
+f=\sum_uw_u\,\mu_u .
+\]
+\textbf{Key fact:} each group puts \textbf{at most $\tfrac12$} on any single token.
+
+\section{Step 4: only signal targets matter}
+Since layer 2 ignores noise keys, $f$ puts no mass on noise tokens. If the true next token is noise,
+the model's probability for it is $b_{\mathrm{noise}}/Z$, a constant that does not depend on $c_2$. So
+\textbf{only positions whose next token is a signal token} can change with $c_2$. For those, the loss is
+$\ell=-\log(f[y]+b)+\text{const}$, and (as in simplified proof 1)
+\[
+-\frac{d\ell}{dc_2}=\frac{1}{f[y]+b}\cdot\frac{d f[y]}{dc_2}.
+\]
+So we just need $\frac{df[y]}{dc_2}$ in the two situations.
+
+\section{Step 5: after a noise token, $c_2$ always helps}
+The query's own token is noise, so $\sigma_i=0$ and the $b_2$ term is off. Its recovered state is
+$s=\mathrm{pv}(i)$, which is the true current state (only noise came after it). So only group $s$ is
+boosted: $\mathrm{score}(s)=c_2$, every other group has score $0$. From Step 2:
+\[
+w_s=\frac{\pi_se^{c_2}}{\pi_se^{c_2}+(1-\pi_s)} .
+\]
+The target $y$ is a successor of $s$, so $\mu_s[y]=\tfrac12$. Write $m$ for the average vote of all the
+\emph{other} groups for $y$ (at most $\tfrac12$, by the key fact). Then
+\[
+f[y]=w_s\cdot\tfrac12+(1-w_s)\cdot m=m+w_s\big(\tfrac12-m\big).
+\]
+$w_s$ goes \textbf{up} when $c_2$ goes up, and $\tfrac12-m\ge0$, so $f[y]$ goes up.
+\textbf{After noise, a bigger $c_2$ never hurts.} (This part is exact; it needs no ``large $c_2$''.)
+
+\paragraph{How big is the help when $c_2$ is large?}
+\begin{itemize}
+\item $\frac{dw_s}{dc_2}=w_s(1-w_s)$ (the same softmax derivative as in proof 1), and when $w_s\approx1$ this is
+$\approx1-w_s$.
+\item $1-w_s=\frac{1-\pi_s}{\pi_se^{c_2}+1-\pi_s}\approx\frac{1-\pi_s}{\pi_s}\,e^{-c_2}$ when $\pi_se^{c_2}$ is large.
+\end{itemize}
+So
+\[
+\frac{df[y]}{dc_2}\approx\Big(\tfrac12-m\Big)\frac{1-\pi_s}{\pi_s}\,e^{-c_2}.
+\]
+\textbf{Tidying with one fact about Markov chains:} ``the long-run fraction of time in $y$'' equals
+``the chance that the next state is $y$'', i.e.\ $\sum_u\pi_u\mu_u[y]=\pi_y$. Removing group $s$'s share
+($\pi_s\cdot\tfrac12$): $(1-\pi_s)\,m=\pi_y-\tfrac12\pi_s$. Substituting,
+$\big(\tfrac12-m\big)(1-\pi_s)=\tfrac12(1-\pi_s)-\pi_y+\tfrac12\pi_s=\tfrac12-\pi_y$. Hence
+\[
+\boxed{\ \text{help after noise}\approx e^{-c_2}\cdot\frac{\tfrac12-\pi_y}{\pi_s}\cdot\frac1{\tfrac12+b}\ }
+\]
+It \textbf{shrinks like $e^{-c_2}$}: once $c_2$ is large, attention is already on the right group and
+little is left to gain. Averaging over which state $s$ and which successor $y$ (and the $\pi_s$ cancels)
+gives a number $A$ that depends only on the table:
+$A=\sum_s\big(\tfrac12-\tfrac{\pi_{y_1(s)}+\pi_{y_2(s)}}{2}\big)$.
+
+\section{Step 6: after a real token, $c_2$ mostly hurts}
+Now the query's token $v$ is a signal token, emitted from the previous state $s'$ (so $v$ is one of
+$s'$'s two successors; call the other one $w$). The target $y$ is a successor of $v$.
+\begin{itemize}
+\item The $b_2$ term boosts group $v$ (keys that came after $v$): the \textbf{right} group.
+\item The $c_2$ term boosts group $s'$ (the query's recovered state is $s'$): the \textbf{rival} group.
+Its votes go to $v$ and $w$, which are usually \emph{not} successors of $v$.
+\end{itemize}
+With $b_2$ large, group $v$ dominates and $f[y]\approx\tfrac12$.
+
+\paragraph{The main case: $y$ is not a successor of $s'$.} Then group $s'$ votes $0$ for $y$. Raising $c_2$
+shifts weight to group $s'$. As in proof 1, $\frac{df[y]}{dc_2}=w_{s'}\big(\mu_{s'}[y]-f[y]\big)=w_{s'}(0-\tfrac12)$,
+which is negative. And
+\[
+w_{s'}=\frac{\pi_{s'}e^{c_2}}{\pi_ve^{b_2}+\pi_{s'}e^{c_2}+\dots}\approx\frac{\pi_{s'}}{\pi_v}\,e^{c_2-b_2}.
+\]
+So
+\[
+\boxed{\ \text{harm after a real token}\approx e^{c_2-b_2}\cdot\tfrac12\,\frac{\pi_{s'}}{\pi_v}\cdot\frac1{\tfrac12+b}\ }
+\]
+It \textbf{grows like $e^{c_2-b_2}$}: the bigger $c_2$ gets relative to $b_2$, the more the rival group
+steals attention.
+
+\paragraph{The other cases are much smaller.} If $y$ happens to be a successor of $s'$, the rival votes
+$\tfrac12$ for it, about as much as the right group, so the effect is nearly $0$. If $v=s'$ (a self-loop),
+$c_2$ boosts the same group as $b_2$, and the effect is tiny once $b_2$ is large. Averaging the main case
+over $s'$, $v$ and $y$ gives a number $B$ that depends only on the table.
+
+\section{Step 7: add everything up}
+\begin{itemize}
+\item A position comes after noise with probability $1-\alpha$ and after a real token with probability $\alpha$.
+\item In both cases the next token is a signal token with probability $\alpha$ (Step 4: only those count).
+\end{itemize}
+So the total effect of raising $c_2$ (the common factor $\frac1{\frac12+b}$ dropped) is
+\[
+-\frac{dL}{dc_2}\ \propto\ \underbrace{(1-\alpha)\,\alpha\,A\,e^{-c_2}}_{\text{help, after noise}}
+\;-\;\underbrace{\alpha\cdot\alpha\,B\,e^{c_2-b_2}}_{\text{harm, after a real token}} .
+\]
+\begin{itemize}
+\item Small $c_2$: help $>$ harm, so gradient descent increases $c_2$.
+\item Large $c_2$: harm $>$ help, so gradient descent decreases $c_2$.
+\end{itemize}
+It settles in between, where they are equal.
+
+\section{Step 8: solve ``help $=$ harm''}
+\[
+(1-\alpha)\,\alpha\,A\,e^{-c_2}=\alpha^2B\,e^{c_2-b_2}.
+\]
+Divide both sides by $\alpha$ and by $B\,e^{-c_2}$:
+\[
+\frac{(1-\alpha)A}{\alpha B}=e^{c_2-b_2}\cdot e^{c_2}=e^{2c_2-b_2}.
+\]
+Take $\log$ of both sides:
+\[
+2c_2-b_2=\log\frac{1-\alpha}{\alpha}+\log\frac AB .
+\]
+Add $b_2$ and divide by 2:
+\[
+\boxed{\ c_2^\ast=\frac{b_2}{2}+\frac12\log\frac{1-\alpha}{\alpha}+\underbrace{\frac12\log\frac AB}_{\kappa}\ }
+\]
+Averaging $A$ and $B$ over all random tables gives $\mathbb E[A]=0.569$, $\mathbb E[B]=0.203$, so
+$\kappa=\frac12\log\frac{0.569}{0.203}=0.514$. $\kappa$ depends \textbf{only on how tables are drawn}, not on the noise.
+
+\section{Step 9: what each piece means}
+\begin{itemize}
+\item $\mathbf{b_2/2}$: $c_2$ must stay well below $b_2$, otherwise the rival beats the right group. Halfway is
+where the two exponentials balance.
+\item $\mathbf{\tfrac12\log\frac{1-\alpha}{\alpha}}$: the noise term. More noise means more positions where $c_2$
+helps, so $c_2$ is bigger. With little noise ($\alpha\to1$) this term goes to $-\infty$: no noise means no
+reason for $c_2$, and training indeed drives it to $\approx0$ at $\alpha=1$.
+\item $\boldsymbol\kappa$\textbf{ = 0.514}: a fixed property of the task.
+\end{itemize}
+
+\section{Step 10: does it match training?}
+Plug in the $b_2$ that gradient descent learned (Adam, step 1000):
+\begin{center}\begin{tabular}{lcccccc}\toprule
+$\alpha$ & 0.6 & 0.7 & 0.8 & 0.9 & 0.95 & 0.99\\\midrule
+$c_2$ learned by GD & 6.09 & 6.31 & 6.15 & 5.58 & 4.92 & 3.26\\
+formula & 6.11 & 6.30 & 6.11 & 5.52 & 4.85 & 3.24\\\bottomrule
+\end{tabular}\end{center}
+Within $0.07$. It is worse for dense noise ($\alpha=0.4$: off by $0.24$; $\alpha=0.2$: by $0.61$), where
+assumption 3 fails: a 100-token context holds only about 20 real tokens.
+
+\begin{quickcheck}
+(1) At $\alpha=0.5$ the noise term is $\tfrac12\log1=0$. What is $c_2^\ast$ if $b_2=10$?\\
+(2) Why does the harm in Step 6 need $b_2$ to be large, but the help in Step 5 does not need anything
+about $b_2$?\\
+(3) If noise were even rarer than $\alpha=0.99$, which way would $c_2^\ast$ move, and why?
+\end{quickcheck}
+\end{document}

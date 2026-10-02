@@ -1,0 +1,102 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,booktabs,xcolor,tcolorbox}
+\newtcolorbox{idea}{colback=blue!4,colframe=blue!40,title=In plain words}
+\newtcolorbox{quickcheck}{colback=green!4,colframe=green!40!black,title=Quick check}
+\title{Simplified proof 2: gating --- layer 2 must move first\\[4pt]\large every step written out}
+\author{Folder 22 / simplified\_proofs --- companion to \texttt{proofs/7\_complete\_theorem.pdf}, part (i)}
+\date{}
+\begin{document}\maketitle
+
+\begin{idea}
+At the start of training all five numbers are zero. We show that layer 1 (the numbers $p$ and $a_1$)
+gets \textbf{exactly zero} gradient until layer 2's induction weight $b_2$ or state weight $c_2$ has
+become nonzero. Reason: layer 1's output only reaches the loss \emph{through} $b_2$ and $c_2$. If
+both are zero, layer 1 is unplugged from the loss.
+\end{idea}
+
+\section{Step 1: what layer 1 can change}
+Layer 1's numbers $p$ (recency) and $a_1$ (noise veto) enter only the layer-1 scores
+\[
+s^{(1)}_{ij}=-p\,(i-j)+a_1\,\nu_j ,
+\]
+which become attention $A^{(1)}_{ij}$ (softmax), which become layer 1's output
+\[
+r_i=\sum_jA^{(1)}_{ij}\,e_{x_j}.
+\]
+So $p$ and $a_1$ can affect the loss \textbf{only by changing the vectors $r_i$}.
+
+\section{Step 2: where $r$ appears in layer 2}
+Layer 2's score is
+\[
+s^{(2)}_{ij}=a_2\,\nu_j\;+\;b_2\,\sigma_i\,r_j[x_i]\;+\;c_2\,\langle r_i,r_j\rangle .
+\]
+Look at each of the three terms:
+\begin{itemize}
+\item $a_2\,\nu_j$: uses only whether key $j$ is noise. \textbf{No $r$ here.}
+\item $b_2\,\sigma_i\,r_j[x_i]$: contains $r_j$, \textbf{multiplied by $b_2$}.
+\item $c_2\,\langle r_i,r_j\rangle$: contains $r_i$ and $r_j$, \textbf{multiplied by $c_2$}.
+\end{itemize}
+After the scores, everything else (attention, the prediction $f$, the loss) uses the scores only. So
+$r$ reaches the loss \emph{only} through the second and third terms.
+
+\section{Step 3: the chain rule}
+How does the loss change if we change $p$ a little? Follow the path
+$p\ \to\ r\ \to\ $scores$\ \to\ $loss:
+\[
+\frac{\partial L}{\partial p}=\sum_{i,j}\frac{\partial L}{\partial s^{(2)}_{ij}}\cdot\frac{\partial s^{(2)}_{ij}}{\partial p}.
+\]
+Now differentiate the score with respect to $p$. The first term has no $r$, so its derivative is 0. The
+other two give
+\[
+\frac{\partial s^{(2)}_{ij}}{\partial p}
+=b_2\,\sigma_i\,\frac{\partial r_j[x_i]}{\partial p}
++c_2\Big(\Big\langle\frac{\partial r_i}{\partial p},r_j\Big\rangle+\Big\langle r_i,\frac{\partial r_j}{\partial p}\Big\rangle\Big)
+\]
+(the last bracket is the product rule for the dot product $\langle r_i,r_j\rangle$). Put it back:
+\[
+\frac{\partial L}{\partial p}
+=b_2\underbrace{\sum_{i,j}\frac{\partial L}{\partial s^{(2)}_{ij}}\,\sigma_i\frac{\partial r_j[x_i]}{\partial p}}_{=:\,U_p}
+\;+\;c_2\underbrace{\sum_{i,j}\frac{\partial L}{\partial s^{(2)}_{ij}}\Big(\Big\langle\tfrac{\partial r_i}{\partial p},r_j\Big\rangle+\Big\langle r_i,\tfrac{\partial r_j}{\partial p}\Big\rangle\Big)}_{=:\,W_p}.
+\]
+Exactly the same steps with $a_1$ in place of $p$ give $U_{a_1}$ and $W_{a_1}$. Together:
+\[
+\boxed{\ \nabla_{(p,a_1)}L=b_2\,U+c_2\,W\ }
+\]
+
+\section{Step 4: what $U$ and $W$ are, and why their values do not matter}
+$U$ and $W$ are just the long sums above. They depend on all five numbers, including $p$ and $a_1$
+themselves. That is fine. What matters is that $b_2$ and $c_2$ sit \emph{outside} as multipliers.
+
+Analogy: $g(x)=b\cdot U(x)$. However complicated $U(x)$ is, if $b=0$ then $g=0$ for every $x$.
+
+\section{Step 5: what this means for training}
+\begin{enumerate}
+\item At initialisation all five numbers are $0$, so $b_2=c_2=0$ and the layer-1 gradient is exactly $0$.
+\item The first update therefore changes only layer 2: $a_2$, $b_2$, $c_2$ (their gradients are not
+zero; the covariance law gives them).
+\item After that step $b_2,c_2\neq0$, so layer 1 starts receiving gradient and moves from the
+\textbf{second} step on.
+\end{enumerate}
+\textbf{Seen in training} (Adam, every $\alpha<1$): after step 1 the numbers are
+$(p,a_1,a_2,b_2,c_2)=(0,\ 0,\ -0.096,\ 0.096,\ 0.096)$. Layer 1 has not moved; layer 2 has. In folder
+18's bigger model the layer-1 gradient at step 0 is exactly $0.0$, every entry.
+
+\section{Step 6: one more consequence (no noise)}
+If $\alpha=1$ there are no noise tokens, so $\nu_j=0$ for every key. Then $a_1$ (in $a_1\nu_j$) and $a_2$ (in
+$a_2\nu_j$) multiply zero everywhere, their gradients are always $0$, and they stay exactly $0$ for the
+whole of training. That is what the $\alpha=1$ runs show.
+
+\begin{idea}
+Layer 1 is like a microphone plugged into an amplifier whose volume knobs are $b_2$ and $c_2$. With
+both knobs at zero, nothing you do at the microphone reaches the speaker, so there is nothing to learn
+from. Training first turns the knobs up a little (layer 2), and only then can the microphone (layer 1)
+learn.
+\end{idea}
+
+\begin{quickcheck}
+(1) If we started training with $b_2=1$ but $c_2=0$, would layer 1 get gradient at step 0? Through
+which term?\\
+(2) Why does $a_2$ \emph{not} appear as a multiplier in front of $U$ or $W$?
+\end{quickcheck}
+\end{document}
