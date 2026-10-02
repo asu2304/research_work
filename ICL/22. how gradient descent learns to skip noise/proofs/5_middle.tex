@@ -1,0 +1,63 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,booktabs,hyperref}
+\newtheorem{proposition}{Proposition}
+\theoremstyle{remark}\newtheorem{remark}{Remark}
+\title{The middle stage: a straight line, then the first turn}
+\author{Folder 22 --- drafted 2026-10-03; predictions checked against GD}
+\date{}
+\begin{document}\maketitle
+
+\paragraph{In one sentence.} Under Adam the middle of training is a straight line in parameter
+space whose direction is fixed by the proved start signs; along it layer 1 learns to skip exactly
+one noise token; the line ends at the first gradient sign change, which is predicted to within one
+step --- by the recency slope $p$ under dense noise, by the state weight $c_2$ under sparse noise.
+
+\section{Sign descent}
+Adam's update is $\eta\,\hat m_k/(\sqrt{\hat v_k}+\epsilon)$; while a coordinate's gradient keeps its sign
+and changes slowly, this is $\approx\eta\,\mathrm{sign}(-g)$ per step ($\eta=1$ raw $=1/\sqrt{108}=0.096$
+logits). \textbf{[measured]} On GD's trajectories every coordinate moves at $0.77$--$1.05$ of this rate
+up to step $\approx15$--$20$ (\texttt{e20}; the $0.77$ at step 3 is Adam's bias-corrected warm-up).
+
+The start signs are proved: layer 2 first, with $(a_2,b_2,c_2)$ moving $(-,+,+)$ (covariance law;
+\texttt{4\_pull\_sign.pdf} for $b_2$), then layer 1 one step later with $(p,a_1)$ moving $(+,-)$
+(\texttt{3\_skip\_seed.pdf}). Hence the predicted path
+\[
+\theta_{\mathrm{SD}}(k)=\eta\,\big(\,k-1,\ -(k-1),\ -k,\ k,\ k\,\big)\qquad(\alpha<1).
+\]
+
+\begin{proposition}[exact along the line]
+On $\theta_{\mathrm{SD}}$, $p=|a_1|$, so the skip horizon $H=1+|a_1|/p=2$: a signal key at distance
+$d$ beats a noise key at distance 1 iff $d<2$. Layer 1 can skip exactly one noise token.
+\end{proposition}
+\textbf{[measured]} GD's horizon is $1.90$--$2.00$ for every $\alpha$ until step $\approx15$--$20$.
+
+\section{The first turn}
+Walking $\theta_{\mathrm{SD}}(k)$ and evaluating the full-batch gradient at each $k$ (no GD involved),
+the first coordinate whose descent direction disagrees with its start sign is (\texttt{e20}):
+\begin{center}\begin{tabular}{lcccccc}\toprule
+$\alpha$ & 0.2 & 0.4 & 0.6 & 0.8 & 0.9 & 1.0\\\midrule
+predicted & $p$ @10 & $p$ @15 & $c_2$ @20, $p$ @21 & $c_2$ @12 & $c_2$ @9 & $c_2$ @7\\
+GD's own gradient & $p$ @11 & $p$ @16 & $c_2$ @21, $p$ @22 & $c_2$ @13 & $c_2$ @10 & $c_2$ @8\\\bottomrule
+\end{tabular}\end{center}
+Correct parameter at every $\alpha$, one step early throughout (GD's first steps are shorter than full
+sign steps). Later sign changes are not predicted (the path is no longer straight).
+
+\paragraph{Why $p$ turns under dense noise.} With $H$ stuck at $2$, every position whose last signal
+is more than one noise token back is mis-recovered; with dense noise these are most positions, so
+recency starts to hurt and $p$ reverses, letting $|a_1|$ outrun $p$. Under sparse noise $H=2$ already
+covers almost every position, $p$ keeps growing, and the first turn is instead $c_2$ braking: its
+post-signal pull (which flips at $k=4$--$7$ on the line, at layer-1 state mass $0.18$--$0.63$,
+increasing with $\alpha$) overtakes its post-noise pull.
+
+\section{After the line: the horizon grows}
+\textbf{[measured]} After the first turn $a_1$ keeps moving at full rate while $p$ slows (or reverses),
+so $H$ grows: at $\alpha=0.2$ from 2 (step 15) to 15 (step 50); at $\alpha=0.9$ from 2 (step 20) to 3.2
+(step 200). This joins the end-stage picture (cliff-shaped horizon, README E13--E14).
+
+\section{Status and caveats}
+\textbf{Exact:} $H=2$ on the line. \textbf{Computed, not proved:} the location of the first turn (evaluated
+on the line, matches GD $\pm1$ step). \textbf{Optimizer-specific:} the straight line is a property of
+Adam's sign-like steps; plain gradient descent would follow the gradient's magnitudes and the middle
+would look different. The start and end results do not depend on this.
+\end{document}

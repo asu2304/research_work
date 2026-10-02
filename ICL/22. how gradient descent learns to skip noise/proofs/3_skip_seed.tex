@@ -1,0 +1,92 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,booktabs,hyperref}
+\newtheorem{theorem}{Theorem}\newtheorem{corollary}{Corollary}
+\theoremstyle{remark}\newtheorem{remark}{Remark}
+\newcommand{\1}{\mathbf{1}}
+\title{How the skip is seeded:\\ the first direction layer 1 moves in}
+\author{Folder 22 --- drafted 2026-10-03, checked numerically}
+\date{}
+\begin{document}\maketitle
+
+\paragraph{In one sentence.} The moment layer 2's induction weight $b_2$ turns positive, layer 1
+is pushed towards \emph{recency} ($p\uparrow$) and towards \emph{vetoing noise} ($a_1\downarrow$),
+and the veto push is almost exactly (noise fraction)$\times$(strength of the initial induction
+signal).
+
+\section{Setting}
+Five-number model of \texttt{1\_exact\_statements.pdf}. At $\theta=0$ both layers attend uniformly (strict causal
+mask; position 0 attends to itself), so layer 1 writes the prefix histogram
+$r_j=h_j:=\frac1j\sum_{k<j}e_{x_k}$, layer 2 predicts $f_i=h_i$, and
+$w_i=1/(f_i[y_i]+b[y_i])$. Let $\bar\nu_j$ be the noise fraction of $x_{<j}$, $\sigma_i=\1[x_i$ signal$]$,
+$\mathrm{hit}_{ij}=\1[x_j=y_i]$, and $\mathrm{Cov}_j$ the covariance over keys $j<i$ under the
+uniform weights.
+
+By the gating proposition, $\nabla_{(p,a_1)}L=b_2U(\theta)+c_2W(\theta)$; to first order near
+$\theta=0$, layer 1's gradient is $b_2U_0+c_2W_0$ with $U_0=U(0)$, $W_0=W(0)$ fixed by the data.
+
+\section{The seed}
+\begin{theorem}[exact]
+\[
+-U_0^{(a_1)}=-\frac1N\sum_i w_i\sigma_i\,\mathrm{Cov}_j\big(\mathrm{hit}_{ij},\ \bar\nu_j\,h_j[x_i]\big),
+\qquad
+-U_0^{(p)}=\frac1N\sum_i w_i\sigma_i\,\mathrm{Cov}_j\big(\mathrm{hit}_{ij},\ \mathrm{rec}_j(x_i)\big),
+\]
+with $\mathrm{rec}_j(v)=-\frac1j\sum_{k<j}\big((j-k)-\bar d_j\big)\1[x_k=v]$, $\bar d_j=(j+1)/2$:
+how much $v$ sits \emph{recently} in $x_{<j}$.
+\end{theorem}
+\begin{proof}
+$U_0=\partial_{b_2}\nabla_{(p,a_1)}L|_0$. Only the term $b_2\sigma_ir_j[x_i]$ of $s^{(2)}_{ij}$ carries
+$b_2$, so $U_0=\sum_{ij}\partial_{s^{(2)}_{ij}}\ell|_0\,\sigma_i\,\partial_{(p,a_1)}r_j[x_i]|_0$
+(the term with $\partial_{b_2}\partial_s\ell$ multiplies $\partial_{(p,a_1)}s^{(2)}=0$ at $b_2=c_2=0$).
+From the covariance law, $\partial_{s_{ij}}\ell_i|_0=-w_i\frac1{n_i}(\mathrm{hit}_{ij}-f_i[y_i])$.
+Differentiating the layer-1 softmax at $0$:
+$\partial_{a_1}r_j=\frac1j\sum_{k<j}(\nu_k-\bar\nu_j)e_{x_k}$, whose signal coordinates are
+$-\bar\nu_j h_j[v]$; and $\partial_pr_j[v]=\mathrm{rec}_j(v)$. Substitute.
+\end{proof}
+
+\paragraph{Reading.} Raising $a_1$ (less veto) shrinks the signal part of every key's layer-1
+output by its prefix noise fraction; the loss cares only through the induction match
+$h_j[x_i]$. So the veto is pulled exactly to the extent that ``key $j$ is a correct answer''
+correlates with the noise-weighted induction feature.
+
+\begin{corollary}[veto $\approx$ noise $\times$ induction]
+If every key's prefix had the same noise fraction $\bar\nu$, then exactly
+\[
+-U_0^{(a_1)}=-\bar\nu\cdot\Big(-\frac{\partial L}{\partial b_2}\Big|_0\Big),
+\]
+the noise fraction times the initial induction pull. In the data $\bar\nu_j$ varies only through
+finite-sample fluctuation around $1-\alpha$.
+\end{corollary}
+
+\section{Checks (\texttt{e16}, \texttt{e17})}
+Formula vs.\ autograd (mixed second derivative at $\theta=0$): equal to 4 significant digits for both
+components at all $\alpha\in[0.2,0.99]$. The corollary:
+\begin{center}\begin{tabular}{lcccccccc}\toprule
+$\alpha$ & 0.2 & 0.4 & 0.5 & 0.6 & 0.7 & 0.8 & 0.9 & 0.99\\\midrule
+$-U_0^{(a_1)}$ ($\times10^{-4}$) & $-0.89$ & $-5.83$ & $-9.26$ & $-11.7$ & $-13.3$ & $-12.6$ & $-8.81$ & $-1.22$\\
+$-\bar\nu\cdot$ pull ($\times10^{-4}$) & $-1.33$ & $-6.49$ & $-9.89$ & $-12.1$ & $-13.2$ & $-12.2$ & $-8.10$ & $-1.04$\\
+$-U_0^{(p)}$ ($\times10^{-2}$) & $+0.19$ & $+1.08$ & $+1.83$ & $+2.72$ & $+3.87$ & $+5.14$ & $+6.56$ & $+8.27$\\\bottomrule
+\end{tabular}\end{center}
+Recency is pushed up at every $\alpha$, and noise is vetoed at every $\alpha<1$ (exactly $0$ at
+$\alpha=1$). The veto push peaks near $\alpha\approx0.7$: it vanishes with no noise ($\bar\nu=0$) and
+with almost no signal (no induction to protect). The $c_2$ channel $W_0$ points the same way except
+its veto component at $\alpha=0.2$ ($+1.1\times10^{-5}$, eight times smaller than the $b_2$ channel).
+Under Adam the first layer-1 step is a sign step, $(+0.072,-0.07)$ at every $\alpha<1$, consistent
+with these signs.
+
+\section{Where this sits in the whole story}
+\begin{itemize}
+\item \textbf{Start (exact):} gating; then this seed --- the induction head, the moment it exists,
+pulls layer 1 towards recency and, in proportion to the noise, towards vetoing noise.
+\item \textbf{End (leading order):} where $c_2$ settles (\texttt{2\_c2\_b2\_balance.pdf}), when $b_2$
+settles or drifts (same file, \S6); layer 1 has no finite optimum and sits at a cliff-shaped
+horizon (README E13--E14).
+\item \textbf{Middle (measured, not proved):} layer 1 localises; the post-signal pull on $c_2$ flips
+at that moment (E2, and in folder 18, E7).
+\end{itemize}
+\textbf{Sign of the induction pull:} now proved at leading order in the context length for every
+table of this family, with equality exactly for uninformative tables (\texttt{4\_pull\_sign.pdf}).
+\textbf{Not proved:} finite-context error bounds; the error of the corollary's
+approximation (2--15\% for $\alpha\ge0.3$, 33\% at $\alpha=0.2$).
+\end{document}

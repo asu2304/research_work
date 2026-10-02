@@ -1,0 +1,127 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,booktabs,hyperref,enumitem}
+\newtheorem{theorem}{Theorem}
+\theoremstyle{definition}\newtheorem{assumption}{Assumption}
+\theoremstyle{remark}\newtheorem{remark}{Remark}
+\newcommand{\1}{\mathbf{1}}
+\title{Headline theorem (draft): how gradient descent learns to skip noise}
+\author{Folder 22 --- draft of 2026-10-03. Every part is labelled with its proof status.}
+\date{}
+\begin{document}\maketitle
+
+\section*{In plain words}
+A two-layer attention model must predict the next token of a Markov chain whose tokens are
+interleaved with random noise tokens (noise density $1-\alpha$); the Markov state can lie any number
+of noise tokens back. Starting from zero, gradient descent (i) must first build layer 2;
+(ii) always switches on an induction head; (iii) that induction head immediately pushes layer 1 to
+look at recent tokens and to ignore noise, with a strength proportional to the amount of noise;
+(iv) once layer 1 finds the state, the weight that uses it settles at an explicit,
+noise-dependent value $c_2^\ast=\tfrac{b_2}2+\tfrac12\log\tfrac{1-\alpha}\alpha+\kappa$;
+(v) the induction weight itself stops growing exactly when noise is dense enough that a token's
+successor has often not yet been seen.
+
+\section{Setting and assumptions}
+\begin{assumption}[A0: model]
+The five-parameter attention model $\theta=(p,a_1,a_2,b_2,c_2)$ of \texttt{1\_exact\_statements.pdf}: two
+strictly causal softmax attention layers, copy readout ($W_{ov}=I$ on tokens), fixed readout bias $b$,
+cross-entropy on the scored window. Scores: layer 1 $-p(i-j)+a_1\nu_j$; layer 2
+$a_2\nu_j+b_2\sigma_ir_j[x_i]+c_2\langle r_i,r_j\rangle_S$.
+\end{assumption}
+\begin{assumption}[A1: data]
+Signal tokens $S=\{0,1,2,3\}$; each sequence draws a table giving every state two distinct
+successors uniformly, each taken with probability $\tfrac12$; each step emits a successor w.p.\
+$\alpha\in(0,1]$ or a uniform noise token from $\{4,\dots,7\}$ w.p.\ $1-\alpha$.
+\end{assumption}
+\begin{assumption}[A2: long context]
+Statements marked ``leading order'' hold as the context length $T\to\infty$ (scored positions
+$i\to\infty$), with the population loss.
+\end{assumption}
+\begin{assumption}[A3: late regime, part (iv) only]
+Layer 1 recovers the state exactly ($r_t=e_{\mathrm{pv}(t)}$), noise keys are fully vetoed
+($a_2\to-\infty$), and $c_2\gg1$, $b_2-c_2\gg1$.
+\end{assumption}
+
+\section{The theorem}
+\begin{theorem}[How gradient descent learns to skip noise]\label{thm}
+Under A0--A1, training from $\theta=0$:
+\begin{enumerate}[label=(\roman*),leftmargin=2em]
+\item \textbf{Layer 2 first.} For every $\theta$, $\nabla_{(p,a_1)}L=b_2\,U(\theta)+c_2\,W(\theta)$. In
+particular layer 1 receives no gradient until $b_2$ or $c_2$ is nonzero.
+
+\item \textbf{The induction head always switches on.} Under A2,
+$-\partial L/\partial b_2\big|_{\theta=0}=\kappa_T\,\alpha^3\,S(\alpha)\,(1+o(1))$ with $\kappa_T>0$ and
+\[
+S(\alpha)=\sum_y\frac{C_y}{\alpha\pi_y+b_{\mathrm{sig}}},\qquad C_y=\sum_v\pi_v^2P(v,y)(Z-I)(v,y)\ \ge0,
+\]
+($\pi,P,Z$: stationary law, transition matrix, fundamental matrix of the table's recurrent class).
+$S=0$ if and only if every state of the class has the same successor set.
+
+\item \textbf{The induction head seeds the skip.} To first order in $(b_2,c_2)$ near $0$, layer 1
+descends along $-(b_2U_0+c_2W_0)$, with $U_0,W_0$ given by explicit covariance formulas. Under A2 its
+veto component satisfies
+\[
+-U_0^{(a_1)}=-(1-\alpha)\cdot\Big(-\frac{\partial L}{\partial b_2}\Big|_0\Big)\,(1+o(1))\ <0
+\qquad(0<\alpha<1,\ \text{informative tables}),
+\]
+so the first layer-1 motion vetoes noise, with strength (noise fraction)$\times$(induction pull).
+
+\item \textbf{Where the state weight settles.} Under A2--A3, $\partial L/\partial c_2=0$ at
+\[
+c_2^\ast=\frac{b_2}{2}+\frac12\log\frac{1-\alpha}{\alpha}+\kappa,\qquad
+\kappa=\tfrac12\log\frac{\mathbb E[A]}{\mathbb E[B]}=0.514,
+\]
+with $A,B$ explicit functions of the table (\texttt{2\_c2\_b2\_balance.pdf}) and $\kappa$ independent of
+$\alpha$. After a noise token $c_2$ always helps (exact under A3 without the regime condition);
+at $\alpha=1$ there is no such term and $c_2$ is driven to $\le0$.
+
+\item \textbf{The skip keeps growing (persistence).} \emph{Gain lemma (exact):} all noise keys
+share the extra score $a_1$, so the split of layer-1 attention among signal keys does not depend on
+$a_1$; the signal part of layer 1's output is $(1-m_j)\tilde r_j$ with $\tilde r_j$ independent of
+$a_1$ and $\partial m_j/\partial a_1=m_j(1-m_j)$. Hence the veto acts only as a per-position gain on
+layer 2's induction and state features, concentrated on positions at the skip cliff.
+\emph{Criterion (verified, not yet proved):} if layer 1's split points at the last signal
+($p\ge2$) and $c_2\le c_2^\ast(b_2)$ of part (iv), then $\partial L/\partial a_1>0$: the veto keeps
+strengthening. Gradient descent stays in this region, so the veto strengthens at every step of training.
+
+\item \textbf{When the induction weight settles.} For finite context and $b_2\to\infty$ (with $c_2$
+fixed), $\partial_{b_2}\mathbb E\ell=e^{-b_2}(K_{\mathrm{cost}}-K_{\mathrm{gain}})+o(e^{-b_2})$; the
+optimal $b_2$ is finite iff $K_{\mathrm{cost}}>K_{\mathrm{gain}}$, where $K_{\mathrm{cost}}$ is driven by
+targets whose successor has not yet appeared after the current token.
+\end{enumerate}
+\end{theorem}
+
+\section{Proof status of each part}
+\begin{center}\small
+\begin{tabular}{p{1.1cm}p{4.3cm}p{4.6cm}p{4.2cm}}\toprule
+part & status & evidence & gap to close\\\midrule
+(i) & \textbf{exact}, any optimizer & bit-exact zero layer-1 gradient at step 0 (folders 18, 22) & none \\
+(ii) & leading order in $T$; sign by \textbf{exact enumeration} of all 1296 tables & no table negative; 216 zeros $=$ uninformative; per-shape Spearman 0.80 vs data & error bound in $T$; analytic proof of $C_y\ge0$ beyond this family \\
+(iii) & formula \textbf{exact}; factorisation leading order (prefix noise fraction $\to1-\alpha$ by LLN) & formula $=$ autograd to 4 digits; product within 2--15\% ($\alpha\ge0.3$) & bound the $o(1)$; recency sign $-U_0^{(p)}>0$ is only measured \\
+(iv) & leading order under A3 & GD's $c_2$ within $0.07$ ($\alpha\in[0.6,0.99]$, Adam), $0.1$--$0.3$ (plain GD, still approaching); tracks along training & error bounds; justify A3 (layer-1 state mass $0.95$--$0.999$ in training); fails for $\alpha\le0.4$ \\
+(v) persistence & gain lemma \textbf{exact} ($1.8\times10^{-7}$); criterion verified & veto strengthens at all 44,946 training steps (Adam + plain GD, all $\alpha$); random localised below-balance points: $0/274$, $0/219$, $0/196$ weakenings at $\alpha=0.6,0.8,0.9$; $1/271$ at $0.4$; $10/294$ at $0.2$ & leading-order proof: compute the cliff-weighted state term as in (iv) and show help $\ge$ harm below balance \\
+(vi) & expansion \textbf{exact}; criterion evaluated on data & settled $b_2$ within $0.1$--$0.4$ of count model; same values under Adam and plain GD & monotonicity of $K_{\mathrm{cost}}/K_{\mathrm{gain}}$ in $\alpha$ is measured, not proved \\
+\bottomrule\end{tabular}\end{center}
+
+\section{What the theorem does not claim}
+\begin{itemize}
+\item Anything about the \textbf{middle} of training (when layer 1 localises). Under Adam that stage is
+a predictable straight line (\texttt{5\_middle.pdf}); under plain GD it is not. It is reported as an
+experiment, not a theorem.
+\item The \textbf{skip-horizon law} ($\alpha H\approx4$ at step 1000 for $\alpha\le0.6$, both optimizers):
+measured only.
+\item Convergence of gradient descent to a global optimum. Layer 1 and, under sparse noise, $b_2$ have
+no finite optimum; they drift on flat directions.
+\item Anything beyond the copy readout (A0). The five-number reduction is justified separately:
+symmetry (exact), projection of the 10,060-entry solution (loss within 0.0013), transfer of the
+$c_2$ tug-of-war to folder 18 (E7).
+\end{itemize}
+
+\section{Remark on (iii) following from (ii)}
+The exact veto formula is $-U_0^{(a_1)}=-\frac1N\sum_iw_i\sigma_i\mathrm{Cov}_j(\mathrm{hit}_{ij},\bar\nu_jh_j[x_i])$ and
+the induction pull is the same expression with $\bar\nu_j$ removed. Writing
+$\bar\nu_j=(1-\alpha)+\delta_j$ with $\delta_j=O_P(j^{-1/2})$ separates the main term
+$(1-\alpha)\times$pull; the remainder involves $\mathrm{Cov}(\mathrm{hit},\delta_jh_j)$, which is of
+smaller order in $T$ (the step that still needs a written bound). With (ii), the main term is
+strictly negative for $0<\alpha<1$ and every informative table.
+\end{document}

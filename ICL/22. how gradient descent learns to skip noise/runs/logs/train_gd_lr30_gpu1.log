@@ -1,0 +1,12 @@
+  alpha=0.3 step     0 train 2.10527 test 2.10517 theta [0. 0. 0. 0. 0.]  (1s)
+  alpha=0.3 step     1 train 1.94362 test 1.94298 theta [ 0.000e+00  0.000e+00 -4.164e+00  1.500e-02  1.000e-03]  (1s)
+  alpha=0.3 step    10 train 1.94288 test 1.94224 theta [ 0.221 -0.029 -4.282  0.301  0.068]  (1s)
+  alpha=0.3 step  1000 train 1.85464 test 1.85484 theta [  1.809 -23.202  -6.755   6.666   3.931]  (70s)
+  alpha=0.3 step  2000 train 1.85345 test 1.85373 theta [  2.094 -28.991  -7.943   6.684   3.868]  (140s)
+[done] alpha=0.3 final theta [  2.2613 -32.7823  -8.7639   6.7016   3.842 ] test 1.85325 ideal 1.78921  (3.5 min) -> /home/hariguru/ashutosh/ICL/22. how gradient descent learns to skip noise/runs/gd_lr30/traj_x_0.3.npz
+  alpha=0.7 step     0 train 1.92713 test 1.92577 theta [0. 0. 0. 0. 0.]  (0s)
+  alpha=0.7 step     1 train 1.83522 test 1.83419 theta [ 0.     0.    -3.593  0.132  0.014]  (0s)
+  alpha=0.7 step    10 train 1.63195 test 1.63125 theta [ 2.957 -0.879 -3.722  4.974  2.251]  (1s)
+  alpha=0.7 step  1000 train 1.56478 test 1.56445 theta [  4.389 -17.74   -5.777  13.345   6.666]  (70s)
+  alpha=0.7 step  2000 train 1.56426 test 1.56393 theta [  4.52  -21.399  -6.273  13.965   6.904]  (140s)
+[done] alpha=0.7 final theta [  4.8682 -23.5471  -6.5842  14.4385   7.0532] test 1.56375 ideal 1.51196  (3.5 min) -> /home/hariguru/ashutosh/ICL/22. how gradient descent learns to skip noise/runs/gd_lr30/traj_x_0.7.npz

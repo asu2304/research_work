@@ -1,0 +1,181 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,booktabs,hyperref}
+\newtheorem{proposition}{Proposition}
+\newtheorem{theorem}{Theorem}
+\theoremstyle{remark}\newtheorem{remark}{Remark}
+\newcommand{\1}{\mathbf{1}}
+\title{Where the state weight settles:\\ $c_2^\ast = \tfrac{b_2}{2}+\tfrac12\log\tfrac{1-\alpha}{\alpha}+\kappa$}
+\author{Folder 22 --- drafted 2026-10-03, every step checked numerically}
+\date{}
+\begin{document}\maketitle
+
+\paragraph{In one sentence.} Once layer 1 finds the last signal token, the state weight $c_2$ is
+pulled up by positions after noise (gain $\propto(1-\alpha)e^{-c_2}$) and down by positions after
+signal (cost $\propto\alpha\,e^{c_2-b_2}$); setting the two equal gives the formula in the title,
+with a constant $\kappa$ that depends only on how transition tables are drawn.
+
+\section{Setting and assumptions}
+Five-number model of \texttt{1\_exact\_statements.pdf}. We study the loss as a function of $c_2$ with $b_2$
+given, under four assumptions:
+\begin{description}
+\item[(A1) perfect layer 1:] $r_t=e_{\mathrm{pv}(t)}$, the one-hot of the last signal token before $t$.
+\item[(A2) noise vetoed:] $a_2\to-\infty$; only signal keys receive attention.
+\item[(A3) long context:] a signal key $j$ is labelled by its source state $u=\mathrm{pv}(j)$; state $u$
+supplies a fraction $\pi_u$ of the signal keys (its long-run frequency in this sequence), and its
+keys split evenly between its two successors. Write $\mu_u$ = uniform on $\mathrm{succ}(u)$. By
+stationarity, $\sum_u\pi_u\mu_u[y]=\pi_y$.
+\item[(A4) regime:] $c_2\gg1$ and $b_2-c_2\gg1$ (both are $\approx6$ in trained models for
+$\alpha\ge0.6$).
+\end{description}
+Under (A1)--(A3) layer 2 attends to source-state \emph{groups}: the prediction is the mixture
+$f=\sum_u w_u\mu_u$ with $w_u\propto\pi_u e^{\text{score}(u)}$, where at a query $i$
+\[
+\text{score}(u)=b_2\,\1[x_i\text{ signal},\,u=x_i]+c_2\,\1[u=\mathrm{pv}(i)].
+\]
+A noise target's loss $-\log(b_{\mathrm{noise}}/Z)$ does not depend on $c_2$ ($f$ has no noise mass
+and $Z=1+\1^\top b$ is constant), so only signal targets $y$ matter, with loss
+$\ell=-\log\big((f[y]+b_{\mathrm{sig}})/Z\big)$ and $-\partial_{c_2}\ell=\partial_{c_2}f[y]/(f[y]+b_{\mathrm{sig}})$.
+
+\section{After a noise token: $c_2$ always helps}
+\begin{proposition}[exact under A1--A3, any $c_2$]
+At a post-noise query with state $s$ and signal target $y\in\mathrm{succ}(s)$, $f[y]$ is
+nondecreasing in $c_2$, strictly unless every other visited state also has $y$ as a successor.
+\end{proposition}
+\begin{proof}
+Only group $s$ is boosted: $w_s=\pi_se^{c_2}/(\pi_se^{c_2}+1-\pi_s)$, increasing in $c_2$.
+$f[y]=w_s\cdot\tfrac12+(1-w_s)\,m$ with $m=\sum_{u\ne s}\pi_u\mu_u[y]/(1-\pi_s)\le\tfrac12$ because
+every $\mu_u[y]\le\tfrac12$. So $f[y]=m+w_s(\tfrac12-m)$ with $\tfrac12-m\ge0$.
+\end{proof}
+\paragraph{Leading order (A4).} $1-w_s\approx\frac{1-\pi_s}{\pi_s}e^{-c_2}$, and using stationarity
+$\sum_{u\ne s}\pi_u\mu_u[y]=\pi_y-\pi_s/2$,
+\[
+-\partial_{c_2}\ell\;\approx\;\frac{e^{-c_2}}{\tfrac12+b_{\mathrm{sig}}}\cdot\frac{\tfrac12-\pi_y}{\pi_s}.
+\]
+Averaging over $s\sim\pi$ and $y\sim\mu_s$ (the $\pi_s$ cancels):
+\[
+\text{gain per post-noise position with signal target}=\frac{A\,e^{-c_2}}{\tfrac12+b_{\mathrm{sig}}},\qquad
+A=\sum_{s\ \text{visited}}\Big(\tfrac12-\tfrac{\pi_{y_1(s)}+\pi_{y_2(s)}}2\Big).
+\]
+
+\section{After a signal token: $c_2$ mostly hurts}
+At a post-signal query the token is $v$, emitted from the previous state $s'$, so
+$v\in\mathrm{succ}(s')=\{v,w\}$; the target is $y\in\mathrm{succ}(v)$. Group $v$ gets $e^{b_2}$,
+group $s'$ gets $e^{c_2}$.
+\begin{itemize}
+\item $v\neq s'$, $y\notin\mathrm{succ}(s')$: $\partial_{c_2}f[y]=w_{s'}(\mu_{s'}[y]-f[y])$ with
+$\mu_{s'}[y]=0$ and $f[y]\approx\tfrac12$, $w_{s'}\approx\frac{\pi_{s'}}{\pi_v}e^{c_2-b_2}$. So
+$\partial_{c_2}\ell\approx\frac{1}{\tfrac12+b_{\mathrm{sig}}}\cdot\tfrac12\frac{\pi_{s'}}{\pi_v}e^{c_2-b_2}>0$.
+\item $v\neq s'$, $y\in\mathrm{succ}(s')$: $\mu_{s'}[y]-f[y]=\tfrac12-f[y]=O(e^{-b_2})$, so this case
+is $O(e^{c_2-2b_2})$: lower order.
+\item $v=s'$ (a self-loop): $c_2$ adds to $b_2$ on the same group; its effect is
+$O(e^{-b_2-c_2})$: lower order.
+\end{itemize}
+\[
+\text{cost per post-signal position with signal target}=\frac{B\,e^{c_2-b_2}}{\tfrac12+b_{\mathrm{sig}}},\quad
+B=\tfrac12\sum_{s'}\pi_{s'}\!\!\sum_{v\in\mathrm{succ}(s'),\,v\ne s'}\!\!\tfrac12\,\tfrac{\pi_{s'}}{\pi_v}\,
+\Pr_{y\sim\mu_v}\!\big(y\notin\mathrm{succ}(s')\big).
+\]
+
+\section{The balance}
+A position is post-noise with probability $1-\alpha$ and post-signal with probability $\alpha$; in
+both cases the target is a signal token with probability $\alpha$. Neither $A$ nor $B$ depends on
+$\alpha$ (noise never changes the state, so $\pi$ does not depend on $\alpha$).
+
+\begin{theorem}[balance point, leading order under A1--A4]
+Averaged over tables, $\partial_{c_2}L=0$ at
+\[
+\boxed{\,c_2^\ast=\frac{b_2}{2}+\frac12\log\frac{1-\alpha}{\alpha}+\kappa,\qquad
+\kappa=\frac12\log\frac{\mathbb E[A]}{\mathbb E[B]}\,}
+\]
+and $\kappa$ depends only on the table distribution, not on $\alpha$.
+\end{theorem}
+\begin{proof}
+$(1-\alpha)\,\alpha\,\mathbb E[A]\,e^{-c_2}=\alpha\,\alpha\,\mathbb E[B]\,e^{c_2-b_2}$; the factor
+$1/(\tfrac12+b_{\mathrm{sig}})$ cancels. Solve for $c_2$. The left side decreases and the right side
+increases in $c_2$, so the crossing is unique.
+\end{proof}
+
+\section{Checks}
+\begin{itemize}
+\item $\kappa$ from the table distribution alone (all $6^4=1296$ tables, long simulated chains,
+\texttt{e9\_kappa\_theory.py}): $\mathbb E[A]=0.569$, $\mathbb E[B]=0.203$, $\kappa=0.514$.
+\item Prediction vs.\ the $c_2$ gradient descent actually learned, using GD's own $b_2$
+(step 1000):
+\begin{center}\begin{tabular}{lcccccc}\toprule
+$\alpha$ & 0.6 & 0.7 & 0.8 & 0.9 & 0.95 & 0.99\\\midrule
+GD $c_2$ & 6.09 & 6.31 & 6.15 & 5.58 & 4.92 & 3.26\\
+predicted & 6.11 & 6.30 & 6.11 & 5.52 & 4.85 & 3.24\\\bottomrule\end{tabular}\end{center}
+Error $\le0.07$ logits. It fails for dense noise: $-0.24$ at $\alpha=0.4$, $-0.61$ at $\alpha=0.2$,
+where (A3) fails (few signal tokens per state in a 100-token context) and (A4) fails
+($c_2\approx3$, $b_2\approx5$).
+\item It holds \emph{during} training, once layer 1 works: at $\alpha=0.8$, steps 50/100/500/1000
+give $2.06/3.05/5.29/6.15$ against predicted $2.06/3.02/5.19/6.11$.
+\item The idealised loss scan (\texttt{e8b\_ideal\_vs\_gd.py}) finds the minimiser of the
+\emph{exact} idealised loss within $0.25$ of GD's $c_2$ at every $\alpha$, including $\alpha=1$
+($-0.25$ vs $-0.14$).
+\end{itemize}
+
+\section{What sets $b_2$ (empirical, not derived)}
+In the same idealised model on the real 100-token data, with $c_2$ re-optimised for every $b_2$
+(\texttt{e10b\_b2\_profile.py}): the loss falls steeply until a knee at $b_2\approx7$--$11$ and is
+flat beyond it (from $14$ to $40$ it changes by less than $2\times10^{-4}$ nats). For dense noise
+($\alpha\le0.4$) there is a finite optimum ($b_2\approx6$--$8$; larger values are slightly
+overconfident, since each state has few examples in context), and GD sits at it. For
+$\alpha\ge0.6$ there is no finite target: GD's $b_2$ is past the knee and grows like
+$k\log t$ ($k=1.7$--$2.9$), so its value at any step reflects training time. Through the theorem,
+$c_2$ grows at half that rate. The knee location and the dense-noise optimum remain to be derived.
+
+\section{Why $b_2$ settles under dense noise and drifts otherwise}
+Only post-signal positions depend on $b_2$. Keep layer 1 perfect and noise vetoed, but now
+count \emph{finitely many} in-context examples. At a post-signal position with token $v$, previous
+state $s'$ and target $y\in\mathrm{succ}(v)$, let group $v$ hold $n$ keys of which $k$ are $y$; the
+background (all other signal keys, with the rival group $s'$ weighted by $e^{c_2}$) has total weight
+$R$ of which a fraction $g$ is $y$. With $t=e^{b_2}$,
+\[
+f_y=\frac{tk+Rg}{tn+R},\qquad \frac{\partial f_y}{\partial t}=\frac{R\,(k-ng)}{(tn+R)^2}.
+\]
+\begin{proposition}[large-$b_2$ expansion; exact algebra]
+As $t\to\infty$, $\ \partial_{b_2}\mathbb E[\ell]=\frac1t\,(K_{\mathrm{cost}}-K_{\mathrm{gain}})+o(1/t)$ with
+\[
+K_{\mathrm{gain}}=\mathbb E\Big[\1\{k>0\}\,\frac{R}{n^2}\,\frac{k-ng}{k/n+b_{\mathrm{sig}}}\Big],\qquad
+K_{\mathrm{cost}}=\mathbb E\Big[\1\{k=0\}\,\frac{R\,g}{n\,b_{\mathrm{sig}}}\Big].
+\]
+Hence if $K_{\mathrm{cost}}>K_{\mathrm{gain}}$ the loss eventually \emph{rises} in $b_2$ and the best
+$b_2$ is finite; if $K_{\mathrm{cost}}<K_{\mathrm{gain}}$ it keeps falling and there is no finite best.
+\end{proposition}
+\begin{proof}
+For $k>0$: $f_y\to k/n$ and $\partial_{b_2}\ell=-t\,\partial_tf_y/(f_y+b)\approx-\frac{R(k-ng)}{t\,n^2\,(k/n+b)}$.
+For $k=0$: $f_y=Rg/(tn+R)\to0$ and $\partial_{b_2}\ell=\frac{tRng}{(tn+R)^2(f_y+b)}\approx\frac{Rg}{t\,n\,b}$
+once $Rg/(tn)\ll b$. Average.
+\end{proof}
+\paragraph{Reading.} Trusting the in-context successors more helps when the target has already
+been seen after $v$ ($k>0$) and hurts when it has not ($k=0$); the readout floor $b_{\mathrm{sig}}$ is
+the only thing that protects an unseen successor, so the cost carries a factor $1/b_{\mathrm{sig}}$.
+Dense noise means few signal tokens, small $n$, and frequent unseen targets ($12.9\%$ at
+$\alpha=0.2$, $0.8\%$ at $\alpha=0.6$, $0.2\%$ at $\alpha=1$; \texttt{e11}).
+
+\paragraph{Checks} (\texttt{e12b\_b2\_with\_c2.py}; real counts, $c_2$ at GD's value; no attention computed):
+\begin{center}\begin{tabular}{lccccccccc}\toprule
+$\alpha$ & 0.2 & 0.3 & 0.4 & 0.5 & 0.6 & 0.7 & 0.8 & 0.9 & 0.99\\\midrule
+$K_{\mathrm{cost}}/K_{\mathrm{gain}}$ & 12.65 & 5.88 & 4.16 & 2.32 & 1.24 & 0.78 & 0.51 & 0.29 & 0.26\\
+best $b_2$ (exact count model) & 5.25 & 7.00 & 8.50 & 10.25 & 12.75 & $\infty$ & $\infty$ & $\infty$ & $\infty$\\
+GD $b_2$, step 1000 & 4.84 & 6.68 & 8.39 & 10.01 & 11.60 & 12.42 & 12.58 & 12.21 & 10.05\\
+GD growth per $e$-fold & 0.06 & 0.04 & 0.19 & 0.78 & 1.73 & 2.37 & 2.68 & 2.85 & 2.39\\\bottomrule
+\end{tabular}\end{center}
+Where GD has settled ($\alpha\le0.5$) the count model is within $0.1$--$0.4$; where the criterion
+says ``no finite best'' ($\alpha\ge0.7$) GD drifts like $\log t$; at $\alpha=0.6$ (ratio $1.24$, just
+above 1) GD is still climbing towards $12.75$. Dropping $c_2$ from the count model (\texttt{e12})
+keeps the trend but moves the switch to $\alpha\approx0.75$ and underestimates $b_2$ by 2--4: the
+rival group matters for the numbers.
+
+\section{What this does and does not explain}
+\textbf{Explains:} why $c_2>0$ exactly when there is noise; how it scales with noise
+($\tfrac12\log\frac{1-\alpha}{\alpha}$); why it tracks $b_2/2$ throughout training; the inverted-U
+of $c_2$ across $\alpha$ (it inherits $b_2$'s shape, shifted by the noise term).
+
+\textbf{Does not explain:} $b_2$ itself (it is taken as given); the dense-noise regime
+$\alpha\le0.4$; anything before layer 1 has learned to find the state. (A1)--(A3) are idealisations,
+and the leading-order expansions are not yet bounded rigorously --- the error terms are stated, not
+controlled.
+\end{document}

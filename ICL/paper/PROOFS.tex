@@ -117,6 +117,89 @@ f_t=\sum_{u<t}a^{(2)}_{t,u}\,e_{v_u}.
 $S^{(2)}$, never through the value path. This is exactly what makes Lemma~\ref{lem:step0}(i) work.
 \end{quote}
 
+\subsection{Standing assumptions}\label{sec:assume}
+
+Everything proved below is conditional on the following. \textbf{Only $W^{(1)}_{qk}$ and
+$W^{(2)}_{qk}$ are free}; every other parameter is fixed.
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+object & status & form \\
+\midrule
+$W^{(1)}_{qk}$ ($d\times d$)   & \textbf{free} & initialised to $0$ exactly \\
+$W^{(2)}_{qk}$ ($2d\times 2d$) & \textbf{free} & initialised to $0$ exactly \\
+$W^{(1)}_{ov}$ & frozen & $[0{:}V,0{:}V]=I$, zero elsewhere \\
+$W^{(2)}_{ov}$ & frozen & $[0{:}V,0{:}V]=I$, zero elsewhere \\
+readout bias $b$ & frozen & two constants from $\alpha$ (Section~\ref{sec:bias}) \\
+unembedding & absent & no logarithm, no output softmax \\
+causal mask & strict & a position cannot attend to itself \\
+optimiser & plain GD / gradient flow & experiments use Adam; see Lemma~\ref{lem:step1} \\
+block sparsity & \textbf{not assumed} & all $58{,}320$ $W_{qk}$ entries free \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Trainable is not the same as analysed.}
+\textbf{Both query--key matrices are free in their entirety} --- all $11{,}664$ entries of
+$W^{(1)}_{qk}$ and all $46{,}656$ of $W^{(2)}_{qk}$, $58{,}320$ in total. No block-sparsity
+constraint is imposed anywhere in what follows. What is restricted is not which entries may
+\emph{move} but which entries a statement is \emph{made about}:
+
+\begin{center}
+\begin{tabular}{@{}lr@{}}
+\toprule
+ & entries \\
+\midrule
+free to move & $58{,}320$ \\
+carrying a statement (Statements~\ref{st:a} and \ref{st:b}) & $32$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The remaining $58{,}288$ entries move as well; no claim is made about where they go.
+
+Proving the result for the unrestricted matrix is deliberately \emph{stronger} than proving it
+under a mask: the claim is that even with every entry free, the first gradient step prefers the
+in-context direction to the in-weights one. Assuming the folder-18 mask would beg the question,
+since that mask already deletes most in-weights capacity. The honest shape of the result is
+therefore \textbf{unrestricted model, partial claim} --- not restricted model, complete claim.
+
+\paragraph{Which assumption carries which result.}
+These are load-bearing, not cosmetic.
+
+\begin{itemize}[nosep]
+\item \textbf{Lemma~\ref{lem:step0}(i) depends entirely on $W^{(2)}_{ov}$ being frozen.} In
+principle $h$ reaches the loss by two routes: the scores (via $W^{(2)}_{qk}$) and the values (via
+$W^{(2)}_{ov}$). The score route carries $W^{(2)}_{qk}$ as a factor and dies at zero
+initialisation. The value route would not --- except that the frozen $W^{(2)}_{ov}$ is zero on all
+of its $h$-half rows, so $h$ never enters the value path at all. Sequential layer formation is
+therefore \emph{a consequence of freezing $W^{(2)}_{ov}$}, not a general property of two-layer
+transformers. With $W^{(2)}_{ov}$ trainable and nonzero there, layer 1 would receive gradient at
+step $0$ and the lemma would be false.
+\item \textbf{Lemma~\ref{lem:step0}(ii), Section~\ref{sec:bias}, and
+Statements~\ref{st:a}--\ref{st:b}} all use $\sum_wf_t[w]=1$, which holds because a frozen selector
+$W^{(2)}_{ov}$ makes $f$ a convex combination of one-hots. That identity is what collapses the
+bracket in Step 3 of the proof.
+\end{itemize}
+
+\paragraph{The two freezes are not on equal footing.}
+$W^{(1)}_{ov}=I$ is a \emph{gauge choice and is without loss of generality}: layer 1's output
+carries a $GL(d)$ freedom, and any invertible $A$ can be absorbed as $h\mapsto hA$ with a
+compensating transform on the $h$-blocks of $W^{(2)}_{qk}$ (verified: CE change exactly
+$0.00\mathrm{e}{+}00$). $W^{(2)}_{ov}=I$ admits \emph{no} such compensating transform and is a
+\textbf{genuine restriction}. The results above are conditional on it and it cannot be argued
+away.
+
+\paragraph{Discrepancy with the trained runs.}
+The analysis uses the unmasked gradient; the trained models of folder 18 impose a block-sparsity
+mask allowing layer 2 only $[0{:}8,0{:}8]$, $[0{:}4,108{:}112]$ and $[108{:}112,108{:}112]$. The
+signal corners of $P$, $Q$ and $C$ lie inside it, so Statements~\ref{st:a}--\ref{st:b} concern
+entries the trained model really has. $G_R$'s slice $[108{:}112,0{:}4]$ does \textbf{not}, so the
+block carrying $46.2\%$ of the unconstrained step-$0$ gradient is pinned to zero in every trained
+run, which nonetheless reaches CE $1.698$. Whether $R$ is redundant with $Q$ and $C$ or the models
+are constrained away from a useful direction is open; one \texttt{--blocks full} run settles it.
+
 \paragraph{Readout.}
 A plain renormalisation against a fixed bias --- no unembedding, no logarithm, no softmax:
 \begin{equation}\label{eq:readout}
@@ -227,6 +310,11 @@ zero, not small.
 %=====================================================================
 \section{The block decomposition}
 
+\textbf{Everything in this section and in Sections~\ref{sec:a}--\ref{sec:b} refers to
+$W^{(2)}$, the layer-2 combined query--key matrix.} Layer 1 does not appear: by
+Lemma~\ref{lem:step0}(i) its gradient is identically zero at initialisation, so there is nothing
+to decompose there until step~1.
+
 Split $W^{(2)}$ into four $d\times d$ blocks matching $x^{(2)}=[x;h]$:
 \begin{equation}
 W^{(2)}=\begin{bmatrix}P&Q\\R&C\end{bmatrix},\qquad
@@ -236,17 +324,80 @@ W^{(2)}=\begin{bmatrix}P&Q\\R&C\end{bmatrix},\qquad
 +\underbrace{h_tRx_u^\top}_{\text{cross}}
 +\underbrace{h_tCh_u^\top}_{\text{state}\times\text{state}} .
 \end{equation}
-Restricting to the signal sub-blocks and reading off \eqref{eq:g2}, for $v,w\in\Sig$:
+Write $G_P,G_Q,G_R,G_C$ for the corresponding blocks of the descent direction
+$-\partial L/\partial W^{(2)}$ of \eqref{eq:g2}. The outer product
+$x^{(2)}_t\otimes x^{(2)}_u=[x_t;h_t]\otimes[x_u;h_u]$ factorises, so each block is
+\eqref{eq:g2} with one query-side and one key-side factor selected:
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+ & key side $x_u$ (the key's \emph{symbol}) & key side $h_u$ (the key's \emph{context}) \\
+\midrule
+query side $x_t$ (my symbol)  & $G_P$ \; $\1[v_u{=}w]$ & $G_Q$ \; $m_u[w]$ \\
+query side $h_t$ (my context) & $G_R$ \; $\1[v_u{=}w]$ & $G_C$ \; $m_u[w]$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Concrete indices.}
+Each block is $d\times d$, \emph{not} $V_s\times V_s$. Recall that $x_t$ stacks a
+$V$-dimensional symbol one-hot on a $T$-dimensional position one-hot. Only the first $V$
+coordinates are symbols, and only the first $V_s$ of those are signal symbols, so every quantity
+analysed below is a \emph{signal corner}. At $V=8$, $T=100$, $d=108$:
+
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+symbol & slice of $W^{(2)}$ & contracts & role \\
+\midrule
+$G_P[v,w]$ & $[0{:}4,\;0{:}4]$        & $x_t\otimes x_u$ & bigram / in-weights \\
+$G_Q[v,w]$ & $[0{:}4,\;108{:}112]$    & $x_t\otimes h_u$ & induction / in-context \\
+$G_R[v,w]$ & $[108{:}112,\;0{:}4]$    & $h_t\otimes x_u$ & context $\times$ symbol \\
+$G_C[v,w]$ & $[108{:}112,\;108{:}112]$& $h_t\otimes h_u$ & state $\times$ state \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The offset $108=d$ is where the $h$ half of $x^{(2)}$ begins.
+
+\medskip\noindent
+At zero initialisation $h_t=m_t$, so restricting to the signal sub-blocks, for $v,w\in\Sig$ and
+with $\kappa_{t,u}:=\bigl(\1[v_u{=}y_t]-m_t[y_t]\bigr)$ the common coefficient of \eqref{eq:g2}:
 \begin{align}
-G_P[v,w]&\propto\sum_t\1[v_t{=}v]\,\frac{\omega_t}{t}
-\sum_{u<t}\bigl(\1[v_u{=}y_t]-m_t[y_t]\bigr)\,\1[v_u{=}w],
+G_P[v,w]&\propto\sum_t\1[v_t{=}v]\,\frac{\omega_t}{t}\sum_{u<t}\kappa_{t,u}\,\1[v_u{=}w],
 \label{eq:GP}\\
-G_Q[v,w]&\propto\sum_t\1[v_t{=}v]\,\frac{\omega_t}{t}
-\sum_{u<t}\bigl(\1[v_u{=}y_t]-m_t[y_t]\bigr)\,m_u[w].
-\label{eq:GQ}
+G_Q[v,w]&\propto\sum_t\1[v_t{=}v]\,\frac{\omega_t}{t}\sum_{u<t}\kappa_{t,u}\,m_u[w],
+\label{eq:GQ}\\
+G_R[v,w]&\propto\sum_t m_t[v]\,\frac{\omega_t}{t}\sum_{u<t}\kappa_{t,u}\,\1[v_u{=}w],
+\label{eq:GR}\\
+G_C[v,w]&\propto\sum_t m_t[v]\,\frac{\omega_t}{t}\sum_{u<t}\kappa_{t,u}\,m_u[w].
+\label{eq:GC}
 \end{align}
-The outer product $x^{(2)}_t\otimes x^{(2)}_u$ supplies $\1[v_t{=}v]$ on the query side; on the key
-side it supplies $\1[v_u{=}w]$ for the $P$ block and $h_u[w]=m_u[w]$ for the $Q$ block.
+Only the query-side factor distinguishes $G_P$ from $G_R$, and $G_Q$ from $G_C$: the hard
+indicator $\1[v_t{=}v]$ is replaced by the soft weight $m_t[v]$.
+
+\paragraph{Scope of what follows.}
+Sections~\ref{sec:a} and \ref{sec:b} analyse $G_P$ and $G_Q$, the two blocks whose query side is
+the current symbol. $G_C$ shares $G_Q$'s key-side structure, so the argument of Section~\ref{sec:b} is
+expected to carry over with $\1[v_t{=}v]$ replaced by $m_t[v]$; this is not written out.
+
+\textbf{$G_R$ is not covered, and this is a gap.} Measured at $\alpha=0.6$ (4000 sequences,
+exact full-batch gradient at zero initialisation), $G_R$ carries $46.2\%$ of
+$\lVert\partial L/\partial W^{(2)}\rVert^2$ --- essentially tied with $G_P$'s $46.4\%$ --- and its
+diagonal contrast $+2.006\times10^{-4}$ is the \emph{largest positive} of any block, twice
+$G_Q$'s. Like $G_Q$ and $G_C$ it is an in-context mechanism (its query side reads the context, not
+the current symbol), so it belongs on the same side of the dichotomy, but Section~\ref{sec:b}
+does not treat it.
+
+\paragraph{Why $G_Q$ is numerically tiny.}
+$G_Q$ holds only $0.107\%$ of the gradient norm. The reason is structural and is the same
+obstacle Section~\ref{sec:b} must overcome: $G_Q$ weights key $u$ by $h_u=m_u$, a prefix average
+that varies slowly in $u$, while $\sum_{u<t}\kappa_{t,u}=0$ by construction. The leading term
+therefore cancels, and what survives is exactly the correlation between $\kappa_{t,u}$ and the
+fluctuation of $m_u$ --- the three-point correlation of Section~\ref{sec:b}. By contrast $G_R$
+carries $h_t$ on the \emph{query} side, constant across the inner sum, so it factors out and no
+cancellation occurs.
 
 \begin{center}
 \begin{tabular}{@{}l>{\raggedright\arraybackslash}p{6.1cm}>{\raggedright\arraybackslash}p{5.4cm}@{}}
@@ -517,7 +668,11 @@ CE at zero initialisation & $2.039121$ & matches the unigram closed form \\
 $\lVert\nabla_{W^{(1)}}L\rVert$ at zero init & $0.000\mathrm{e}{+}00$ exactly & Lemma~\ref{lem:step0}(i) \\
 $G_P$ diag $-$ off-diag & $-1.475\times10^{-4}$ & Statement~\ref{st:a}, sign \\
 $G_Q$ diag $-$ off-diag & $+9.621\times10^{-5}$ & Statement~\ref{st:b}, sign \\
+$G_R$ diag $-$ off-diag & $+2.006\times10^{-4}$ & largest; not analysed \\
 $G_C$ diag $-$ off-diag & $+9.804\times10^{-6}$ & \\
+$\lVert g\rVert^2$ share: $G_P$ / $G_R$ & $46.4\%$ / $46.2\%$ & the two dominant blocks \\
+$\lVert g\rVert^2$ share: $G_Q$ / $G_C$ & $0.107\%$ / $0.0012\%$ & see Section~5 \\
+$\lVert g\rVert^2$ share: $h$-position half & $0.0000\%$ & exactly zero ($W_{ov1}$ frozen) \\
 $\cos(G_Q,\text{construction})$ & $+0.8670$ & random baseline $0.0099$ \\
 $\cos(G_C,\text{construction})$ & $+0.8737$ & \\
 self-successor rate & $49.95\%$ vs $2/V_s=50\%$ & Fact~\ref{fact:unif} \\
@@ -541,6 +696,8 @@ each.
 \item \textbf{Statement~\ref{st:b}} (Section~\ref{sec:b}). Needs the mixing bound over a random
 $2$-out graph.
 \item \textbf{Lemma~\ref{lem:step2}}.
+\item \textbf{Cover $G_R$.} It carries as much gradient mass as $G_P$ and the largest positive
+diagonal contrast of any block, yet no statement is made about it.
 \item \textbf{Scope.} The phase transition is measured on the $V=20$ models with a trained
 unembedding and a log-plus-softmax readout; the dynamics above are for $V=8$ with the fixed
 readout. These must be unified --- either replicate the transition at $V=8$, or re-derive the

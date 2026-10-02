@@ -1,0 +1,311 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,booktabs,hyperref,enumitem}
+\newtheorem{theorem}{Theorem}\newtheorem{lemma}{Lemma}\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\theoremstyle{definition}\newtheorem{assumption}{Assumption}\newtheorem{definition}{Definition}
+\theoremstyle{remark}\newtheorem{remark}{Remark}
+\newcommand{\1}{\mathbf{1}}\newcommand{\E}{\mathbb E}
+\title{How gradient descent learns to skip noise:\\ the complete theorem and its proofs}
+\author{Folder 22 --- 2026-10-03. Each statement is exact or an exact limit; computational\\
+steps and numerical checks are identified as such.}
+\date{}
+\begin{document}\maketitle
+
+\section*{How to read this}
+Every part of the theorem is either \textbf{exact} (holds for every parameter value and data set)
+or an \textbf{exact limit} (holds as the context length $T\to\infty$, or in a stated regime of the
+weights). Limits are proved; explicit finite-$T$ error constants are not given. Section~6 reports how
+large the finite-$T$ corrections are at $T=100$. One step is \textbf{computer-assisted} (exact
+rational enumeration of all $1296$ transition tables).
+
+\section{Setting}
+\paragraph{Data (A1).} Signal tokens $S=\{0,1,2,3\}$, noise tokens $N=\{4,\dots,7\}$. Each sequence draws a
+table: every $s\in S$ gets two distinct successors, chosen uniformly, each used w.p.\ $\tfrac12$; $P$ is
+the resulting $4\times4$ transition matrix. The first state is uniform. Each step emits, w.p.\ $\alpha$,
+a successor of the current state (which becomes the state), otherwise a uniform noise token (state
+unchanged). $\nu_t=\1[x_t\in N]$, $\sigma_t=1-\nu_t$, $\mathrm{pv}(t)$ = last signal token strictly
+before $t$, $\mathrm{st}(t)$ = last signal token at or before $t$ (the state generating $y_t=x_{t+1}$).
+
+\paragraph{Model (A0).} $\theta=(p,a_1,a_2,b_2,c_2)$. Strictly causal attention (keys $j<i$; position 0
+attends to itself):
+\[
+s^{(1)}_{ij}=-p(i-j)+a_1\nu_j,\quad r_i=\textstyle\sum_jA^{(1)}_{ij}e_{x_j};\qquad
+s^{(2)}_{ij}=a_2\nu_j+b_2\sigma_ir_j[x_i]+c_2\langle r_i,r_j\rangle_S,\quad f_i=\textstyle\sum_jA^{(2)}_{ij}e_{x_j},
+\]
+$A=\mathrm{softmax}_j(s)$, $\langle u,v\rangle_S=\sum_{v\in S}u_vv_v$, prediction $q_i=(f_i+b)/(1+\1^\top b)$ with
+fixed $b$ ($b_{\mathrm{sig}}$ on signal, $b_{\mathrm{noise}}$ on noise), loss $\ell_i=-\log q_i[y_i]$, and
+$L_T=$ the mean of $\E\ell_i$ over the scored window $W_T=[T/2,T)$. This is folder 19's model written
+in its five scalars (identical loss and gradients, \texttt{e0}). Write $w_i=1/(f_i[y_i]+b[y_i])$.
+
+\paragraph{Table quantities.} For a recurrent class $\mathcal C$ of $P$: stationary law $\pi$, fundamental matrix
+$Z=(I-P+\1\pi^\top)^{-1}$, $D=Z-I$, and
+\[
+C_y=\sum_{v\in\mathcal C}\pi_v^2P(v,y)D(v,y),\qquad S(\alpha)=\sum_{y\in\mathcal C}\frac{C_y}{\alpha\pi_y+b_{\mathrm{sig}}}.
+\]
+$\E[S]$ averages over tables and over the class a sequence is absorbed into.
+
+\section{The theorem}
+\begin{theorem}[How gradient descent learns to skip noise]\label{thm}
+Let $0<\alpha<1$ and train from $\theta=0$.
+\begin{enumerate}[label=(\roman*),leftmargin=2em]
+\item \textbf{Layer 2 moves first} [exact]. For all $\theta$: $\nabla_{(p,a_1)}L_T=b_2U+c_2W$. Layer 1 receives
+no gradient while $b_2=c_2=0$.
+
+\item \textbf{The induction head always switches on} [exact limit + computer-assisted sign].
+\[
+\lim_{T\to\infty}\frac{T}{\log T}\Big(-\frac{\partial L_T}{\partial b_2}\Big|_{\theta=0}\Big)=2\ln2\;\alpha^3\,\E[S(\alpha)],
+\]
+and for every table and class $C_y\ge0$ for all $y$ (hence $S\ge0$ for all $\alpha$ and $b_{\mathrm{sig}}>0$), with
+$S=0$ iff all states of the class share one successor set.
+
+\item \textbf{The induction head seeds the skip} [exact limits]. Near $\theta=0$, layer 1 descends along
+$-(b_2U_0+c_2W_0)$ with $U_0=U(0)$, and
+\[
+\lim_{T\to\infty}\frac{-U_0^{(a_1)}}{-\partial_{b_2}L_T|_0}=-(1-\alpha),\qquad
+\lim_{T\to\infty}\big(-U_0^{(p)}\big)=\tfrac{\alpha^3}{2}\,\E[S(\alpha)]\ \ge0 .
+\]
+The first layer-1 motion is towards recency and towards vetoing noise, the veto in proportion to the
+noise fraction.
+
+\item \textbf{Where the state weight settles} [exact asymptotics]. Let $L_\infty(c_2;b_2)$ be the
+$T\to\infty$ loss with layer 1 exact ($r_t=e_{\mathrm{pv}(t)}$) and noise keys vetoed ($a_2=-\infty$). Then
+$\partial_{c_2}L_\infty<0$ on post-noise positions for every $c_2$, and as $b_2\to\infty$ the stationary
+point satisfies
+\[
+c_2^\ast(b_2)-\frac{b_2}2\ \longrightarrow\ \frac12\log\frac{1-\alpha}{\alpha}+\kappa,\qquad
+\kappa=\frac12\log\frac{\E[A]}{\E[B]}\quad(=0.514),
+\]
+with $A,B$ defined in \S4.4; $\kappa$ does not depend on $\alpha$.
+
+\item \textbf{The skip keeps growing} [exact reduction + exact asymptotics]. (a) For all $\theta$, the
+split of layer-1 attention among signal keys does not depend on $a_1$, and
+$\partial_{a_1}L_T=\sum_jm_j(1-m_j)\,\Gamma_j$ where $m_j$ is layer 1's noise mass at $j$ and $\Gamma_j$ is the
+loss decrease per unit gain of position $j$'s signal output. (b) In the regime of (iv) (layer-1 split
+exact, $T\to\infty$, $b_2\to\infty$) with $c_2\to\infty$ and $c_2\le c_2^\ast(b_2)$: $\Gamma_j>0$ for every position
+with $0<m_j<1$. Hence $\partial_{a_1}L>0$ and gradient descent keeps strengthening the veto.
+
+\item \textbf{When the induction weight settles} [exact expansion]. For finite $T$, with layer 1 exact,
+noise vetoed and $c_2$ fixed, $\partial_{b_2}\E\ell=e^{-b_2}(K_{\mathrm{cost}}-K_{\mathrm{gain}})+o(e^{-b_2})$ as
+$b_2\to\infty$, with $K_{\mathrm{cost}},K_{\mathrm{gain}}$ in \S4.6. The optimal $b_2$ is finite iff
+$K_{\mathrm{cost}}>K_{\mathrm{gain}}$.
+\end{enumerate}
+\end{theorem}
+
+\section{Lemmas}
+\begin{lemma}[covariance law; exact]\label{lem:cov}
+For a layer-2 coefficient $\kappa\in\{a_2,b_2,c_2\}$ with feature $\phi_{ij}=\partial s^{(2)}_{ij}/\partial\kappa$, and
+more generally for any parameter $\lambda$ entering only through $s^{(2)}$,
+\[
+-\frac{\partial\ell_i}{\partial\lambda}=w_i\sum_jA^{(2)}_{ij}\big(\1[x_j=y_i]-f_i[y_i]\big)\frac{\partial s^{(2)}_{ij}}{\partial\lambda}
+= w_i\,\mathrm{Cov}_{j\sim A^{(2)}_i}\Big(\1[x_j=y_i],\frac{\partial s^{(2)}_{ij}}{\partial\lambda}\Big).
+\]
+\end{lemma}
+\begin{proof}
+$\partial f_i/\partial s^{(2)}_{ij}=A^{(2)}_{ij}(e_{x_j}-f_i)$; since $\1^\top f_i=1$ the normaliser of $q_i$ is constant,
+so $\partial\ell_i/\partial f_i=-w_ie_{y_i}$. Chain rule; $f_i[y_i]=\sum_jA^{(2)}_{ij}\1[x_j=y_i]$ makes the sum a covariance.
+\end{proof}
+
+\begin{lemma}[gain lemma; exact]\label{lem:gain}
+Let $m_j=\sum_{k:\nu_k=1}A^{(1)}_{jk}$. Then $(r_j)_S=(1-m_j)\tilde r_j$ where
+$\tilde r_j=\sum_{k:\nu_k=0}e^{-p(j-k)}e_{x_k}/\sum_{k:\nu_k=0}e^{-p(j-k)}$ does not depend on $a_1$, and
+$\partial m_j/\partial a_1=m_j(1-m_j)$.
+\end{lemma}
+\begin{proof}
+All noise keys carry the common additive score $a_1$; it cancels in ratios of signal-key weights.
+$m_j=\frac{e^{a_1}Q_N}{e^{a_1}Q_N+Q_S}$ with $Q_N,Q_S$ free of $a_1$; differentiate. (Checked: $1.8\times10^{-7}$, \texttt{e22b}.)
+\end{proof}
+
+\begin{lemma}[mixing]\label{lem:mix}
+For $0<\alpha<1$, within a recurrent class the pair (current state, emitted token) is a finite,
+irreducible, aperiodic Markov chain (noise steps are self-loops of the state), hence uniformly
+geometrically ergodic. Consequently, for bounded functions $F,G,H$ of finitely many consecutive tokens:
+(a) $\sum_{\ell\ge1}|\mathrm{Cov}(F_t,G_{t-\ell})|<\infty$ uniformly in $t$, with geometric tails; (b) ergodic
+averages satisfy $\E|\frac1n\sum_{t<n}F_t-\E F|^2=O(1/n)$; (c) third-order joint cumulants
+$\kappa(F_t,G_{t-\ell},H_{t-\ell'})$ are summable over $(\ell,\ell')$. The initial transient (before absorption) has
+geometrically small probability.
+\end{lemma}
+\begin{proof}
+Standard for finite uniformly ergodic chains (e.g.\ geometric decay of $\|P^n-\1\pi^\top\|$ and the
+cumulant bounds of Doukhan, \emph{Mixing}, 1994, \S1.4). Aperiodicity: from any state the chain stays put
+w.p.\ $1-\alpha>0$.
+\end{proof}
+
+\begin{lemma}[noise cancels from the lag sum; exact]\label{lem:lag}
+For $v,y\in\mathcal C$, under stationarity,
+$\sum_{\ell\ge1}\mathrm{Cov}(\1[x_t=y],\1[x_{t-\ell}=v])=\alpha\pi_v\,D(v,y)$.
+\end{lemma}
+\begin{proof}
+With $m\sim\mathrm{Bin}(\ell-1,\alpha)$ signal emissions in between, $\Pr(x_{t-\ell}=v,x_t=y)=\alpha\pi_v\cdot\alpha\,\E_mP^{m+1}(v,y)$
+and $\Pr(x_t=y)=\alpha\pi_y$. Summing, $\sum_{\ell>m}\binom{\ell-1}m\alpha^m(1-\alpha)^{\ell-1-m}=1/\alpha$ (absolute
+convergence by Lemma~\ref{lem:mix}), giving $\alpha\pi_v\sum_{m\ge0}(P^{m+1}-\1\pi^\top)(v,y)=\alpha\pi_vD(v,y)$.
+\end{proof}
+
+\begin{lemma}[mixtures; exact]\label{lem:mixt}
+If $f=\sum_uw_u\mu_u$ with $\mu_u[y]\le\mu_s[y]$ for all $u$, then raising $w_s$ (renormalising) weakly raises $f[y]$.
+\end{lemma}
+\begin{proof}$\partial f[y]/\partial\log w_s=w_s(\mu_s[y]-f[y])\ge0$ since $f[y]$ is a convex combination of values $\le\mu_s[y]$.\end{proof}
+
+\begin{lemma}[sign of $C_y$; computer-assisted]\label{lem:enum}
+For all $6^4=1296$ tables and every recurrent class ($1299$ pairs): $C_y\ge0$ for all $y$, and $C\equiv0$
+exactly for the $216$ pairs in which all states of the class share one successor set.
+\end{lemma}
+\begin{proof}
+Exact rational arithmetic (sympy) for $\pi$, $Z$, $C_y$ in each case (\texttt{e19}, \texttt{e19b}). If all states
+share one successor set then $P=\1\pi^\top$, $P^m=\1\pi^\top$ for $m\ge1$, so $D=Z-I=0$.
+\end{proof}
+
+\section{Proofs}
+\subsection{Part (i)}
+$p,a_1$ enter only through $r$, which enters $L$ only through $s^{(2)}$, linearly in $(b_2,c_2)$:
+$\partial s^{(2)}_{ij}/\partial r=b_2\,\partial(\sigma_ir_j[x_i])/\partial r+c_2\,\partial\langle r_i,r_j\rangle_S/\partial r$. Chain rule. \qed
+
+\subsection{Part (ii)}
+At $\theta=0$ both attentions are uniform: $r_j=h_j:=\frac1j\sum_{k<j}e_{x_k}$ and $f_i=h_i$. By Lemma~\ref{lem:cov}
+with $\phi_{ij}=\sigma_ih_j[x_i]$,
+\[
+-\partial_{b_2}\ell_i|_0=w_i\sigma_i\,X_i,\qquad X_i=\tfrac1i\textstyle\sum_{j<i}(\1[x_j=y_i]-f_i[y_i])\,h_j[x_i].
+\]
+Fix the query's token $v=x_i$ and target $y=y_i$. \emph{Noise targets} contribute only $O(1/i)$: whether
+$x_j$ is a given noise token is independent of $x_{<j}$, so $\mathrm{Cov}(\1[x_j=y],h_j[v])=0$ for each $j$; the
+remaining dependence (through $f_i[y]$ inside $w_i$ and the shared noise positions) is a covariance of
+ergodic averages, $O(1/i)$ by Lemma~\ref{lem:mix}(b), below the $\Theta(\log i/i)$ main term.
+For a signal target, since $f_i[y]=\frac1i\sum_j\1[x_j=y]$,
+\[
+\E X_i=\tfrac1i\textstyle\sum_j\mathrm{Cov}(\1[x_j=y],h_j[v])-\mathrm{Cov}(f_i[y],\bar h_i)+R_i,
+\]
+where $\bar h_i=\frac1i\sum_jh_j[v]$ and $R_i$ collects the non-stationary means, $O(1/i)$ by the transient
+bound. By Lemma~\ref{lem:mix}(b) $\mathrm{Cov}(f_i[y],\bar h_i)=O(1/i)$. By Lemma~\ref{lem:lag},
+$\mathrm{Cov}(\1[x_j=y],h_j[v])=\frac1j\sum_{k<j}\mathrm{Cov}(\1[x_j=y],\1[x_k=v])=\frac{\alpha\pi_vD(v,y)}j+O(\rho^j/j)$,
+so the first term is $\alpha\pi_vD(v,y)\,\frac{H_{i-1}}i+O(1/i)$. Conditioning on $(x_i,y_i)$ changes the law of
+$x_k$ only for $i-k=O(1)$ (geometric decay), an $O(1/i)$ effect. Finally $w_i\to1/(\alpha\pi_y+b_{\mathrm{sig}})$ with
+$\E|w_i-\bar w|^2=O(1/i)$ and $\E|X_i-\E X_i|^2=O(1/i^2)$ (Lemma~\ref{lem:mix}(b),(c)), so by Cauchy--Schwarz
+$\E[w_iX_i]=\bar w\,\E X_i+O(i^{-3/2})$. Weighting by $\Pr(x_i=v,\ y_i=y\ \text{signal})=\alpha\pi_v\cdot\alpha P(v,y)$:
+\[
+-\partial_{b_2}\E\ell_i|_0=\alpha^3\frac{\log i}{i}\sum_{v,y}\frac{\pi_v^2P(v,y)D(v,y)}{\alpha\pi_y+b_{\mathrm{sig}}}+O(1/i).
+\]
+Averaging over $i\in[T/2,T)$, $\frac2T\sum_i\frac{\log i}{i}=2\ln2\frac{\log T}T+O(1/T)$. Average over tables and
+classes. The sign statement is Lemma~\ref{lem:enum}. \qed
+
+\subsection{Part (iii)}
+\emph{Veto.} Differentiating the layer-1 softmax at $0$ gives $\partial_{a_1}(r_j)_v=-\bar\nu_jh_j[v]$ for signal $v$,
+$\bar\nu_j$ the noise fraction of $x_{<j}$. By the argument of (i)--(ii),
+$-U_0^{(a_1)}=-\frac1{|W|}\sum_i\E[w_i\sigma_i\,\tilde X_i]$ with $\tilde X_i$ as $X_i$ but feature $\bar\nu_jh_j[v]$. Write
+$\bar\nu_jh_j[v]=(1-\alpha)h_j[v]+(\bar\nu_j-(1-\alpha))h_j[v]$. The first term reproduces $(1-\alpha)$ times part (ii)'s
+expression. In the second, $\mathrm{Cov}(\1[x_j=y],(\bar\nu_j-(1-\alpha))h_j[v])=\frac1{j^2}\sum_{k,k'<j}$ of joint
+cumulants of $(\1[x_j=y],\nu_k,\1[x_{k'}=v])$ plus products of second-order covariances. Second-order terms
+vanish ($\nu_k$ is independent of the signal chain's states, and $\nu_k\1[x_k=v]\equiv0$ only shifts means).
+Third-order cumulants are summable (Lemma~\ref{lem:mix}(c)), so the term is $O(1/j^2)$ and contributes
+$O(1/i)$ after averaging over $j$, against $\Theta(\log i/i)$ for the main term. Dividing by part (ii) gives
+$-(1-\alpha)$.
+
+\emph{Recency.} $\partial_p(r_j)_v|_0=\mathrm{rec}_j(v)=\frac1j\sum_{k<j}\big(\tfrac{j+1}2-(j-k)\big)\1[x_k=v]$, whose mean is
+$0$ under stationarity. With $c_\ell=\mathrm{Cov}(\1[x_j=y],\1[x_{j-\ell}=v])$,
+$\mathrm{Cov}(\1[x_j=y],\mathrm{rec}_j(v))=\frac{j+1}{2j}\sum_\ell c_\ell-\frac1j\sum_\ell\ell c_\ell\to\frac12\alpha\pi_vD(v,y)$
+(Lemma~\ref{lem:lag}; $\sum\ell|c_\ell|<\infty$). No $1/j$ dilution survives, so averaging over keys gives an
+$O(1)$ limit, and the same weighting as in (ii) yields $\frac{\alpha^3}2\E[S]$. Signs from Lemma~\ref{lem:enum}. \qed
+
+\subsection{Part (iv)}
+Under the idealisation, layer 2 attends to source-state groups: $f=\sum_uw_u\mu_u$ with $\mu_u$ uniform on
+$\mathrm{succ}(u)$ and $w_u\propto\pi_ue^{\mathrm{score}(u)}$; noise targets do not depend on $c_2$.
+\emph{After noise} (state $s$, target $y\in\mathrm{succ}(s)$): only group $s$ is boosted, $\mu_s[y]=\tfrac12\ge\mu_u[y]$,
+so by Lemma~\ref{lem:mixt} $f[y]$ is nondecreasing in $c_2$ for every $c_2$. With
+$1-w_s=\frac{(1-\pi_s)e^{-c_2}}{\pi_s+(1-\pi_s)e^{-c_2}}$ and stationarity $\sum_{u\ne s}\pi_u\mu_u[y]=\pi_y-\pi_s/2$:
+\[
+-\partial_{c_2}\ell=\frac{e^{-c_2}}{\tfrac12+b_{\mathrm{sig}}}\,\frac{\tfrac12-\pi_y}{\pi_s}\,(1+O(e^{-c_2})).
+\]
+\emph{After signal} (token $v$, previous state $s'$, $y\in\mathrm{succ}(v)$): group $v$ has weight $\propto e^{b_2}$,
+group $s'$ $\propto e^{c_2}$. If $v\ne s'$ and $y\notin\mathrm{succ}(s')$: $\partial_{c_2}\ell=\frac{1}{\tfrac12+b}\cdot\frac12\frac{\pi_{s'}}{\pi_v}e^{c_2-b_2}(1+O(e^{c_2-b_2}+e^{-b_2}))$.
+If $y\in\mathrm{succ}(s')$ the bracket $\mu_{s'}[y]-f[y]=O(e^{-b_2})$; if $v=s'$ the effect is $O(e^{-b_2-c_2})$; both are
+lower order. Weighting post-noise positions by $(1-\alpha)$ and post-signal by $\alpha$ (targets signal w.p.\ $\alpha$
+in both), and averaging over $s\sim\pi$, $y$, tables:
+\[
+(\tfrac12+b)\,\partial_{c_2}L_\infty=-(1-\alpha)\alpha\E[A]e^{-c_2}(1+\varepsilon_1)+\alpha^2\E[B]e^{c_2-b_2}(1+\varepsilon_2),
+\]
+\[
+A=\sum_{s}\Big(\tfrac12-\tfrac{\pi_{y_1(s)}+\pi_{y_2(s)}}2\Big),\quad
+B=\tfrac12\sum_{s'}\pi_{s'}\sum_{v\in\mathrm{succ}(s'),v\ne s'}\tfrac12\frac{\pi_{s'}}{\pi_v}\Pr_{y\sim\mu_v}(y\notin\mathrm{succ}(s')),
+\]
+$\varepsilon_{1,2}\to0$ as $c_2\to\infty$, $b_2-c_2\to\infty$. The first term is increasing and the second
+decreasing in $c_2$, so for large $b_2$ there is a unique root in any window $c_2=b_2/2+O(1)$, where both
+regime conditions hold. Equating leading terms gives $2c_2-b_2\to\log\frac{(1-\alpha)\E A}{\alpha\E B}$.
+$\E A=0.569$, $\E B=0.203$ (\texttt{e9}). Neither depends on $\alpha$. \qed
+
+\subsection{Part (v)}
+(a) Lemma~\ref{lem:gain}: $a_1$ affects $L$ only through the gains $g_j=1-m_j$ of $(r_j)_S$, and
+$\partial g_j/\partial a_1=-m_j(1-m_j)$; with $\Gamma_j=-\partial L/\partial g_j$,
+$\partial_{a_1}L=\sum_jm_j(1-m_j)\Gamma_j$.
+
+(b) Position $j$'s gain enters (Q) as a \emph{query}, through $c_2g_jg_k\1[\mathrm{pv}(j)=\mathrm{pv}(k)]$, and (K) as a
+\emph{key} for later queries, through $b_2g_j\1[\mathrm{pv}(j)=x_i]$ and $c_2g_ig_j\1[\mathrm{pv}(i)=\mathrm{pv}(j)]$. Keys with
+$g_k=1$ dominate every group as $c_2,b_2\to\infty$. Two independence facts make the averages factorise:
+$g_j$ depends only on the noise pattern before $j$, which is independent of the signal chain, of
+$x_j$, and of $\mathrm{pv}(j)$.
+
+\emph{(Q).} For query $j$ the state term is part (iv)'s with $c_2$ replaced by $c_2g_j$. Its type
+(post-noise w.p.\ $1-\alpha$) is independent of $g_j$, so
+\[
+(\tfrac12+b)\,\E[\Gamma^{(Q)}_j\mid g_j]=c_2\Big[(1-\alpha)\alpha\E[A]e^{-c_2g_j}(1+\varepsilon)-\alpha^2\E[B]e^{c_2g_j-b_2}(1+\varepsilon)\Big].
+\]
+If $c_2\le c_2^\ast$ and $g_j<1$, then (balance at $c_2^\ast$, leading order)
+$(1-\alpha)\E A\,e^{-c_2g_j}>(1-\alpha)\E A\,e^{-c_2}\ge(1-\alpha)\E A\,e^{-c_2^\ast}=\alpha\E B\,e^{c_2^\ast-b_2}\ge\alpha\E B\,e^{c_2-b_2}>\alpha\E B\,e^{c_2g_j-b_2}$,
+with the outer inequalities strict and with a margin that grows with $c_2(1-g_j)$, absorbing the $\varepsilon$'s.
+For $g_j\to0$ the exact post-noise statement of (iv) (help $\ge0$, nonvanishing) holds while the harm is
+$O(e^{-b_2})$. So $\E[\Gamma^{(Q)}_j\mid g_j]>0$.
+
+\emph{(K).} Raising $g_j$ raises key $j$'s weight inside its group. For post-noise queries in state
+$\mathrm{pv}(j)$, and for post-signal queries with $x_i=\mathrm{pv}(j)$ (induction), the group's component puts mass
+$\tfrac12$ on each correct successor while every other group puts $\le\tfrac12$: by Lemma~\ref{lem:mixt} this
+helps ($\ge0$). For post-signal queries whose previous state is $\mathrm{pv}(j)$ (the rival), it hurts, with
+size $O(c_2e^{c_2g_j-b_2})$. Against the (Q) help $\Theta(c_2e^{-c_2g_j})$ the ratio is
+$O(e^{2c_2g_j-b_2})=O(e^{-2c_2(1-g_j)})\to0$ for $g_j<1$, since $2c_2-b_2=O(1)$.
+
+Hence $\Gamma_j>0$ whenever $0<m_j<1$, and $\partial_{a_1}L>0$. \qed
+
+\begin{remark}
+The proof gives the sharper sufficient condition $c_2g_j<c_2^\ast$ on cliff positions. Since $g_j\approx\frac12$
+there, gradient descent can sit somewhat above balance and still strengthen the veto, as observed
+(excess up to $\approx1$ logit, veto strengthening at all $44{,}946$ steps).
+\end{remark}
+
+\subsection{Part (vi)}
+Group $v$ holds $n$ keys, $k$ of them the target $y$; the background (other signal keys, the rival group
+weighted $e^{c_2}$) has weight $R$ with fraction $g$ equal to $y$. With $t=e^{b_2}$, $f_y=\frac{tk+Rg}{tn+R}$ and
+$\partial_tf_y=\frac{R(k-ng)}{(tn+R)^2}$. For $k>0$: $\partial_{b_2}\ell=-\frac{R(k-ng)}{t\,n^2(k/n+b)}(1+O(1/t))$. For
+$k=0$: $\partial_{b_2}\ell=\frac{Rg}{t\,n\,b}(1+O(1/t))$ once $Rg/(tn)\ll b$. Averaging,
+\[
+K_{\mathrm{gain}}=\E\Big[\1\{k>0\}\frac{R}{n^2}\frac{k-ng}{k/n+b}\Big],\qquad K_{\mathrm{cost}}=\E\Big[\1\{k=0\}\frac{Rg}{nb}\Big].
+\]
+If $K_{\mathrm{cost}}>K_{\mathrm{gain}}$ the derivative is eventually positive (finite optimum); otherwise it is eventually
+negative (no finite optimum). \qed
+
+\section{What the limits look like at $T=100$ (numerical, not part of the theorem)}
+\begin{center}\small
+\begin{tabular}{lccccccccc}\toprule
+$\alpha$ & 0.2 & 0.3 & 0.4 & 0.5 & 0.6 & 0.7 & 0.8 & 0.9 & 0.99\\\midrule
+(iii) veto/pull & $-0.53$ & $-0.56$ & $-0.54$ & $-0.47$ & $-0.39$ & $-0.30$ & $-0.21$ & $-0.11$ & $-0.012$\\
+\quad limit $-(1-\alpha)$ & $-0.80$ & $-0.70$ & $-0.60$ & $-0.50$ & $-0.40$ & $-0.30$ & $-0.20$ & $-0.10$ & $-0.010$\\
+(iii) recency/pull & 11.3 & 10.4 & 10.0 & 9.2 & 9.0 & 8.8 & 8.4 & 8.2 & 8.0\\
+\quad limit at $T=100$ & 7.4 & 7.4 & 7.4 & 7.4 & 7.4 & 7.4 & 7.4 & 7.4 & 7.4\\
+(ii) pull$/(\alpha^3\E S)$ & 0.028 & 0.036 & 0.041 & 0.047 & 0.049 & 0.052 & 0.055 & 0.057 & 0.060\\
+(iv) GD $c_2$ & 3.02 & --- & 4.67 & --- & 6.09 & 6.31 & 6.15 & 5.58 & 3.26\\
+\quad limit formula & 3.63 & --- & 4.91 & --- & 6.11 & 6.30 & 6.11 & 5.52 & 3.24\\\bottomrule
+\end{tabular}\end{center}
+Pattern: the limits are accurate when each sequence contains many signal tokens ($\alpha\gtrsim0.6$) and
+drift when noise is dense, where a 100-token context holds only $\approx20$ signal tokens. The (ii)
+constant should be $\alpha$-independent in the limit; at $T=100$ it varies by $2\times$. Part (v):
+along all training runs the veto strengthened at every step ($17{,}964$ Adam, $26{,}982$ plain GD); at
+random localised points with $c_2\le c_2^\ast$ there were $0$ exceptions in $689$ at $\alpha\in\{0.6,0.8,0.9\}$
+and $1/271$, $10/294$ at $\alpha=0.4, 0.2$ (\texttt{e22f}). Part (vi): the settled $b_2$ for $\alpha\le0.5$ agrees
+with the count model within $0.1$--$0.4$ under both Adam and plain GD.
+
+\section{Scope}
+\textbf{Covered:} why layer 2 comes first; that induction always forms; that it seeds recency and a
+noise veto in proportion to the noise; that the veto keeps strengthening while the state weight is
+at or below balance; where the state weight settles; when the induction weight settles.
+\textbf{Not covered:} the timing of the middle stage (Adam-specific, \texttt{5\_middle.pdf}); the skip-horizon
+law $\alpha H\approx4$ (measured); explicit finite-$T$ error constants; models without the copy
+readout; tables outside the equiprobable two-successor family (Lemma~\ref{lem:enum} is an enumeration
+of this family). Part (v)(b) and part (iv) assume the idealised late regime (layer-1 split exact,
+noise vetoed); training approaches it (layer-1 state mass $0.95$--$0.999$).
+\end{document}

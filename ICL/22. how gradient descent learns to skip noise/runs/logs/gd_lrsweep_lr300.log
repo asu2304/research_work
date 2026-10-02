@@ -1,0 +1,7 @@
+  alpha=0.6 step     0 train 2.04070 test 2.04017 theta [0. 0. 0. 0. 0.]  (1s)
+  alpha=0.6 step     1 train 1.92137 test 1.92072 theta [  0.      0.    -42.503   0.917   0.097]  (1s)
+  alpha=0.6 step    10 train 1.77720 test 1.77590 theta [  7.789  -0.359 -42.503  11.547   4.47 ]  (3s)
+  alpha=0.6 step   500 train 1.69688 test 1.69706 theta [  4.306 -29.074 -42.503  12.388   6.339]  (125s)
+  alpha=0.6 step  1000 train 1.69669 test 1.69687 theta [  4.874 -34.218 -42.503  12.628   6.378]  (249s)
+  alpha=0.6 step  1500 train 1.69660 test 1.69676 theta [  4.964 -37.72  -42.503  12.661   6.381]  (374s)
+[done] alpha=0.6 final theta [  5.1616 -40.1251 -42.5029  12.7238   6.3951] test 1.69672 ideal 1.64342  (8.3 min) -> /home/hariguru/ashutosh/ICL/22. how gradient descent learns to skip noise/runs/gd_lrsweep_lr300/traj_x_0.6.npz

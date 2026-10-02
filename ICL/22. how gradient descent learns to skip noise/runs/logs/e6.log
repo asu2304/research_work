@@ -1,0 +1,149 @@
+{
+ "main": "19 alphas",
+ "freeze_c2": [
+  {
+   "alpha": 0.2,
+   "test_ce_final": 1.8531088829040527,
+   "theta_final": {
+    "p": 1.0732,
+    "a1": -24.1087,
+    "a2": -5.2185,
+    "b2": 2.8874,
+    "c2": 0.0
+   },
+   "final_layer1_state_mass": 0.9389716386795044,
+   "final_succ_mass_postnoise": 0.6600106447825496,
+   "final_succ_mass_postsignal": 0.8850703183630863
+  },
+  {
+   "alpha": 0.4,
+   "test_ce_final": 1.9237725734710693,
+   "theta_final": {
+    "p": 2.5875,
+    "a1": -22.6079,
+    "a2": -4.9617,
+    "b2": 4.525,
+    "c2": 0.0
+   },
+   "final_layer1_state_mass": 0.9699075818061829,
+   "final_succ_mass_postnoise": 0.6785947137212935,
+   "final_succ_mass_postsignal": 0.966269664636284
+  },
+  {
+   "alpha": 0.6,
+   "test_ce_final": 1.7885334491729736,
+   "theta_final": {
+    "p": 3.8595,
+    "a1": -19.0305,
+    "a2": -4.8461,
+    "b2": 6.2475,
+    "c2": 0.0
+   },
+   "final_layer1_state_mass": 0.9833579063415527,
+   "final_succ_mass_postnoise": 0.6858343009481042,
+   "final_succ_mass_postsignal": 0.9863020049837032
+  },
+  {
+   "alpha": 0.8,
+   "test_ce_final": 1.4467920064926147,
+   "theta_final": {
+    "p": 5.3737,
+    "a1": -15.2893,
+    "a2": -4.8201,
+    "b2": 7.7983,
+    "c2": 0.0
+   },
+   "final_layer1_state_mass": 0.9909448027610779,
+   "final_succ_mass_postnoise": 0.6905452911318378,
+   "final_succ_mass_postsignal": 0.9918633334416753
+  },
+  {
+   "alpha": 1.0,
+   "test_ce_final": 0.7473607063293457,
+   "theta_final": {
+    "p": 6.0962,
+    "a1": 0.0,
+    "a2": 0.0,
+    "b2": 8.3561,
+    "c2": 0.0
+   },
+   "final_layer1_state_mass": 0.9984462261199951,
+   "final_succ_mass_postnoise": 0.0,
+   "final_succ_mass_postsignal": 0.9941449125
+  }
+ ],
+ "freeze_b2": [
+  {
+   "alpha": 0.2,
+   "test_ce_final": 1.8350720405578613,
+   "theta_final": {
+    "p": 1.2629,
+    "a1": -26.7254,
+    "a2": -5.349,
+    "b2": 0.0,
+    "c2": 2.3203
+   },
+   "final_layer1_state_mass": 0.9485788345336914,
+   "final_succ_mass_postnoise": 0.8365611605695693,
+   "final_succ_mass_postsignal": 0.657305667383876
+  },
+  {
+   "alpha": 0.4,
+   "test_ce_final": 1.9408819675445557,
+   "theta_final": {
+    "p": 1.7362,
+    "a1": -18.4689,
+    "a2": -4.9233,
+    "b2": 0.0,
+    "c2": 1.968
+   },
+   "final_layer1_state_mass": 0.9465513825416565,
+   "final_succ_mass_postnoise": 0.8358959419904293,
+   "final_succ_mass_postsignal": 0.6691357019544562
+  },
+  {
+   "alpha": 0.6,
+   "test_ce_final": 1.9028270244598389,
+   "theta_final": {
+    "p": 0.9479,
+    "a1": -8.6114,
+    "a2": -4.7051,
+    "b2": 0.0,
+    "c2": 1.7995
+   },
+   "final_layer1_state_mass": 0.8258191347122192,
+   "final_succ_mass_postnoise": 0.7788099644161022,
+   "final_succ_mass_postsignal": 0.6859395608453225
+  },
+  {
+   "alpha": 0.8,
+   "test_ce_final": 1.6895397901535034,
+   "theta_final": {
+    "p": 0.4568,
+    "a1": -2.6546,
+    "a2": -4.5195,
+    "b2": 0.0,
+    "c2": 2.1419
+   },
+   "final_layer1_state_mass": 0.6083799600601196,
+   "final_succ_mass_postnoise": 0.7275446700805742,
+   "final_succ_mass_postsigna
+alpha=0.2    gap 0.0696  c2 peak 4.17@47  flip 5  L1mass@flip 0.186  c2 final 3.02  ratio 1.000  H200 18.06
+alpha=0.25   gap 0.0685  c2 peak 4.29@50  flip 7  L1mass@flip 0.260  c2 final 3.47  ratio 0.999  H200 14.02
+alpha=0.3    gap 0.0649  c2 peak 4.40@89  flip 7  L1mass@flip 0.297  c2 final 3.89  ratio 0.999  H200 11.51
+alpha=0.35   gap 0.0623  c2 peak 4.59@99  flip 7  L1mass@flip 0.332  c2 final 4.26  ratio 0.998  H200 9.48
+alpha=0.4    gap 0.0604  c2 peak 4.67@99  flip 7  L1mass@flip 0.363  c2 final 4.67  ratio 0.998  H200 8.27
+alpha=0.45   gap 0.0580  c2 peak 4.60@99  flip 7  L1mass@flip 0.391  c2 final 5.02  ratio 0.999  H200 7.12
+alpha=0.5    gap 0.0573  c2 peak 4.46@99  flip 10  L1mass@flip 0.495  c2 final 5.36  ratio 1.000  H200 6.18
+alpha=0.55   gap 0.0556  c2 peak 4.31@99  flip 7  L1mass@flip 0.443  c2 final 5.72  ratio 1.042  H200 5.59
+alpha=0.6    gap 0.0544  c2 peak 4.08@99  flip 7  L1mass@flip 0.466  c2 final 6.09  ratio 1.022  H200 5.06
+alpha=0.65   gap 0.0525  c2 peak 3.85@99  flip 10  L1mass@flip 0.576  c2 final 6.22  ratio 1.029  H200 4.75
+alpha=0.7    gap 0.0522  c2 peak 3.61@99  flip 10  L1mass@flip 0.598  c2 final 6.31  ratio 1.037  H200 4.26
+alpha=0.75   gap 0.0529  c2 peak 3.34@99  flip 10  L1mass@flip 0.618  c2 final 6.36  ratio 1.046  H200 3.99
+alpha=0.8    gap 0.0519  c2 peak 3.03@99  flip 10  L1mass@flip 0.637  c2 final 6.15  ratio 1.046  H200 3.80
+alpha=0.85   gap 0.0542  c2 peak 2.70@99  flip 10  L1mass@flip 0.655  c2 final 5.95  ratio 1.048  H200 3.54
+alpha=0.9    gap 0.0511  c2 peak 2.27@99  flip 10  L1mass@flip 0.670  c2 final 5.58  ratio 1.047  H200 3.18
+alpha=0.95   gap 0.0535  c2 peak 1.57@99  flip 10  L1mass@flip 0.684  c2 final 4.92  ratio 1.047  H200 3.01
+alpha=0.975  gap 0.0541  c2 peak 0.93@99  flip 10  L1mass@flip 0.690  c2 final 4.19  ratio 1.046  H200 2.95
+alpha=0.99   gap 0.0556  c2 peak 0.88@10  flip 10  L1mass@flip 0.694  c2 final 3.26  ratio 1.050  H200 2.95
+alpha=1.0    gap 0.0542  c2 peak 0.84@10  flip 10  L1mass@flip 0.696  c2 final -0.14  ratio nan  H200 nan

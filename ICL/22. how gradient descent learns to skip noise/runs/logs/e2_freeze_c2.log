@@ -1,0 +1,5 @@
+alpha=0.2: step0 g_c2 noise -1.07e-05 signal -1.49e-06 | final L1 state mass 0.939  L2 succ mass post-noise 0.660 post-signal 0.885 (7s)
+alpha=0.4: step0 g_c2 noise -6.56e-05 signal -2.57e-05 | final L1 state mass 0.970  L2 succ mass post-noise 0.679 post-signal 0.966 (6s)
+alpha=0.6: step0 g_c2 noise -1.41e-04 signal -1.83e-04 | final L1 state mass 0.983  L2 succ mass post-noise 0.686 post-signal 0.986 (6s)
+alpha=0.8: step0 g_c2 noise -1.57e-04 signal -5.70e-04 | final L1 state mass 0.991  L2 succ mass post-noise 0.691 post-signal 0.992 (6s)
+alpha=1.0: step0 g_c2 noise +0.00e+00 signal -1.34e-03 | final L1 state mass 0.998  L2 succ mass post-noise 0.000 post-signal 0.994 (4s)

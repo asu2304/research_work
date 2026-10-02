@@ -1,0 +1,264 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\1}{\mathbf{1}}
+\newcommand{\ip}[2]{\langle #1,#2\rangle_{S}}
+
+\title{How gradient descent learns to skip noise:\\ exact statements for the five-number model}
+\author{Folder 22 working notes --- drafted 2026-10-02/03, every statement checked numerically}
+\date{}
+
+\begin{document}
+\maketitle
+
+\paragraph{Status convention.} Every result below is labelled \textbf{[exact]} (a proof is given)
+or \textbf{[empirical]} (measured, no proof). Each carries the script in
+\texttt{22/experiments/} that checks it numerically. Nothing here is taken from the older
+\texttt{paper/} folder.
+
+\section{Setup}
+
+Vocabulary $\{0,\dots,7\}$: signal tokens $S=\{0,1,2,3\}$, noise tokens $\{4,\dots,7\}$.
+Each sequence draws its own transition table: every signal state has two distinct successors,
+chosen uniformly, each taken with probability $1/2$. At every step, with probability $\alpha$ a
+successor of the current state is emitted (and becomes the state), otherwise a uniform noise
+token is emitted (state unchanged). Sequences have length $T=100$; the loss is the mean over
+query positions $i\in[50,100)$. For a position $i$ write
+$\nu_i=\1[x_i\text{ noise}]$, $\sigma_i = 1-\nu_i$, and
+$\mathrm{st}(i)$ = last signal token in $x_{0..i}$ (the state that generates $y_i=x_{i+1}$),
+$\mathrm{pv}(i)$ = last signal token in $x_{0..i-1}$ (strictly before $i$).
+Note $\mathrm{st}(i)=\mathrm{pv}(i)$ iff $x_i$ is noise.
+
+\begin{definition}[Five-number model]
+Parameters $\theta=(p,a_1,a_2,b_2,c_2)$ in logit units. Keys $j<i$ (strictly causal; position $0$
+attends to itself).
+\begin{align*}
+s^{(1)}_{ij} &= -p\,(i-j) + a_1\,\nu_j, & A^{(1)}_i &= \mathrm{softmax}_j\, s^{(1)}_{ij}, & r_i &= \textstyle\sum_j A^{(1)}_{ij}\, e_{x_j}\in\Delta^7,\\
+s^{(2)}_{ij} &= a_2\,\nu_j + b_2\,\sigma_i\, r_j[x_i] + c_2\,\ip{r_i}{r_j}, & A^{(2)}_i &= \mathrm{softmax}_j\, s^{(2)}_{ij}, & f_i &= \textstyle\sum_j A^{(2)}_{ij}\, e_{x_j}\in\Delta^7,
+\end{align*}
+with $\ip{u}{v}=\sum_{v\in S}u_v v_v$. Prediction $q_i=(f_i+b)/(1+\1^\top b)$ with the fixed
+readout bias $b$ of folders 18/19; loss $\ell_i=-\log q_i[y_i]$, $L=\frac1N\sum_i\ell_i$.
+\end{definition}
+
+This is exactly folder 19's \texttt{train\_five\_params.py} model written in its five scalars
+(scores there are raw entries$/\sqrt{108}$). \emph{Check:} \texttt{e0\_verify\_reimplementation.py}
+--- loss agrees to $\le 1.2\times10^{-7}$ and stored gradients to $\le1.2\times10^{-6}$ relative,
+at all seven $\alpha$ of folder 19.
+
+Call $p,a_1$ \emph{layer 1} (state recovery: $r_i$ should equal $e_{\mathrm{pv}(i)}$),
+$b_2$ the \emph{induction} weight, $c_2$ the \emph{state} weight, $a_2$ the layer-2 noise veto.
+
+\section{Layer 1 is taught only through $b_2$ and $c_2$}
+
+\begin{proposition}[Gating] \textbf{[exact]}
+For every $\theta$ and every data set,
+\[
+\nabla_{(p,a_1)} L \;=\; b_2\, U(\theta) + c_2\, W(\theta)
+\]
+for some $U,W$. In particular $\nabla_{(p,a_1)}L=0$ whenever $b_2=c_2=0$, e.g.\ at $\theta=0$.
+\end{proposition}
+\begin{proof}
+$p,a_1$ enter $L$ only through $r$. $r$ enters $L$ only through $s^{(2)}$, and
+$\partial s^{(2)}_{ij}/\partial r = b_2\,\partial(\sigma_i r_j[x_i])/\partial r + c_2\,\partial\ip{r_i}{r_j}/\partial r$.
+The chain rule gives the claim with
+$U=\sum_{ij}\frac{\partial L}{\partial s^{(2)}_{ij}}\frac{\partial(\sigma_i r_j[x_i])}{\partial r}\frac{\partial r}{\partial(p,a_1)}$
+and $W$ analogous.
+\end{proof}
+
+\begin{corollary}[Order of learning under Adam from zero] \textbf{[exact]}
+From $\theta=0$, the first Adam step moves only $(a_2,b_2,c_2)$ (each by $\pm\eta$ in raw units,
+$\pm\eta/\sqrt{108}=\pm0.0962$ logits for $\eta=1$, by the sign of its gradient). $p$ and $a_1$
+first move at step 2. At $\alpha=1$ there are no noise tokens, so $\partial L/\partial a_1\equiv
+\partial L/\partial a_2\equiv0$ and both stay exactly $0$ for all time.
+\end{corollary}
+\emph{Check:} every trajectory in \texttt{runs/main} has $\theta_1=(0,0,-0.096,0.096,0.096)$
+for $\alpha<1$, and $a_1=a_2=0$ throughout at $\alpha=1$.
+
+\begin{proposition}[The query-side channel] \textbf{[exact]}
+If $x_i$ is noise then $\partial s^{(2)}_{ij}/\partial r_i = c_2\,(r_j)_S$ for every key $j$.
+Hence the loss at a post-noise query reaches that query's \emph{own} state estimate $r_i$
+only through $c_2$.
+\end{proposition}
+\begin{proof}
+$\sigma_i=0$ removes the $b_2$ term; $a_2\nu_j$ does not involve $r_i$; what remains is
+$c_2\ip{r_i}{r_j}$.
+\end{proof}
+\begin{remark}
+$r_i$ also appears as a \emph{key} for later queries, through both $b_2$ and $c_2$. So layer 1
+has two teaching channels: the key side ($b_2$ and $c_2$) and, at post-noise queries, the query
+side ($c_2$ only). \textbf{[empirical]} (\texttt{e0c\_train\_five.py --freeze}, \texttt{e2}):
+with $c_2\equiv0$ layer 1 still learns to skip (state mass $0.94$--$0.99$ for
+$\alpha\in[0.2,0.8]$) but post-noise prediction collapses ($0.66$--$0.69$ vs $0.88$--$0.99$):
+$c_2$ is needed to \emph{use} the recovered state. With $b_2\equiv0$ layer 1 learns to skip only
+when noise is dense (state mass $0.95, 0.95, 0.83, 0.61, 0.37$ at $\alpha=0.2,0.4,0.6,0.8,1$):
+the $c_2$ channel alone is as strong as the noise. With $a_1\equiv0$ layer 1 becomes a
+previous-token head (state mass $\approx\alpha$); with $p\equiv0$ it never localises
+(state mass $\approx0.36$ at every $\alpha$).
+\end{remark}
+
+\section{The covariance law}
+
+\begin{proposition}[Covariance law] \textbf{[exact]}
+Let $\kappa\in\{a_2,b_2,c_2\}$ with feature $\phi^\kappa_{ij}=\partial s^{(2)}_{ij}/\partial\kappa$
+($\nu_j$, $\sigma_i r_j[x_i]$, $\ip{r_i}{r_j}$ respectively). Then, at every $\theta$,
+\[
+-\frac{\partial L}{\partial \kappa}
+= \frac1N\sum_i w_i\;\mathrm{Cov}_{j\sim A^{(2)}_i}\!\big(\1[x_j=y_i],\ \phi^\kappa_{ij}\big),
+\qquad w_i=\frac{1}{f_i[y_i]+b[y_i]}>0 .
+\]
+\end{proposition}
+\begin{proof}
+Layer 1 does not depend on $\kappa$, so only $s^{(2)}$ moves. Softmax gives
+$\partial f_i/\partial s^{(2)}_{ij}=A^{(2)}_{ij}(e_{x_j}-f_i)$. Since $\1^\top f_i=1$ the
+normaliser of $q_i$ is constant, so $\partial\ell_i/\partial f_i=-e_{y_i}/(f_i[y_i]+b[y_i])$.
+Hence $\partial\ell_i/\partial s^{(2)}_{ij}=-w_iA^{(2)}_{ij}(\1[x_j=y_i]-f_i[y_i])$ and
+\[
+-\frac{\partial\ell_i}{\partial\kappa}=w_i\sum_jA^{(2)}_{ij}\big(\1[x_j=y_i]-f_i[y_i]\big)\phi^\kappa_{ij}.
+\]
+Because $f_i[y_i]=\sum_jA^{(2)}_{ij}\1[x_j=y_i]$ is the $A^{(2)}_i$-mean of the indicator, the sum
+is the covariance under $j\sim A^{(2)}_i$.
+\end{proof}
+
+\paragraph{Reading.} Descent raises $\kappa$ exactly when, weighted by how wrong the model
+currently is ($w_i$), the keys that $\kappa$'s feature favours carry the correct next token
+\emph{more often than the keys the model is already attending to}. Equivalently, with
+$\mathrm{hit}_{\mathrm{fav}}=\mathbb E_{j\propto A^{(2)}_{ij}\phi_{ij}}\1[x_j=y_i]$ and
+$\mathrm{hit}_{\mathrm{now}}=f_i[y_i]$, the sign of each query's term is the sign of
+$\mathrm{hit}_{\mathrm{fav}}-\mathrm{hit}_{\mathrm{now}}$ (for $\phi\ge0$).
+
+\emph{Check:} \texttt{e5\_covariance\_law.py} --- formula equals autograd to 3--4 significant
+digits for $a_2,b_2,c_2$ at six $(\alpha,\text{step})$ points, including trained weights.
+
+\begin{corollary}[Initial gradient] \textbf{[exact]}
+At $\theta=0$ both attentions are uniform over the $n_i$ keys, $r_i=f_i=$ the token histogram of
+$x_{<i}$, and
+\[
+-\frac{\partial L}{\partial\kappa}\Big|_{\theta=0}
+=\frac1N\sum_i\frac{1}{f_i[y_i]+b[y_i]}\cdot\frac1{n_i}\sum_{j<i}\big(\1[x_j=y_i]-f_i[y_i]\big)\phi^\kappa_{ij}.
+\]
+\end{corollary}
+\emph{Check:} \texttt{e3b\_phase1\_pairs.py} --- matches autograd to 4 digits at
+$\alpha\in\{0.2,0.6,1.0\}$ for $b_2,c_2$.
+
+\section{The tug-of-war on the state weight}
+
+Split the loss by query type, $L=L_{\mathrm{noise}}+L_{\mathrm{signal}}$ (each the contribution
+of its positions to the mean), so $\partial_{c_2}L=G_{\mathrm{noise}}+G_{\mathrm{signal}}$.
+
+\begin{lemma}[What $c_2$ compares, once layer 1 works] \textbf{[exact]}
+If layer 1 is perfect, $r_t=e_{\mathrm{pv}(t)}$ for every $t$, then
+$\ip{r_i}{r_j}=\1[\mathrm{pv}(j)=\mathrm{pv}(i)]$. Consequently
+\begin{itemize}
+\item at a \textbf{post-noise} query, $\mathrm{pv}(i)=\mathrm{st}(i)$ and $c_2$ favours keys
+emitted from the \emph{current} state --- its successors, i.e.\ correct answers (or noise keys,
+which $a_2$ vetoes);
+\item at a \textbf{post-signal} query, $\mathrm{pv}(i)$ is the \emph{previous} state $s'$, of
+which $x_i$ is itself a successor; $c_2$ favours keys emitted from $s'$, which carry $x_i$ or
+its sibling --- correct only by coincidence.
+\end{itemize}
+\end{lemma}
+\begin{proof}
+With one-hot $r$ restricted to $S$, the inner product is $1$ iff both one-hots sit on the same
+signal token. The two bullets restate $\mathrm{pv}(i)=\mathrm{st}(i)\iff\nu_i=1$.
+\end{proof}
+
+By the covariance law, the post-noise term therefore pushes $c_2$ up and the post-signal term
+pushes it down, once layer 1 recovers the state; the stationary point of $c_2$ is where
+$G_{\mathrm{noise}}=-G_{\mathrm{signal}}$. At $\alpha=1$, $G_{\mathrm{noise}}\equiv0$.
+
+\textbf{[empirical]} (\texttt{e2\_gradient\_anatomy.py}, \texttt{e5\_covariance\_law.py}):
+\begin{itemize}
+\item Early ($\theta\approx0$, layer 1 uniform) both terms push $c_2$ \emph{up}, at every
+$\alpha$, including $\alpha=1$. The pull is carried by keys whose predecessor $x_{j-1}$ equals
+the query's current state (the uniform histogram $r_j$ contains $x_{j-1}$ with weight $1/j$): a
+diluted state-matching signal. It vanishes when tokens are shuffled within each sequence
+(\texttt{e3\_phase1\_origin.py}), so it is an order effect, not a frequency effect.
+\item Once layer 1 starts recovering $\mathrm{pv}(i)$ (state mass $\gtrsim0.5$, step $\approx7$),
+$G_{\mathrm{signal}}$ changes sign and the two terms oppose each other. At $\alpha=0.6$, step
+30: favoured-key hit rate $0.276$ vs current $0.233$ after noise, $0.206$ vs $0.250$ after signal.
+\item The two terms then cancel to within a few percent for the rest of training
+($+1.35\times10^{-4}$ vs $-1.32\times10^{-4}$ at step 1000, $\alpha=0.6$).
+\item At $\alpha=1$ nothing balances $G_{\mathrm{signal}}$: $c_2$ rises to $0.84$ by step 10,
+then is driven through zero and ends at $-0.14$.
+\end{itemize}
+
+\section{What the reduction assumes: symmetry vs.\ genuine priors}
+
+\begin{proposition}[Relabelling symmetry preserves ties] \textbf{[exact, population loss]}
+Let $G=S_4\times S_4$ relabel signal tokens and noise tokens. The data law is $G$-invariant
+(uniform successor sets, uniform first token, uniform noise), and so is the readout bias. For
+the untied block parametrisation of folder 18, $L_{\mathrm{pop}}(g\cdot W)=L_{\mathrm{pop}}(W)$
+where $g$ permutes the token rows/columns of every $W_{qk}$ block. Hence
+$\nabla L_{\mathrm{pop}}$ is $G$-equivariant, the fixed subspace $\mathrm{Fix}(G)$ is invariant
+under gradient descent \emph{and under Adam} (coordinatewise, so permutation-equivariant, with
+moment buffers starting at $0\in\mathrm{Fix}(G)$), and from zero init every iterate stays in
+$\mathrm{Fix}(G)$.
+\end{proposition}
+\begin{proof}
+The forward map commutes with relabelling: $\mathrm{model}(g\cdot W)(g\cdot x)=g\cdot
+\mathrm{model}(W)(x)$, and the loss is invariant under relabelling the target with the
+prediction. Take expectations over the $G$-invariant data law. Equivariance of the gradient
+follows by differentiating $L(g\cdot W)=L(W)$; a map that commutes with $G$ sends $\mathrm{Fix}(G)$
+to itself; Adam's update is a coordinatewise function of the gradient history.
+\end{proof}
+
+\paragraph{What this does and does not justify.} $G$ has \emph{six} orbits on the cells of an
+$8\times8$ token$\times$token block (signal--signal on/off diagonal, signal--noise,
+noise--signal, noise--noise on/off diagonal). After removing the per-row softmax constant, four
+numbers per block are identifiable: a veto for signal queries, a veto for noise queries, and two
+same-token bonuses. The five-number model keeps \emph{one} veto and sets both bonuses to zero:
+that is a restriction beyond symmetry. The finite training set is not exactly invariant either.
+\textbf{[empirical]} (\texttt{e1\_projection.py}): in folder 18's untied solution the spread
+inside each orbit is $0.1$--$0.2$ logits, and the signal-query vs noise-query veto differs by up
+to $2$ logits ($\alpha=0.8$).
+
+\paragraph{Not justified by any symmetry:} the linear position ramp. Folder 18's free position
+block is a \emph{capped} ramp (steep for $\approx5$ positions, flat after). \textbf{[empirical]}
+Projecting folder 18 onto the five numbers with the near-field slope recovers its loss to
+$0.0013$ nats at $\alpha=0.6,0.8$; a global least-squares slope does not (CE $1.896$ vs
+$1.698$); the five-number layer 1 cannot reproduce folder 18's full layer-1 attention
+distribution (KL $0.34$ nats). Also assumed, not derived: $W_{ov}=I$ (copying readout) and the
+block layout.
+
+\section{Summary of status}
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+statement & status & check \\ \midrule
+reimplementation $=$ folder 19 & verified & \texttt{e0} \\
+Prop.~1 gating, Cor.~1 order & exact & trajectories \\
+Prop.~2 query-side channel & exact & --- \\
+Prop.~3 covariance law, Cor.~2 & exact & \texttt{e5}, \texttt{e3b} \\
+Lemma (what $c_2$ compares) & exact & --- \\
+tug-of-war dynamics & empirical & \texttt{e2}, \texttt{e5} \\
+Phase 1 is an order effect & empirical & \texttt{e3} \\
+Prop.~4 symmetry $\Rightarrow$ ties & exact (population) & \texttt{e1} spreads \\
+five numbers faithful to folder 18 & empirical, partial & \texttt{e1}, \texttt{e1b} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Skip horizon. \textbf{[empirical]}} A signal key at distance $d$ beats a noise key at
+distance $1$ in layer 1 iff $d<H:=1+|a_1|/p$. At every fixed training step, $\alpha H$ is nearly
+independent of $\alpha$ (step 200: $2.86$--$3.61$ for $\alpha\in[0.2,0.99]$; step 100:
+$2.59$--$3.38$), while the constant grows slowly with training ($\approx2$ at step 50,
+$\approx4$ at step 1000). The learned horizon is a fixed multiple of the mean distance $1/\alpha$
+to the last signal. Not derived.
+
+\paragraph{Open (not proved):} why $c_2$ and $b_2$ end as inverted-U functions of $\alpha$
+(and why that shape still moves between steps 200 and 1000 --- the values are not converged:
+$p$, $|a_1|$, $b_2$ keep growing, so only the balance $G_{\mathrm{noise}}\approx-G_{\mathrm{signal}}$
+is a stable statement); a derivation of $\alpha H\approx c(t)$; the sign of $G_{\mathrm{signal}}$
+after layer 1 localises as a theorem rather than a measurement.
+
+\end{document}

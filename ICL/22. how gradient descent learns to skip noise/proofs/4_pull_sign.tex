@@ -1,0 +1,88 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,booktabs,hyperref}
+\newtheorem{theorem}{Theorem}\newtheorem{lemma}{Lemma}
+\theoremstyle{remark}\newtheorem{remark}{Remark}
+\newcommand{\1}{\mathbf{1}}
+\title{The initial induction pull is never negative}
+\author{Folder 22 --- drafted 2026-10-03; sign verified by exact enumeration}
+\date{}
+\begin{document}\maketitle
+
+\paragraph{In one sentence.} At initialisation the gradient pushes the induction weight $b_2$ up for
+every transition table, and is exactly zero precisely when the current token carries no information
+about the next one. Via \texttt{3\_skip\_seed.pdf}, this is what seeds the noise veto.
+
+\section{Statement}
+Let $P$ be the signal chain of a table (each state moves to each of its two successors w.p.\ $\tfrac12$),
+restricted to a recurrent class $\mathcal C$ (the class a long sequence ends up in), with stationary
+distribution $\pi$ and fundamental matrix $Z=(I-P+\mathbf 1\pi^\top)^{-1}$. Define
+\[
+C_y=\sum_{v\in\mathcal C}\pi_v^2\,P(v,y)\,(Z-I)(v,y),\qquad
+S(\alpha)=\sum_{y\in\mathcal C}\frac{C_y}{\alpha\pi_y+b_{\mathrm{sig}}}.
+\]
+\begin{theorem}[long-context leading order]
+The initial induction pull satisfies $-\partial L/\partial b_2|_{\theta=0}=\kappa_{\mathrm{ctx}}\,\alpha^3\,S(\alpha)\,(1+o(1))$
+as the context grows, with $\kappa_{\mathrm{ctx}}>0$ depending only on the context length. For the
+equiprobable two-successor family (all $6^4=1296$ tables, $1299$ table--class pairs):
+\begin{enumerate}
+\item $C_y\ge0$ for every $y$, hence $S(\alpha)\ge0$ for every $\alpha\in(0,1]$ and every $b_{\mathrm{sig}}>0$;
+\item $S\equiv0$ if and only if every state of $\mathcal C$ has the same successor set (the current
+token is uninformative about the next); this happens for $216$ pairs.
+\end{enumerate}
+\end{theorem}
+
+\section{Derivation of the leading term}
+By the covariance law at $\theta=0$ (Cor.~2 of \texttt{1\_exact\_statements.pdf}),
+$-\partial_{b_2}L|_0=\frac1N\sum_iw_i\sigma_i\,\mathrm{Cov}_{j<i}(\1[x_j=y_i],\,h_j[x_i])$ with
+$h_j[v]=\frac1j\#\{k<j:x_k=v\}$.
+
+\begin{lemma}[noise cancels from the lag sum]
+For signal tokens $v,y$ in $\mathcal C$, with $\Pr$ the stationary law of the interleaved sequence,
+\[
+\sum_{\ell\ge1}\Big[\Pr(x_j=y\mid x_{j-\ell}=v)-\Pr(x_j=y)\Big]=\sum_{m\ge1}(P^m-\mathbf 1\pi^\top)(v,y)=(Z-I)(v,y)
+\]
+(Ces\`aro sum for periodic classes).
+\end{lemma}
+\begin{proof}
+Between $j-\ell$ and $j$ there are $m\sim\mathrm{Bin}(\ell-1,\alpha)$ signal emissions, and $x_j$ must be a
+signal emission: $\Pr(x_j=y\mid x_{j-\ell}=v)=\alpha\,\mathbb E_m P^{m+1}(v,y)$, while
+$\Pr(x_j=y)=\alpha\pi_y$. Exchanging sums and using $\sum_{\ell\ge m+1}\binom{\ell-1}{m}\alpha^m(1-\alpha)^{\ell-1-m}=1/\alpha$
+gives $\sum_{m\ge0}(P^{m+1}-\mathbf1\pi^\top)(v,y)$.
+\end{proof}
+
+\paragraph{Assembling.} The key feature $h_j[v]$ sums indicators $\1[x_k=v]$, $k<j$, each with weight
+$1/j$; its covariance with $\1[x_j=y]$ is $\frac1j\,\alpha\pi_v\,(Z-I)(v,y)$ to leading order (the
+lemma, with $\Pr(x_k=v)=\alpha\pi_v$). A query has $x_i=v$ signal and $y_i=y$ signal with probability
+$\alpha\pi_v\cdot\alpha P(v,y)$, and noise targets contribute zero (a noise target is independent of
+the preceding signal). In the long-context limit $f_i[y]\to\alpha\pi_y$, so
+$w_i\to1/(\alpha\pi_y+b_{\mathrm{sig}})$. Summing gives $\alpha^3\sum_{v,y}\pi_v^2P(v,y)(Z-I)(v,y)/(\alpha\pi_y+b)$
+times the average of $1/(n_i\,j)$ over the scored window, a positive constant.
+
+\paragraph{Why it vanishes for uninformative tables.} If all states of $\mathcal C$ share one
+successor set, then $P=\mathbf1\pi^\top$, so $P^m=\mathbf1\pi^\top$ for all $m\ge1$ and $Z-I=0$.
+
+\section{The sign: exact enumeration}
+\texttt{e19\_pull\_sign\_all\_tables.py} and \texttt{e19b\_pull\_sign\_all\_alpha.py} compute $\pi$, $Z$
+and every $C_y$ in exact rational arithmetic (sympy) for all $1299$ table--class pairs:
+\begin{itemize}
+\item no $C_y$ is negative $\Rightarrow$ $S(\alpha)\ge0$ for all $\alpha$ and all $b_{\mathrm{sig}}>0$;
+\item $S=0$ exactly for $216$ pairs, and these are exactly the uninformative ones;
+\item the smallest nonzero $S$ is $0.48$, $0.18$, $0.11$ at $\alpha=0.2,0.6,1$ (bounded away from 0).
+\end{itemize}
+This is a computer-assisted proof for this finite table family. I have no short analytic proof that
+$C_y\ge0$ for general Markov chains; it may fail outside this family.
+
+\section{Does the leading term describe real 100-token contexts?}
+Against the per-shape pulls measured on the training data (\texttt{e18}, $\alpha=0.8$; $32$ irreducible
+shapes with $\ge100$ sequences each): Spearman $0.80$, Pearson $0.69$. Measured per-shape pulls are
+never clearly negative ($66$ shapes, $\alpha\in\{0.4,0.8,1\}$); the uninformative two-clique shape
+measures $-1.2\times10^{-4}\pm2.0\times10^{-4}$, i.e.\ zero.
+
+\section{Rigour: what is and is not proved}
+\textbf{Proved:} the lemma; $S\ge0$ with the equality characterisation, for this table family, by
+exact enumeration. \textbf{Leading order only:} the reduction of the pull to $S$ replaces $f_i[y]$ by its
+limit inside $w_i$ and keeps only the stationary part of each covariance; error terms (finite context,
+fluctuations of $f_i$, the initial transient) are not bounded. A fully rigorous finite-context
+statement would need those bounds.
+\end{document}
