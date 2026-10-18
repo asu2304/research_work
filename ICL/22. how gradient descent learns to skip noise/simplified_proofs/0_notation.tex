@@ -1,0 +1,186 @@
+\documentclass[11pt]{article}
+\usepackage[margin=0.9in]{geometry}
+\usepackage{amsmath,amssymb,booktabs,xcolor,tcolorbox,array}
+\newtcolorbox{idea}{colback=blue!4,colframe=blue!40,title=In plain words}
+\newtcolorbox{warn}{colback=orange!5,colframe=orange!60!black,title=Watch out}
+\newcommand{\1}{\mathbf{1}}
+\renewcommand{\arraystretch}{1.25}
+\title{Simplified proofs 0: the notation\\[4pt]\large what every symbol means, with one running example}
+\author{Folder 22 / simplified\_proofs --- read this before everything else}
+\date{}
+\begin{document}\maketitle
+
+\begin{idea}
+Every symbol used in \texttt{simplified\_proofs/} and \texttt{proofs/} is listed here, grouped by where it
+appears: the data, layer 1, layer 2, the loss, the gradient proofs, and the long-run (``table'') quantities.
+Section 1 gives one small sequence; every later section uses it.
+\end{idea}
+
+\section{The data}
+
+\begin{center}
+\begin{tabular}{>{\raggedright}p{2.6cm}p{11.8cm}}
+\toprule
+symbol & meaning \\\midrule
+$V=8$ & number of token types: $0,1,\dots,7$.\\
+$S=\{0,1,2,3\}$ & the \textbf{signal} (real) tokens. They form the Markov chain.\\
+$N=\{4,5,6,7\}$ & the \textbf{noise} tokens. Random, carry no information.\\
+$\mathrm{succ}(s)$ & the two \textbf{successors} of signal token $s$: the two real tokens allowed to come after $s$. Each is used with probability $\tfrac12$. Drawn fresh for \textbf{every sequence} (the ``table'').\\
+$P$ & the $4\times4$ transition matrix of that table: $P(s,v)=\tfrac12$ if $v\in\mathrm{succ}(s)$, else $0$.\\
+$\alpha$ & signal density. At each step: w.p.\ $\alpha$ emit a successor of the current state (it becomes the new state); w.p.\ $1-\alpha$ emit a uniform noise token (state unchanged). $1-\alpha$ = noise density.\\
+$T=100$ & sequence length. The loss is scored only on positions $t\in[50,100)$ (the ``scored window'' $W_T$).\\
+$x_t$ & the token at position $t$ (the input).\\
+$y_t=x_{t+1}$ & the \textbf{target}: the token the model must predict at position $t$.\\
+$\nu_t$ & $1$ if $x_t$ is noise, else $0$ (``$\nu$'' for noise).\\
+$\sigma_t=1-\nu_t$ & $1$ if $x_t$ is signal, else $0$ (``$\sigma$'' for signal).\\
+$\mathrm{st}(t)$ & the \textbf{state} at $t$: the last signal token \textbf{at or before} $t$. It is what generates $y_t$.\\
+$\mathrm{pv}(t)$ & the last signal token \textbf{strictly before} $t$ (``previous''). Layer 1 tries to compute this.\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Running example.} Suppose this sequence's table has $\mathrm{succ}(2)=\{3,0\}$, $\mathrm{succ}(3)=\{1,\cdot\}$,
+$\mathrm{succ}(1)=\{2,\cdot\}$, $\mathrm{succ}(0)=\{2,\cdot\}$ (dots: the other successor, not needed).
+Positions are numbered from 1 here for readability.
+\[
+\begin{array}{l|cccccccccccc}
+t & 1&2&3&4&5&6&7&8&9&10&11&12\\\hline
+x_t & 2&3&1&2&0&6&2&5&3&1&2&4\\
+\nu_t & 0&0&0&0&0&1&0&1&0&0&0&1\\
+\sigma_t & 1&1&1&1&1&0&1&0&1&1&1&0\\
+\mathrm{st}(t) & 2&3&1&2&0&0&2&2&3&1&2&2\\
+\mathrm{pv}(t) & -&2&3&1&2&0&0&2&2&3&1&2\\
+y_t & 3&1&2&0&6&2&5&3&1&2&4&\text{(3)}
+\end{array}
+\]
+\begin{idea}
+For a \textbf{signal} position, $\mathrm{st}(t)=x_t$ (the token itself is the state), so $\mathrm{st}(t)\ne\mathrm{pv}(t)$ in general.\\
+For a \textbf{noise} position, the token is useless and $\mathrm{st}(t)=\mathrm{pv}(t)$: the state is hidden behind the noise.
+This is the whole difficulty of the task. E.g.\ at $t=12$ ($x=4$, noise) the state is $\mathrm{pv}(12)=2$.
+\end{idea}
+
+\section{Positions inside attention}
+\begin{center}
+\begin{tabular}{>{\raggedright}p{2.6cm}p{11.8cm}}
+\toprule
+$i$ & the \textbf{query}: the position that is currently making a prediction.\\
+$j$ (or $k$) & a \textbf{key}: an earlier position $j<i$ that query $i$ can look at (strictly causal: never $j=i$).\\
+$s_{ij}$ & the \textbf{score} query $i$ gives key $j$. Superscript $s^{(1)}$ for layer 1, $s^{(2)}$ for layer 2.\\
+$A_{ij}$ & the \textbf{attention}: $A_{ij}=e^{s_{ij}}/\sum_{k<i}e^{s_{ik}}$. Between 0 and 1, sums to 1 over $j$. When $i$ is fixed we just write $A_j$.\\
+$e_v$ & the one-hot vector of token $v$ (length 8, a 1 in slot $v$).\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{The five numbers $\theta=(p,\,a_1,\,a_2,\,b_2,\,c_2)$}
+All five start at $0$ and are learned. They are measured in \textbf{logits} (amounts added to a score).
+
+\subsection*{Layer 1: recover the state ($p$, $a_1$)}
+\[
+s^{(1)}_{ij}=-p\,(i-j)+a_1\,\nu_j,\qquad r_i=\sum_{j<i}A^{(1)}_{ij}\,e_{x_j}.
+\]
+\begin{center}
+\begin{tabular}{>{\raggedright}p{2.6cm}p{11.8cm}}
+\toprule
+$p$ & \textbf{recency}. Positive $p$ = prefer nearby keys (each step back costs $p$).\\
+$a_1$ & \textbf{layer-1 noise veto}. Negative $a_1$ = avoid noise keys.\\
+$r_i$ & layer 1's \textbf{output} at $i$: a mix of earlier tokens. When layer 1 has learned, $r_i=e_{\mathrm{pv}(i)}$, the one-hot of the last signal before $i$. In the example $r_{12}=e_2$, $r_9=e_2$ (skips the noise 5 at $t=8$).\\
+$r_i[v]$ & entry $v$ of the vector $r_i$: how much of $r_i$ is token $v$.\\
+$m_j$ & layer 1's \textbf{noise mass} at $j$: the part of $A^{(1)}_j$ that falls on noise keys.\\
+$g_j=1-m_j$ & the \textbf{gain}: the part on signal keys. $g_j=1$ = clean, $g_j<1$ = layer 1 leaks into noise.\\
+$H=1+|a_1|/p$ & the \textbf{skip horizon}: a signal key up to $H$ steps back still beats the adjacent noise key. Beyond $H$, layer 1 falls off a ``cliff'' and leaks.\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Layer 2: look up what came next ($a_2$, $b_2$, $c_2$)}
+\[
+s^{(2)}_{ij}=a_2\,\nu_j\;+\;b_2\,\sigma_i\,r_j[x_i]\;+\;c_2\,\langle r_i,r_j\rangle_S,\qquad
+f_i=\sum_{j<i}A^{(2)}_{ij}\,e_{x_j}.
+\]
+\begin{center}
+\begin{tabular}{>{\raggedright}p{2.6cm}p{11.8cm}}
+\toprule
+$a_2$ & \textbf{layer-2 noise veto}. Negative = do not copy noise tokens.\\
+$b_2$ & \textbf{induction weight}. Boosts key $j$ if my token is signal ($\sigma_i=1$) and the token before $j$ was my token ($r_j[x_i]=1$). Works when my own token is real.\\
+$c_2$ & \textbf{state weight}. Boosts key $j$ if the last signal before $j$ equals the last signal before me ($\langle r_i,r_j\rangle_S=1$). Does $b_2$'s job when my token is noise.\\
+$\langle u,v\rangle_S$ & dot product over the 4 signal slots only: $\sum_{s\in S}u[s]\,v[s]$. For one-hots: 1 if same token, 0 otherwise.\\
+$f_i$ & layer 2's \textbf{output}: the tokens it copies, weighted by attention. A probability vector over the 8 tokens ($W_{ov}=I$, ``copy readout'').\\
+$f_i[y]$ & the probability $f_i$ puts on the correct token $y=y_i$.\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{In the example, query $i=11$ ($x=2$, signal):} $b_2$ boosts keys with $\mathrm{pv}(j)=2$: $j=2,5,8,9$.
+$c_2$ boosts keys with $\mathrm{pv}(j)=\mathrm{pv}(11)=1$: $j=4$ --- the \emph{rival} (previous) state, not the current one.
+\paragraph{Query $i=12$ ($x=4$, noise):} $b_2$ is off ($\sigma_{12}=0$). $c_2$ boosts $\mathrm{pv}(j)=\mathrm{pv}(12)=2$: $j=2,5,8,9$ --- exactly the right keys.
+
+\section{Readout and loss}
+\begin{center}
+\begin{tabular}{>{\raggedright}p{2.6cm}p{11.8cm}}
+\toprule
+$b$ & a fixed (not learned) \textbf{readout bias} vector added to $f$ so no token gets probability 0.\\
+$b_{\rm sig}=0.01$ & its value on each signal token.\\
+$b_{\rm noise}$ & its value on each noise token: $(1-\alpha)(1+4b_{\rm sig})/(4\alpha)$, chosen so noise gets total probability $1-\alpha$.\\
+$q_i=\dfrac{f_i+b}{1+\1^\top b}$ & the model's final \textbf{prediction} (a probability vector).\\
+$\ell_i=-\log q_i[y_i]$ & the loss at query $i$ (cross-entropy).\\
+$L$ or $L_T$ & the total loss: average of $\ell_i$ over the scored window and over sequences.\\
+$w_i=\dfrac1{f_i[y_i]+b[y_i]}$ & the \textbf{surprise weight}: large when the model currently gives the right token little probability. $-\partial\ell_i/\partial f_i[y_i]=w_i$.\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Symbols in the gradient proofs}
+\begin{center}
+\begin{tabular}{>{\raggedright}p{2.6cm}p{11.8cm}}
+\toprule
+$\kappa$ & \textbf{placeholder} for ``whichever layer-2 weight we differentiate'': $a_2$, $b_2$ or $c_2$.\\
+$\varphi_j=\partial s^{(2)}_j/\partial\kappa$ & the \textbf{feature}: what $\kappa$ multiplies in key $j$'s score. $\nu_j$ for $a_2$; $\sigma_ir_j[x_i]$ for $b_2$; $\langle r_i,r_j\rangle_S$ for $c_2$.\\
+$\1[x_j=y_i]$ & the \textbf{indicator function}: $1$ if key $j$'s token is the correct next token ($x_j=y_i$), else $0$. A fact about the data.\\
+$\mathbb E_{J\sim A}[\,\cdot\,]$ & average over keys, weighted by attention: $\sum_jA_j(\cdot)_j$. Note $\mathbb E[\1[x_J=y]]=f[y]$.\\
+$\mathrm{Cov}(\1[x_J=y],\varphi)$ & $\mathbb E[\1[x_J=y]\cdot\varphi]-\mathbb E[\1[x_J=y]]\,\mathbb E[\varphi]$: do the keys $\kappa$ boosts hold the answer more often than chance?\\
+$\nabla_{(p,a_1)}L$ & the gradient of the loss w.r.t.\ the two layer-1 numbers.\\
+$U(\theta),\,W(\theta)$ & the two 2-vectors in the gating identity $\nabla_{(p,a_1)}L=b_2\,U+c_2\,W$: what layer 1's gradient is ``per unit'' of $b_2$ and of $c_2$. $U_0=U(0)$.\\
+$\Gamma_j=-\partial L/\partial g_j$ & how much the loss drops if position $j$'s gain $g_j$ grows (used for ``the veto keeps strengthening'').\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Long-run (``table'') quantities}
+These describe one sequence's chain when the context is very long. $\mathbb E[\cdot]$ then averages over all
+$6^4=1296$ possible tables.
+\begin{center}
+\begin{tabular}{>{\raggedright}p{2.6cm}p{11.8cm}}
+\toprule
+$\pi$ & the \textbf{stationary law}: $\pi_v$ = long-run fraction of signal tokens that are $v$.\\
+recurrent class $\mathcal C$ & the set of states the chain keeps returning to (some tables trap the chain in a subset).\\
+$Z=(I-P+\1\pi^\top)^{-1}$ & the \textbf{fundamental matrix}; $D=Z-I$. $D(v,y)$ = how much more often than average $y$ shows up some steps after $v$, summed over all steps.\\
+$C_y,\ S(\alpha)$ & $C_y=\sum_v\pi_v^2P(v,y)D(v,y)$ and $S(\alpha)=\sum_y C_y/(\alpha\pi_y+b_{\rm sig})$: the strength of the \textbf{initial pull} on $b_2$. Proof 4: $S\ge0$ always.\\
+$A,\ B$ (in $c_2$ proofs) & long-run \textbf{help} (after noise) and \textbf{harm} (after signal) of $c_2$; $\mathbb E A=0.569$, $\mathbb E B=0.203$. Not the attention $A_j$!\\
+$c_2^\ast$ & where $c_2$ settles: $c_2^\ast=\tfrac{b_2}2+\tfrac12\log\tfrac{1-\alpha}{\alpha}+0.514$.\\
+$K_{\rm cost},\,K_{\rm gain}$ & for $b_2$: cost of unseen successors vs gain of sharper induction. $b_2$ settles iff $K_{\rm cost}>K_{\rm gain}$.\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{warn}
+Two letters are reused with different meanings:
+\begin{itemize}
+\item $\kappa$: the placeholder weight (covariance law) \emph{and} the constant $0.514$ in $c_2^\ast$.
+\item $A$: attention $A_{ij}$ \emph{and} the help constant $A$ in the $c_2$ proofs; likewise $S$: the signal set \emph{and} the pull strength $S(\alpha)$.
+\end{itemize}
+The context always tells which: attention carries indices ($A_j$, $A_{ij}$), the constants do not.
+\end{warn}
+
+\section{Training words}
+\begin{center}
+\begin{tabular}{>{\raggedright}p{2.6cm}p{11.8cm}}
+\toprule
+zero init & training starts at $\theta=0$: all scores 0, so all attention is uniform.\\
+Adam / plain GD & the two optimisers tested. Adam: lr 1.0 on raw values (= 0.096 logits per step). Plain GD: lr 30.\\
+logits & the unit of the five numbers (folder 19's raw $W_{qk}$ entry divided by $\sqrt{108}$).\\
+post-noise / post-signal query & a query whose own token is noise / signal. $c_2$ helps the first, mostly hurts the second.\\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{document}

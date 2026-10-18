@@ -1,6 +1,7 @@
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amssymb,booktabs,xcolor,tcolorbox}
+\newcommand{\1}{\mathbf{1}}
 \newtcolorbox{idea}{colback=blue!4,colframe=blue!40,title=In plain words}
 \title{Simplified proof 1b: the covariance law on one concrete sequence}
 \author{Folder 22 / simplified\_proofs --- companion to \texttt{1\_covariance\_law.pdf}}
@@ -19,7 +20,7 @@ x_j & 2&3&1&2&0&6&2&5&3&1&2 & 4
 
 \section{The three ingredients for every position $j$}
 \begin{itemize}
-\item $\mathrm{hit}_j = 1$ if $x_j = y$ (the token there is 3), else $0$.
+\item $\1[x_j = y]$ (the \textbf{indicator function}) $=1$ if $x_j = y$ (the token there is 3), else $0$.
 \item $\varphi_j = \dfrac{\partial s_j}{\partial \kappa}$: what the chosen weight $\kappa$ multiplies in position $j$'s score
 \[
 s_j = a_2\,\nu_j + b_2\,\sigma_i\,r_j[x_i] + c_2\,\langle r_i, r_j\rangle .
@@ -34,7 +35,7 @@ Here $r_j$ is ``the last real token before $j$'' (layer 1, once it has learned),
 j & 1&2&3&4&5&6&7&8&9&10&11\\\hline
 x_j & 2&3&1&2&0&6&2&5&3&1&2\\
 r_j & -&2&3&1&2&0&0&2&2&3&1\\\hline
-\mathrm{hit}_j & 0&\mathbf 1&0&0&0&0&0&0&\mathbf 1&0&0\\
+\1[x_j=y] & 0&\mathbf 1&0&0&0&0&0&0&\mathbf 1&0&0\\
 \varphi_j\ \text{for } a_2\ (=\nu_j) & 0&0&0&0&0&\mathbf 1&0&\mathbf 1&0&0&0\\
 \varphi_j\ \text{for } b_2\ (=\sigma_{12}\,r_j[4]) & 0&0&0&0&0&0&0&0&0&0&0\\
 \varphi_j\ \text{for } c_2\ (=\langle r_{12},r_j\rangle) & 0&\mathbf 1&0&0&\mathbf 1&0&0&\mathbf 1&\mathbf 1&0&0
@@ -45,9 +46,9 @@ r_j & -&2&3&1&2&0&0&2&2&3&1\\\hline
 \section{The formula we start from}
 Steps 1--6 of \texttt{1\_covariance\_law.pdf} give
 \[
--\frac{\partial \ell}{\partial \kappa} \;=\; w \sum_{j} A_j\,\big(\mathrm{hit}_j - f[y]\big)\,\varphi_j,
+-\frac{\partial \ell}{\partial \kappa} \;=\; w \sum_{j} A_j\,\big(\1[x_j=y] - f[y]\big)\,\varphi_j,
 \qquad
-f[y] = \sum_j A_j\,\mathrm{hit}_j,
+f[y] = \sum_j A_j\,\1[x_j=y],
 \qquad
 w = \frac{1}{f[y] + b_y}.
 \]
@@ -58,34 +59,34 @@ Pick one position $J$ at random, with probability $A_J$. For any quantity $g$,
 \[
 \mathbb E[g] \;=\; \sum_j A_j\, g_j \qquad\text{(the attention-weighted average).}
 \]
-So $f[y] = \mathbb E[\mathrm{hit}]$. The covariance of two quantities is
+So $f[y] = \mathbb E[\1[x_J=y]]$. The covariance of two quantities is
 \[
-\mathrm{Cov}(\mathrm{hit},\varphi) \;=\; \mathbb E[\mathrm{hit}\cdot\varphi] \;-\; \mathbb E[\mathrm{hit}]\;\mathbb E[\varphi].
+\mathrm{Cov}(\1[x_J=y],\varphi) \;=\; \mathbb E[\1[x_J=y]\cdot\varphi] \;-\; \mathbb E[\1[x_J=y]]\;\mathbb E[\varphi].
 \]
 \begin{idea}
-$\mathbb E[\mathrm{hit}\cdot\varphi]$ = how often a position is \emph{both} right \emph{and} pushed up by $\kappa$.\\
-$\mathbb E[\mathrm{hit}]\,\mathbb E[\varphi]$ = how often that would happen \emph{by pure chance}.\\
+$\mathbb E[\1[x_J=y]\cdot\varphi]$ = how often a position is \emph{both} right \emph{and} pushed up by $\kappa$.\\
+$\mathbb E[\1[x_J=y]]\,\mathbb E[\varphi]$ = how often that would happen \emph{by pure chance}.\\
 Covariance $>0$: the weight pushes up right positions more than chance. $<0$: less than chance.
 \end{idea}
 
 \section{Why the gradient sum IS the covariance}
 Write the sum as an average:
 \[
-\sum_j A_j\,(\mathrm{hit}_j - f[y])\,\varphi_j
-= \sum_j A_j\,\mathrm{hit}_j\,\varphi_j \;-\; f[y]\sum_j A_j\,\varphi_j
-= \mathbb E[\mathrm{hit}\cdot\varphi] - \mathbb E[\mathrm{hit}]\,\mathbb E[\varphi]
-= \mathrm{Cov}(\mathrm{hit},\varphi).
+\sum_j A_j\,(\1[x_j=y] - f[y])\,\varphi_j
+= \sum_j A_j\,\1[x_j=y]\,\varphi_j \;-\; f[y]\sum_j A_j\,\varphi_j
+= \mathbb E[\1[x_J=y]\cdot\varphi] - \mathbb E[\1[x_J=y]]\,\mathbb E[\varphi]
+= \mathrm{Cov}(\1[x_J=y],\varphi).
 \]
-(First equality: multiply out the bracket. Second: $\sum_jA_j(\cdot)=\mathbb E[\cdot]$ and $f[y]=\mathbb E[\mathrm{hit}]$.) Hence
+(First equality: multiply out the bracket. Second: $\sum_jA_j(\cdot)=\mathbb E[\cdot]$ and $f[y]=\mathbb E[\1[x_J=y]]$.) Hence
 \[
-\boxed{\;-\frac{\partial \ell}{\partial \kappa} \;=\; w\cdot \mathrm{Cov}(\mathrm{hit},\varphi)\;}
+\boxed{\;-\frac{\partial \ell}{\partial \kappa} \;=\; w\cdot \mathrm{Cov}(\1[x_J=y],\varphi)\;}
 \]
 
 \section{The numbers, weight by weight}
 \renewcommand{\arraystretch}{1.6}
 \[
 \begin{array}{l|c|c|c|c|c}
-\kappa & \mathbb E[\mathrm{hit}] & \mathbb E[\varphi] & \mathbb E[\mathrm{hit}\cdot\varphi] & \mathrm{Cov} & \text{GD moves }\kappa\\\hline
+\kappa & \mathbb E[\1[x_J=y]] & \mathbb E[\varphi] & \mathbb E[\1[x_J=y]\cdot\varphi] & \mathrm{Cov} & \text{GD moves }\kappa\\\hline
 c_2 & \tfrac{2}{11} & \tfrac{4}{11}\ (\text{pos }2,5,8,9) & \tfrac{2}{11}\ (\text{pos }2,9) & \tfrac{2}{11}-\tfrac{8}{121}=+\tfrac{14}{121} & \text{up}\\
 a_2 & \tfrac{2}{11} & \tfrac{2}{11}\ (\text{pos }6,8) & 0 & 0-\tfrac{4}{121}=-\tfrac{4}{121} & \text{down}\\
 b_2 & \tfrac{2}{11} & 0 & 0 & 0 & \text{no move}

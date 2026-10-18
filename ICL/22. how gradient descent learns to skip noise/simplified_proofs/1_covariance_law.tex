@@ -24,7 +24,7 @@ Fix \textbf{one query position} $i$. To keep the notation light, we drop the ind
 \item There are $n$ earlier positions (``keys''), numbered $j=1,\dots,n$.
 \item Key $j$ holds the token $x_j$ (one of the 8 tokens).
 \item The correct next token for our query is $y$.
-\item $\mathrm{hit}_j=1$ if key $j$ holds the correct token ($x_j=y$), and $0$ otherwise.
+\item $\1[x_j=y]$ is the \textbf{indicator function}: it equals $1$ if key $j$ holds the correct token ($x_j=y$), and $0$ otherwise.
 \item Each key gets a \textbf{score} $s_j$ from layer 2. We will only change one weight, called $\kappa$
 (it can be $a_2$, $b_2$ or $c_2$).
 \end{itemize}
@@ -67,7 +67,7 @@ f=\sum_{k=1}^nA_k\,e_{x_k},
 \]
 where $e_{x_k}$ is the one-hot vector of token $x_k$. Its entry for the correct token $y$ is
 \[
-f[y]=\sum_kA_k\,\1[x_k=y]=\sum_kA_k\,\mathrm{hit}_k .
+f[y]=\sum_kA_k\,\1[x_k=y] .
 \]
 \begin{idea}
 $f[y]$ is the attention-weighted fraction of keys that hold the right token: \textbf{the current
@@ -75,24 +75,24 @@ average correctness}.
 \end{idea}
 
 \section{Step 4: how the correct-token probability changes when one score changes}
-Differentiate $f[y]=\sum_kA_k\mathrm{hit}_k$ with respect to $s_j$, using Step 2 ($\mathrm{hit}_k$ does not depend
+Differentiate $f[y]=\sum_kA_k\1[x_k=y]$ with respect to $s_j$, using Step 2 ($\1[x_k=y]$ does not depend
 on scores):
 \[
-\frac{\partial f[y]}{\partial s_j}=\sum_k\mathrm{hit}_k\,A_k\big(\1[k=j]-A_j\big)
-=\underbrace{\mathrm{hit}_j\,A_j}_{\text{the }k=j\text{ term}}\;-\;A_j\underbrace{\sum_kA_k\mathrm{hit}_k}_{=f[y]} .
+\frac{\partial f[y]}{\partial s_j}=\sum_k\1[x_k=y]\,A_k\big(\1[k=j]-A_j\big)
+=\underbrace{\1[x_j=y]\,A_j}_{\text{the }k=j\text{ term}}\;-\;A_j\underbrace{\sum_kA_k\1[x_k=y]}_{=f[y]} .
 \]
 So
 \[
-\boxed{\ \frac{\partial f[y]}{\partial s_j}=A_j\,\big(\mathrm{hit}_j-f[y]\big)\ }
+\boxed{\ \frac{\partial f[y]}{\partial s_j}=A_j\,\big(\1[x_j=y]-f[y]\big)\ }
 \]
 \begin{idea}
 Raising key $j$'s score helps the correct token if key $j$ is \textbf{better than average}
-($\mathrm{hit}_j=1>f[y]$) and hurts if it is \textbf{worse than average} ($\mathrm{hit}_j=0<f[y]$).
+($\1[x_j=y]=1>f[y]$) and hurts if it is \textbf{worse than average} ($\1[x_j=y]=0<f[y]$).
 \end{idea}
 
 \begin{tcolorbox}[colback=orange!5,colframe=orange!60!black,title=What ``better than average'' means --- a worked example]
 \textbf{The ``average''} is $f[y]$: of all the attention, the share that sits on keys holding the right
-token. A key is \textbf{better than average} if it is a hit (it is 100\% right, which beats any mix that
+token. A key is \textbf{better than average} if it holds the correct token, $\1[x_j=y]=1$ (it is 100\% right, which beats any mix that
 is less than 100\% right), and \textbf{worse than average} if it is a miss (0\% right).
 
 \medskip
@@ -102,27 +102,27 @@ is less than 100\% right), and \textbf{worse than average} if it is a miss (0\% 
 \item that attention is \textbf{taken from all the other keys}, in proportion to what they had, so it
 comes from a pool that is about $f[y]$ right.
 \end{enumerate}
-So attention moves \emph{from a mix that is $f[y]$ right} \emph{to key $j$}. If key $j$ is a hit,
+So attention moves \emph{from a mix that is $f[y]$ right} \emph{to key $j$}. If key $j$ holds the correct token,
 the right share goes up. If it is a miss, it goes down.
 
 \medskip
-\textbf{Numbers.} Four keys, attention $A=(0.4,\,0.4,\,0.1,\,0.1)$, hits $=(1,\,0,\,1,\,0)$, so
+\textbf{Numbers.} Four keys, attention $A=(0.4,\,0.4,\,0.1,\,0.1)$, $\1[x_j=y]=(1,\,0,\,1,\,0)$, so
 $f[y]=0.4+0.1=0.5$ (half the attention is on right keys).
 
 \smallskip
-\emph{Raise key 1 (a hit) by $0.1$.} Key 1 gains $0.4\cdot0.6\cdot0.1=0.024$. The others lose
+\emph{Raise key 1 (correct token) by $0.1$.} Key 1 gains $0.4\cdot0.6\cdot0.1=0.024$. The others lose
 $A_k\cdot0.4\cdot0.1$: key 2 loses $0.016$, key 3 $0.004$, key 4 $0.004$. The change in
-$f[y]$ counts only the hits: $+0.024$ (key 1) $-0.004$ (key 3) $=\mathbf{+0.020}$.
-Formula: $A_1(\mathrm{hit}_1-f[y])\cdot0.1=0.4\cdot(1-0.5)\cdot0.1=+0.020$. \checkmark
+$f[y]$ counts only the keys holding the correct token: $+0.024$ (key 1) $-0.004$ (key 3) $=\mathbf{+0.020}$.
+Formula: $A_1(\1[x_1=y]-f[y])\cdot0.1=0.4\cdot(1-0.5)\cdot0.1=+0.020$. \checkmark
 
 \smallskip
-\emph{Raise key 2 (a miss) by $0.1$.} Key 2 gains $0.024$, but it is a miss, so that adds nothing. The hits
+\emph{Raise key 2 (wrong token) by $0.1$.} Key 2 gains $0.024$, but it holds a wrong token, so that adds nothing. The correct keys
 lose: key 1 $0.016$, key 3 $0.004$. Change in $f[y]$: $\mathbf{-0.020}$.
 Formula: $0.4\cdot(0-0.5)\cdot0.1=-0.020$. \checkmark
 
 \medskip
-\textbf{Two edge cases.} If \emph{every} key is a hit ($f[y]=1$), raising any score changes nothing
-($\mathrm{hit}_j-f[y]=0$): you can't do better than all right. A key with little attention
+\textbf{Two edge cases.} If \emph{every} key holds the correct token ($f[y]=1$), raising any score changes nothing
+($\1[x_j=y]-f[y]=0$): you can't do better than all right. A key with little attention
 ($A_j$ small) moves $f[y]$ only a little: that is the factor $A_j$ in front.
 \end{tcolorbox}
 
@@ -148,7 +148,7 @@ little probability.
 \paragraph{Chain rule (loss $\leftarrow$ $f[y]$ $\leftarrow$ score $s_j$).} Combine with Step 4:
 \[
 \boxed{\ \frac{\partial\ell}{\partial s_j}=\frac{\partial\ell}{\partial f[y]}\cdot\frac{\partial f[y]}{\partial s_j}
-=-w\,A_j\,\big(\mathrm{hit}_j-f[y]\big)\ }
+=-w\,A_j\,\big(\1[x_j=y]-f[y]\big)\ }
 \]
 
 \section{Step 6: from a score to the weight $\kappa$}
@@ -174,31 +174,31 @@ $r_i,r_j$ do not change when $\kappa$ changes. The \emph{only} thing $\kappa$ ch
 so we add up over all keys:
 \[
 \frac{\partial\ell}{\partial\kappa}=\sum_j\frac{\partial\ell}{\partial s_j}\cdot\frac{\partial s_j}{\partial\kappa}
-=\sum_j\Big(-w\,A_j\,(\mathrm{hit}_j-f[y])\Big)\phi_j .
+=\sum_j\Big(-w\,A_j\,(\1[x_j=y]-f[y])\Big)\phi_j .
 \]
 Multiply by $-1$ (we want the direction that \emph{lowers} the loss):
 \[
-\boxed{\ -\frac{\partial\ell}{\partial\kappa}=w\sum_jA_j\,\big(\mathrm{hit}_j-f[y]\big)\,\phi_j\ }
+\boxed{\ -\frac{\partial\ell}{\partial\kappa}=w\sum_jA_j\,\big(\1[x_j=y]-f[y]\big)\,\phi_j\ }
 \]
 
 \section{Step 7: why this sum is a covariance}
 Treat the attention $A_j$ as probabilities: pick a random key $J$ with $\Pr(J=j)=A_j$. Then
 \begin{itemize}
-\item the average correctness is $\mathbb E[\mathrm{hit}_J]=\sum_jA_j\mathrm{hit}_j=f[y]$ (Step 3);
+\item the average correctness is $\mathbb E[\1[x_J=y]]=\sum_jA_j\1[x_j=y]=f[y]$ (Step 3);
 \item the covariance of two quantities is $\mathrm{Cov}(X,Y)=\mathbb E\big[(X-\mathbb EX)(Y-\mathbb EY)\big]$.
 \end{itemize}
-Our sum is $\mathbb E\big[(\mathrm{hit}_J-f[y])\,\phi_J\big]$. It equals the covariance, because subtracting the mean of
+Our sum is $\mathbb E\big[(\1[x_J=y]-f[y])\,\phi_J\big]$. It equals the covariance, because subtracting the mean of
 $\phi$ changes nothing:
 \[
-\mathbb E\big[(\mathrm{hit}_J-f[y])(\phi_J-\mathbb E\phi)\big]
-=\mathbb E\big[(\mathrm{hit}_J-f[y])\phi_J\big]-\mathbb E\phi\cdot\underbrace{\mathbb E\big[\mathrm{hit}_J-f[y]\big]}_{=f[y]-f[y]=0}.
+\mathbb E\big[(\1[x_J=y]-f[y])(\phi_J-\mathbb E\phi)\big]
+=\mathbb E\big[(\1[x_J=y]-f[y])\phi_J\big]-\mathbb E\phi\cdot\underbrace{\mathbb E\big[\1[x_J=y]-f[y]\big]}_{=f[y]-f[y]=0}.
 \]
 So, finally,
 \[
-\boxed{\ -\frac{\partial\ell}{\partial\kappa}=w\cdot\mathrm{Cov}_{J\sim A}\big(\mathrm{hit}_J,\ \phi_J\big)\ }
+\boxed{\ -\frac{\partial\ell}{\partial\kappa}=w\cdot\mathrm{Cov}_{J\sim A}\big(\1[x_J=y],\ \phi_J\big)\ }
 \]
 and for the whole loss (the average over query positions $i$) we just average:
-$-\frac{\partial L}{\partial\kappa}=\frac1N\sum_iw_i\,\mathrm{Cov}_i(\mathrm{hit},\phi)$.
+$-\frac{\partial L}{\partial\kappa}=\frac1N\sum_iw_i\,\mathrm{Cov}_i(\1[x_J=y_i],\phi_J)$.
 
 \begin{idea}
 \textbf{Covariance $>0$}: the keys the weight lifts are more often correct than the current average,
@@ -211,7 +211,7 @@ positions where the model is wrong count more.
 One query, 4 keys, $b[y]=0.01$:
 \begin{center}
 \begin{tabular}{ccccc}\toprule
-key $j$ & $A_j$ & $\mathrm{hit}_j$ & $\phi_j$ & $A_j(\mathrm{hit}_j-f[y])\phi_j$\\\midrule
+key $j$ & $A_j$ & $\1[x_j=y]$ & $\phi_j$ & $A_j(\1[x_j=y]-f[y])\phi_j$\\\midrule
 1 & 0.4 & 1 & 1 & $0.4\times0.5\times1=0.20$\\
 2 & 0.4 & 0 & 0 & $0$\\
 3 & 0.1 & 1 & 1 & $0.1\times0.5\times1=0.05$\\
