@@ -207,24 +207,55 @@ so gradient descent \textbf{decreases} it. The surprise $w\ge0$ never changes th
 positions where the model is wrong count more.
 \end{idea}
 
-\section{A worked example}
-One query, 4 keys, $b[y]=0.01$:
+\section{A worked example (the parameter is $\kappa=c_2$)}
+\textbf{Which parameter.} We take $\kappa=c_2$, the state weight. Its feature is what $c_2$ multiplies in the score:
+\[
+\phi_j=\frac{\partial s_j}{\partial c_2}=\langle r_i,r_j\rangle .
+\]
+Note: $\phi_j$ is the derivative of the \textbf{score} $s_j$ with respect to $c_2$, \emph{not} of the loss. It is a fixed
+number for each key, read off from the data and from layer 1.
+
+\textbf{The situation.} Here is the actual sequence (positions in order, nothing skipped):
+\[
+\begin{array}{c|cccccc|c}
+\text{position} & 0 & 1 & 2 & 3 & 4 & 5\ (\text{query}) & 6\\\hline
+\text{token} & 2 & 3 & 2 & 3 & 2 & 5 & 3
+\end{array}
+\]
+The query (position 5) holds the noise token 5. The last real token before it is the 2 at position 4, so layer 1
+gives $r_i=e_2$: the state is 2. The correct next token is $y=3$ (position 6). The keys are positions 1--4 (to keep
+the numbers small we give position 0 no attention). For each key, $r_j$ is the real token \emph{immediately before}
+it (no noise in between here):
 \begin{center}
-\begin{tabular}{ccccc}\toprule
-key $j$ & $A_j$ & $\1[x_j=y]$ & $\phi_j$ & $A_j(\1[x_j=y]-f[y])\phi_j$\\\midrule
-1 & 0.4 & 1 & 1 & $0.4\times0.5\times1=0.20$\\
-2 & 0.4 & 0 & 0 & $0$\\
-3 & 0.1 & 1 & 1 & $0.1\times0.5\times1=0.05$\\
-4 & 0.1 & 0 & 0 & $0$\\\bottomrule
+\begin{tabular}{cccccc}\toprule
+key $j$ & token $x_j$ & last real token before $j$ ($r_j$) & $\1[x_j=3]$ & $\phi_j=\langle e_2,r_j\rangle$ & $A_j$\\\midrule
+1 & 3 & 2 (position 0) & 1 & 1 & 0.4\\
+2 & 2 & 3 (position 1) & 0 & 0 & 0.4\\
+3 & 3 & 2 (position 2) & 1 & 1 & 0.1\\
+4 & 2 & 3 (position 3) & 0 & 0 & 0.1\\\bottomrule
+\end{tabular}
+\end{center}
+Keys 1 and 3 came right after a 2 (the query's state), so $c_2$ raises their scores ($\phi=1$). Keys 2 and 4 came after
+other states, so $c_2$ does not touch their scores ($\phi=0$). Now the law, with $b[y]=0.01$:
+\begin{center}
+\begin{tabular}{cc}\toprule
+key $j$ & $A_j(\1[x_j=y]-f[y])\phi_j$\\\midrule
+1 & $0.4\times(1-0.5)\times1=0.20$\\
+2 & $0.4\times(0-0.5)\times0=0$\\
+3 & $0.1\times(1-0.5)\times1=0.05$\\
+4 & $0.1\times(0-0.5)\times0=0$\\\bottomrule
 \end{tabular}
 \end{center}
 \begin{enumerate}
-\item $f[y]=0.4+0.1=0.5$ (Step 3).
+\item $f[y]=0.4+0.1=0.5$ (Step 3: attention on keys holding a 3).
 \item $w=1/(0.5+0.01)\approx1.96$.
-\item Sum of the last column $=0.25$, so $-\partial\ell/\partial\kappa\approx1.96\times0.25=0.49>0$: \textbf{raise} $\kappa$.
+\item Sum of the last column $=0.25$, so $-\partial\ell/\partial c_2\approx1.96\times0.25=0.49>0$: gradient descent \textbf{raises} $c_2$.
 \end{enumerate}
-Change the feature to $\phi=(0,1,0,1)$ (it now lifts the two wrong keys): the column becomes
-$0,\ 0.4\times(-0.5),\ 0,\ 0.1\times(-0.5)$, sum $-0.25$, so \textbf{lower} $\kappa$.
+\textbf{Contrast: a query whose recovered state is 3 instead.} Keep the same four keys, but suppose the query's
+recovered state were $3$ (this happens at a query right after a real token, where $r_i$ is the state \emph{before}
+that token, not the current one) and the correct token is still $3$. Then $\phi_j=\langle e_3,r_j\rangle=(0,1,0,1)$:
+$c_2$ now lifts keys 2 and 4, which hold the wrong token 2. The column becomes $0,\ 0.4\times(-0.5),\ 0,\ 0.1\times(-0.5)$,
+sum $-0.25$, so this query pushes $c_2$ \textbf{down}. This is the tug-of-war on $c_2$ described below.
 
 \begin{quickcheck}
 (1) If every key has $\phi_j=1$, what is the covariance? (Hint: subtract the mean of $\phi$.) Why does that

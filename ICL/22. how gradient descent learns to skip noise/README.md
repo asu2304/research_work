@@ -44,7 +44,7 @@ writing the paper (see §6).
 | `proofs/N_*.tex/.pdf` | **numbered in the order they were written**; **7 is the final, complete document**, 1–6 are the steps that led to it |
 | `runs/` | all outputs. `main/` = Adam sweep (19 α × 1000 steps, θ and gradient every step); `gd_lr30/` = plain GD sweep; `freeze_*/` = ablations; `eN_*.json` = experiment results; `logs/` = stdout |
 | `dataset/` | 12 extra α values (folder 14's generator, disjoint seeds); the other 7 α come from folder 14 |
-| `simplified_proofs/N_*.tex/.pdf` | **step-by-step versions of the proofs for the user** (undergraduate level, every intermediate step, worked examples). The originals in `proofs/` stay unchanged. Done so far: `0_notation` (every symbol, read first), `1_covariance_law`, `1b_covariance_example` (the law worked out on one concrete sequence), `2_gating`, `3_c2_balance` |
+| `simplified_proofs/N_*.tex/.pdf` | **step-by-step versions of the proofs for the user** (undergraduate level, every intermediate step, worked examples). The originals in `proofs/` stay unchanged. Done so far: `0_notation` (read first), `1_covariance_law`, `1b_covariance_example`, `2_gating`, `3_skip_seed` (layer 1's first move: recency + veto ∝ (1−α)), `4_c2_balance`. Numbered in reading order (story order) |
 | `figures/f1…f8` | f4 (tug-of-war on `c2`) and f8 (transfer to folder 18) are the key figures |
 | `notebooks/analysis.ipynb` | walkthrough of night-1 results; rebuild with `notebooks/_build_notebook.py` |
 
@@ -116,6 +116,14 @@ writing the paper (see §6).
   exceptions in 689 random points at α ≥ 0.6).
 - **E23 → proof 7 (complete theorem)**: all parts as exact limits with proofs. Finite-T checks: accurate for
   α ≳ 0.6, drifting under dense noise.
+
+### Later (2026-10-19)
+- **E24** `e24_bias_dependence` → `runs/e24_bias_dependence.json`, `runs/learnable_bias/`. Is the hand-set readout bias doing the work?
+  (1) Layer 1's first direction (skip: `p`↑, `a1`↓) is the same with a flat 0.01 bias as with the designed one, at every α,
+  even where the flat bias flips `a2`'s first step. (2) With a **learnable** bias started at 0.01 everywhere, training from zero
+  forms the same circuit (five numbers within ~10%, layer-1 state mass and post-noise successor mass equal or better), and the
+  learned noise bias lands within 2–10% of the designed formula. So the designed bias is what GD learns anyway; only `a2`'s
+  very first step depends on it.
 
 ## 4. The theorem (`proofs/7_complete_theorem.pdf`)
 

@@ -1,0 +1,168 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,booktabs,xcolor,tcolorbox}
+\newtcolorbox{idea}{colback=blue!4,colframe=blue!40,title=In plain words}
+\newtcolorbox{quickcheck}{colback=green!4,colframe=green!40!black,title=Quick check}
+\newtcolorbox{caveat}{colback=orange!5,colframe=orange!60!black,title=What is and is not shown}
+\newcommand{\1}{\mathbf{1}}
+\title{Simplified proof 3: the skip is born\\[4pt]\large layer 1's first move, every step written out}
+\author{Folder 22 / simplified\_proofs --- companion to \texttt{proofs/3\_skip\_seed.pdf}\\ and \texttt{proofs/7\_complete\_theorem.pdf}, part (iii)}
+\date{}
+\begin{document}\maketitle
+
+\begin{idea}
+At the start, layer 1 is frozen (Lemma 1). Layer 2's induction weight $b_2$ then turns slightly positive
+(simplified proof on $b_2$ / theorem part (ii)). This unlocks layer 1. We ask: \textbf{which way does layer 1
+move first?} Answer:
+\begin{itemize}
+\item towards \textbf{recency} ($p$ goes up: look at nearby tokens), and
+\item towards \textbf{vetoing noise} ($a_1$ goes down), with a push equal to
+\[
+\text{veto push}\;\approx\;(1-\alpha)\times\text{(the push that switched on } b_2).
+\]
+\end{itemize}
+So the skip is not luck: \textbf{the noise in the context creates the push to skip it}, in proportion to how
+much noise there is. With no noise ($\alpha=1$) there is no veto push and layer 1 becomes a plain
+previous-token head.
+\end{idea}
+
+\section*{The tools we reuse}
+\begin{itemize}
+\item \textbf{Lemma 1 (gating):} $\nabla_{(p,a_1)}L=b_2\,U+c_2\,W$. Near $\theta=0$, $U$ and $W$ can be taken at
+$\theta=0$: $U_0$, $W_0$. Layer 1 moves along $-(b_2U_0+c_2W_0)$. We work out $U_0$ (the $b_2$ channel); $W_0$
+points the same way (checked, Step 7).
+\item \textbf{Lemma 2 (covariance law)}, in the form of Step 6 of \texttt{1\_covariance\_law.pdf}: for one query $i$
+and one key $j$,
+\[
+\frac{\partial\ell_i}{\partial s_{ij}}=-w_i\,A_{ij}\big(\1[x_j=y_i]-f_i[y_i]\big).
+\]
+\end{itemize}
+
+\section{Step 1: what layer 1 computes, and its two knobs}
+Layer 1 at position $j$ looks back at keys $k<j$ with score $-p\,(j-k)+a_1\nu_k$ and outputs the attention-weighted
+mix of their tokens:
+\[
+A^{(1)}_{jk}=\frac{e^{-p(j-k)+a_1\nu_k}}{\sum_{m<j}e^{-p(j-m)+a_1\nu_m}},\qquad r_j=\sum_{k<j}A^{(1)}_{jk}\,e_{x_k}.
+\]
+At $\theta=0$ every $A^{(1)}_{jk}=1/j$, so $r_j=h_j$, the \textbf{histogram} of the tokens before $j$:
+$h_j[v]=$ fraction of tokens before $j$ that equal $v$. Write $\bar\nu_j$ = fraction of tokens before $j$ that are noise.
+
+\section{Step 2: how $r_j$ changes when we nudge $a_1$}
+Same softmax rule as in the covariance law (Step 2 there): for a score that adds $a_1\nu_k$ to key $k$,
+\[
+\frac{\partial A^{(1)}_{jk}}{\partial a_1}=A^{(1)}_{jk}\Big(\nu_k-\sum_mA^{(1)}_{jm}\nu_m\Big)
+\;\overset{\theta=0}{=}\;\frac1j\big(\nu_k-\bar\nu_j\big).
+\]
+So
+\[
+\frac{\partial r_j}{\partial a_1}=\frac1j\sum_{k<j}\big(\nu_k-\bar\nu_j\big)\,e_{x_k}.
+\]
+Read off the entry for a \textbf{real} token $v$. A noise key never holds $v$, so only real keys ($\nu_k=0$)
+count, each contributing $-\bar\nu_j$:
+\[
+\boxed{\ \frac{\partial r_j[v]}{\partial a_1}=-\bar\nu_j\,h_j[v]\qquad(v\text{ real})\ }
+\]
+\begin{idea}
+Raising $a_1$ lets more noise into layer 1. That attention is taken from the real tokens, and every real entry
+of $r_j$ shrinks \textbf{by the same fraction} $\bar\nu_j$. Lowering $a_1$ (veto) does the opposite: it
+\emph{concentrates} $r_j$ on real tokens.
+\end{idea}
+\textbf{Example.} Tokens before $j$: $2,5,3,6$ (5 and 6 are noise). $h_j=\tfrac14$ on each of $2,3,5,6$; $\bar\nu_j=\tfrac12$.
+Then $\partial r_j[2]/\partial a_1=-\tfrac12\cdot\tfrac14=-0.125$: letting noise in drains the real tokens by half their weight.
+
+\section{Step 3: how $r_j$ changes when we nudge $p$}
+The score adds $-p\,(j-k)$, so with $d=j-k$ the distance and $\bar d_j$ its average over keys:
+\[
+\frac{\partial A^{(1)}_{jk}}{\partial p}\;\overset{\theta=0}{=}\;\frac1j\big(\bar d_j-(j-k)\big),
+\qquad
+\boxed{\ \frac{\partial r_j[v]}{\partial p}=\frac1j\sum_{k<j}\big(\bar d_j-(j-k)\big)\1[x_k=v]=:\mathrm{rec}_j(v)\ }
+\]
+$\mathrm{rec}_j(v)$ is positive if $v$ sits \textbf{recently} before $j$ (closer than average) and negative if far.
+
+\textbf{Example.} Same tokens $2,5,3,6$ at distances $4,3,2,1$ from $j$; $\bar d_j=2.5$.
+$\mathrm{rec}_j(3)=\tfrac14(2.5-2)=+0.125$ (3 is recent); $\mathrm{rec}_j(2)=\tfrac14(2.5-4)=-0.375$ (2 is far).
+Raising $p$ moves $r_j$ towards recent tokens.
+
+\section{Step 4: pass the nudge through layer 2 (chain rule)}
+Layer 1 reaches the loss through layer 2's score. In the $b_2$ channel, key $j$'s score contains
+$b_2\,\sigma_i\,r_j[x_i]$. For a layer-1 knob $\lambda\in\{p,a_1\}$:
+\[
+\frac{\partial s_{ij}}{\partial\lambda}=b_2\,\sigma_i\,\frac{\partial r_j[x_i]}{\partial\lambda}.
+\]
+Chain rule over all keys, with the covariance-law derivative and $A_{ij}=1/i$ at $\theta=0$:
+\[
+-\frac{\partial\ell_i}{\partial\lambda}
+=\sum_jw_i\frac1i\big(\1[x_j=y_i]-f_i[y_i]\big)\,b_2\,\sigma_i\frac{\partial r_j[x_i]}{\partial\lambda}
+= b_2\;w_i\,\sigma_i\;\mathrm{Cov}_j\!\Big(\1[x_j=y_i],\ \frac{\partial r_j[x_i]}{\partial\lambda}\Big).
+\]
+\begin{idea}
+This is the covariance law again. A layer-1 knob acts on layer 2 like a layer-2 weight whose feature is
+``how this knob changes $b_2$'s feature''. So: \textbf{layer 1 moves a knob up if doing so raises $b_2$'s feature on
+the keys that hold the right answer.}
+\end{idea}
+So $-U_0$ (the push per unit $b_2$) is the average over queries of $w_i\sigma_i\,\mathrm{Cov}_j(\cdot,\cdot)$ with feature
+$-\bar\nu_jh_j[x_i]$ for $a_1$ (Step 2) and $\mathrm{rec}_j(x_i)$ for $p$ (Step 3).
+
+\section{Step 5: the veto push is $(1-\alpha)$ times the induction push}
+Compare the $a_1$ feature with $b_2$'s own feature at $\theta=0$, which is $h_j[x_i]$:
+\[
+\underbrace{-\bar\nu_j\,h_j[x_i]}_{a_1\text{ feature}}\qquad\text{vs}\qquad\underbrace{h_j[x_i]}_{b_2\text{ feature}}.
+\]
+In a long context every key's noise fraction is about the same, $\bar\nu_j\approx1-\alpha$. Then the $a_1$ feature is
+just $-(1-\alpha)$ times the $b_2$ feature. A covariance scales with a constant factor,
+$\mathrm{Cov}(X,cY)=c\,\mathrm{Cov}(X,Y)$, so
+\[
+\boxed{\ \text{push on }a_1\;=\;-(1-\alpha)\times\text{push on }b_2\ }
+\]
+The push on $b_2$ is positive (part (ii): for every table). So the push on $a_1$ is \textbf{negative}:
+$a_1$ goes down, i.e.\ layer 1 starts vetoing noise.
+\begin{idea}
+Why, without formulas: $b_2$ works by matching ``my token'' against what layer 1 says came before each key. Noise
+inside layer 1's mix \textbf{dilutes} that report for every key. The model has just started to rely on the report
+($b_2>0$), so it is pushed to remove the dilution, and the more noise there is, the more dilution there is to
+remove.
+\end{idea}
+(The exact statement: the difference between $\bar\nu_j$ and $1-\alpha$ only adds a correction of size $1/i$, smaller than
+the main term of size $\log i/i$; so the ratio is exactly $-(1-\alpha)$ in the long-context limit.)
+
+\section{Step 6: the recency push is positive}
+The $p$ feature $\mathrm{rec}_j(x_i)$ says ``my token sits \emph{recently} before key $j$''. The key right after an
+occurrence of my token is its successor, often the right answer. So the covariance is positive and $p$ goes
+\textbf{up}. In the long-context limit it equals $\tfrac{\alpha^3}{2}\,\mathbb E[S]$, the same table quantity $S\ge0$ as in
+part (ii), so it is $\ge0$ for every table.
+
+Unlike $b_2$'s feature $h_j$ (one occurrence moves it by only $1/j$), $\mathrm{rec}_j$ singles out \emph{nearby}
+occurrences, so this push is not diluted: it is about 50 times stronger than the veto push (Step 7).
+
+\section{Step 7: checks against autograd}
+Exact formulas versus autograd at $\theta=0$ agree to 4 digits (\texttt{e16}). The pushes per unit $b_2$:
+\begin{center}
+\small\setlength{\tabcolsep}{4pt}\begin{tabular}{lcccccccc}\toprule
+$\alpha$ & 0.2 & 0.4 & 0.5 & 0.6 & 0.7 & 0.8 & 0.9 & 0.99\\\midrule
+push on $a_1$ ($\times10^{-4}$) & $-0.89$ & $-5.83$ & $-9.26$ & $-11.7$ & $-13.3$ & $-12.6$ & $-8.81$ & $-1.22$\\
+$-(1-\alpha)\times$ push on $b_2$ ($\times10^{-4}$) & $-1.33$ & $-6.49$ & $-9.89$ & $-12.1$ & $-13.2$ & $-12.2$ & $-8.10$ & $-1.04$\\
+push on $p$ ($\times10^{-2}$) & $+0.19$ & $+1.08$ & $+1.83$ & $+2.72$ & $+3.87$ & $+5.14$ & $+6.56$ & $+8.27$\\\bottomrule
+\end{tabular}
+\end{center}
+\begin{itemize}
+\item Recency up and veto down at \textbf{every} $\alpha<1$; at $\alpha=1$ the veto push is exactly $0$.
+\item The $(1-\alpha)$ rule is within 2--15\% for $\alpha\ge0.3$ (33\% at $\alpha=0.2$, where the context has few real tokens).
+\item The veto push is largest near $\alpha\approx0.7$: it vanishes with no noise ($1-\alpha\to0$) and with almost no
+signal (the $b_2$ push, $\propto\alpha^3$, vanishes).
+\item The $c_2$ channel $W_0$ points the same way (one exception: its veto part at $\alpha=0.2$, $8\times$ smaller than $U_0$'s).
+\item \textbf{Independent of the readout bias} (E24): with a flat bias $0.01$ on all tokens the pushes are the same.
+\item In training (Adam), layer 1's first step is $p\uparrow$, $a_1\downarrow$ at every $\alpha<1$.
+\end{itemize}
+
+\begin{caveat}
+\textbf{Shown:} the \emph{first} direction layer 1 moves in, exactly in the long-context limit, with signs for every
+table. \textbf{Not shown:} that layer 1 keeps moving this way all the way to a sharp skip --- that is the middle stage
+(measured, not proved). Part (v) then shows that, once layer 1 is mostly right, the veto keeps strengthening.
+\end{caveat}
+
+\begin{quickcheck}
+(1) At $\alpha=1$ (no noise), what is $\bar\nu_j$, and so what is the push on $a_1$? What does layer 1 become?\\
+(2) In Step 2, why does a noise key contribute nothing to $\partial r_j[v]/\partial a_1$ for a real token $v$?\\
+(3) If $b_2$ were still $0$ but $c_2>0$, would layer 1 move? Through which of $U_0$, $W_0$?
+\end{quickcheck}
+\end{document}

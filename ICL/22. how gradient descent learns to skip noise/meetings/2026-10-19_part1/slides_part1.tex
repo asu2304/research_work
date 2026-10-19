@@ -1,0 +1,662 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usepackage{amsmath,amssymb,booktabs,array,tikz}
+\usetikzlibrary{positioning}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+% ---------------------------------------------------------------- theme: standard blue-white (Madrid)
+\usetheme{Madrid}
+\usecolortheme{default}
+\usefonttheme{professionalfonts}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{blocks}[rounded][shadow=false]
+\setbeamertemplate{theorems}[numbered]
+\newtheorem{proposition}[theorem]{Proposition}
+% footline: short title on the left, slide number on the right (no author/date boxes)
+\setbeamertemplate{footline}{%
+  \leavevmode\hbox{%
+  \begin{beamercolorbox}[wd=.85\paperwidth,ht=2.4ex,dp=1ex,left]{title in head/foot}%
+    \hspace*{1em}\usebeamerfont{title in head/foot}\insertshorttitle
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.15\paperwidth,ht=2.4ex,dp=1ex,right]{date in head/foot}%
+    \usebeamerfont{date in head/foot}\insertframenumber{} / \inserttotalframenumber\hspace*{1em}
+  \end{beamercolorbox}}%
+  \vskip0pt}
+
+\newcommand{\1}{\mathbf{1}}
+\newcommand{\st}{\mathrm{st}}
+\newcommand{\pv}{\mathrm{pv}}
+\newcommand{\succc}{\mathrm{succ}}
+\title[How Gradient Descent Learns to Skip the Noise in ICL --- Part 1]{How Gradient Descent Learns to Skip the Noise\\ Injected While Performing ICL}
+\subtitle{Part 1: Setup and Analysis at Initialization ($t=0$)}
+\author{}
+\date{}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \vfill
+  \begin{beamercolorbox}[sep=12pt,center,rounded=true]{title}
+    \usebeamerfont{title}\inserttitle
+  \end{beamercolorbox}
+  \vspace{0.7cm}
+  \begin{center}
+    {\usebeamercolor[fg]{structure}\large\insertsubtitle}\\[0.9em]
+    \small The task, the model, and what gradient descent does at the very first step.
+  \end{center}
+  \vfill
+\end{frame}
+
+
+% ================================================================= NOTATION
+\begin{frame}{Notation (1/2): data and positions}
+\small
+\begin{columns}[T]
+\begin{column}{0.49\textwidth}
+\renewcommand{\arraystretch}{1.08}\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.6\linewidth}@{}}\toprule
+symbol & meaning\\\midrule
+$S=\{0,1,2,3\}$ & signal tokens\\
+$N=\{4,5,6,7\}$ & noise tokens\\
+$\succc(s)$ & the two successors of $s\in S$ (per sequence)\\
+$P$ & transition matrix, $P(s,v)=\tfrac12\1[v\in\succc(s)]$\\
+$\alpha$ & signal density; $1-\alpha$ = noise density\\
+$T$, $W$ & length $100$; scored positions $\{50,\dots,99\}$\\\bottomrule
+\end{tabular}
+\end{column}
+\begin{column}{0.49\textwidth}
+\renewcommand{\arraystretch}{1.08}\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.6\linewidth}@{}}\toprule
+symbol & meaning\\\midrule
+$x_t$ & token at position $t$\\
+$y_t=x_{t+1}$ & target at position $t$\\
+$\nu_t=\1[x_t\in N]$ & noise indicator\\
+$\sigma_t=1-\nu_t$ & signal indicator\\
+$\st(t)$ & last signal token at or before $t$ (the state)\\
+$\pv(t)$ & last signal token strictly before $t$\\\bottomrule
+\end{tabular}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Notation (2/2): model and analysis at initialization}
+\footnotesize
+\begin{columns}[T]
+\begin{column}{0.49\textwidth}
+\renewcommand{\arraystretch}{1.08}\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.6\linewidth}@{}}\toprule
+symbol & meaning\\\midrule
+$\theta$ & $(p,a_1,a_2,b_2,c_2)$; initialization $\theta_0=0$\\
+$i$, $j$ & query position; key position $j<i$\\
+$s^{(\ell)}_{ij}$, $A^{(\ell)}_{ij}$ & layer-$\ell$ score; attention $\mathrm{softmax}_j(s^{(\ell)}_{ij})$\\
+$e_v$ & one-hot vector of token $v$\\
+$r_i$ & layer-1 output at $i$; $r_i[v]$ its entry $v$\\
+$f_i$ & layer-2 output (a distribution over tokens)\\
+$b$, $q_i$ & fixed readout bias; prediction $q_i=(f_i+b)/(1+\1^\top b)$\\
+$\ell_i$, $L$ & $-\log q_i[y_i]$; expected mean over $W$\\\bottomrule
+\end{tabular}
+\end{column}
+\begin{column}{0.49\textwidth}
+\renewcommand{\arraystretch}{1.08}\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.6\linewidth}@{}}\toprule
+symbol & meaning\\\midrule
+$\1[\cdot]$ & indicator function\\
+$f_i[y]$ & $\sum_jA^{(2)}_{ij}\1[x_j=y]$\\
+$w_i$ & $1/(f_i[y_i]+b[y_i])$\\
+$\kappa$ & any layer-2 scalar: $a_2$, $b_2$ or $c_2$\\
+$\phi_{ij}$ & feature of $\kappa$: $\partial s^{(2)}_{ij}/\partial\kappa$\\
+$\mathbb E_{j\sim A_i}$ & $\sum_jA^{(2)}_{ij}(\cdot)_j$\\
+$\mathrm{Cov}_{j\sim A_i}$ & $\mathbb E[gh]-\mathbb E[g]\,\mathbb E[h]$\\
+$\langle u,v\rangle_S$ & $\sum_{s\in S}u[s]\,v[s]$\\\bottomrule
+\end{tabular}
+\end{column}
+\end{columns}
+\end{frame}
+
+
+% ================================================================= SETUP
+\begin{frame}{Setup (1/6): data generation}
+\small
+\begin{columns}[T]
+\begin{column}{0.52\textwidth}
+\begin{block}{One sequence}
+\begin{enumerate}
+\item \textbf{Table.} For each $s\in S$ draw $\succc(s)\subset S$: two distinct tokens, uniform over the
+$\binom42=6$ pairs (self-loops allowed); $P(s,v)=\tfrac12\1[v\in\succc(s)]$.
+\item \textbf{Tokens.} For $t=0,\dots,T$:
+\[
+x_t=\begin{cases}
+v\sim P(\text{state},\cdot)\ \text{(state}\gets v) & \text{w.p. } \alpha\\
+u\sim\mathrm{Unif}(N)\ \text{(state kept)} & \text{w.p. } 1-\alpha
+\end{cases}
+\]
+the first signal token is uniform on $S$.
+\item \textbf{Pairs.} Input $x_{0:T-1}$, target $y_t=x_{t+1}$.
+\end{enumerate}
+\end{block}
+\end{column}
+\begin{column}{0.45\textwidth}
+\begin{block}{Datasets}
+\begin{itemize}
+\item $T=100$; loss on $t\in W=\{50,\dots,99\}$
+\item per $\alpha$: \textbf{25{,}000} train, \textbf{10{,}000} test sequences, fixed seeds
+\item every sequence has its \emph{own} table: the rule must be inferred \emph{in context}
+\item $\alpha\in\{0.2,0.25,\dots,0.95,0.975,0.99,1\}$ (19 values)
+\end{itemize}
+\end{block}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Setup (2/6): the architecture (forward pass)}
+\small
+Embedding $u_t=[\,e_{x_t};\,e_t\,]\in\mathbb R^{108}$ (token one-hot $\oplus$ position one-hot). Mask: keys $j<i$ (strictly causal).
+\begin{block}{Two attention layers, combined $W_{qk}$, $W_{ov}$, concatenating residual}
+\vspace{-0.5em}
+\begin{align*}
+\text{layer 1:}\quad & s^{(1)}_{ij}=\tfrac{1}{\sqrt{108}}\,u_i^\top W^{(1)}_{qk}\,u_j,\quad
+A^{(1)}=\mathrm{softmax}_j,\quad r_i=\textstyle\sum_{j<i}A^{(1)}_{ij}\,W^{(1)}_{ov}u_j\in\mathbb R^{8}\\
+& u^{(2)}_i=[\,u_i;\ r_i;\ 0\,]\in\mathbb R^{216}\\
+\text{layer 2:}\quad & s^{(2)}_{ij}=\tfrac{1}{\sqrt{108}}\,u^{(2)\top}_i W^{(2)}_{qk}\,u^{(2)}_j,\quad
+A^{(2)}=\mathrm{softmax}_j,\quad f_i=\textstyle\sum_{j<i}A^{(2)}_{ij}\,W^{(2)}_{ov}u^{(2)}_j\in\mathbb R^{8}
+\end{align*}
+\end{block}
+\begin{block}{Readout (no unembedding, no softmax)}
+\vspace{-0.5em}
+\[
+q_i=\frac{f_i+b}{\1^\top(f_i+b)},\qquad \ell_i=-\log q_i[y_i].
+\]
+\end{block}
+$W^{(\ell)}_{ov}=$ identity on the token coordinates and \textbf{frozen}, so $r_i=\sum_jA^{(1)}_{ij}e_{x_j}$ and
+$f_i=\sum_jA^{(2)}_{ij}e_{x_j}$: both are \textbf{distributions over tokens}, and $\1^\top(f_i+b)=1+\1^\top b$.
+\end{frame}
+
+\begin{frame}{Setup (3/6): where the five scalars sit in $W_{qk}$}
+\footnotesize
+\begin{center}
+\begin{tikzpicture}[x=0.7cm,y=0.7cm,font=\scriptsize]
+% ---------------- layer 1
+\begin{scope}
+\node[anchor=south] at (1.6,0.75) {\normalsize $W^{(1)}_{qk}\in\mathbb R^{108\times108}$};
+\node at (0.5,0.3) {tok}; \node at (2.1,0.3) {pos};
+\node[rotate=90] at (-0.3,-0.5) {tok}; \node[rotate=90] at (-0.3,-2.1) {pos};
+\fill[blue!30] (0.5,0) rectangle (1,-1);
+\fill[orange!35] (1,-1) rectangle (3.2,-3.2);
+\draw (0,0) rectangle (3.2,-3.2); \draw (1,0)--(1,-3.2); \draw (0,-1)--(3.2,-1);
+\draw[densely dotted] (0.5,0)--(0.5,-1);
+\node at (0.25,-0.5) {$0$}; \node at (0.75,-0.5) {$a_1$};
+\node at (2.1,-2.1) {$-p\,(i-j)$};
+\node at (2.1,-0.5) {$0$}; \node at (0.5,-2.1) {$0$};
+\end{scope}
+% ---------------- layer 2: coords [tok 8 | pos 100 | r 8 | pad 100] = 216
+\begin{scope}[xshift=4.3cm]
+\node[anchor=south] at (2.15,0.75) {\normalsize $W^{(2)}_{qk}\in\mathbb R^{216\times216}$};
+\node at (0.5,0.3) {tok}; \node at (1.65,0.3) {pos}; \node at (2.8,0.3) {$r$}; \node at (3.8,0.3) {pad};
+\node[rotate=90] at (-0.3,-0.5) {tok}; \node[rotate=90] at (-0.3,-1.65) {pos};
+\node[rotate=90] at (-0.3,-2.8) {$r$}; \node[rotate=90] at (-0.3,-3.8) {pad};
+% a2: noise-key columns of the token block
+\fill[blue!30] (0.5,0) rectangle (1,-1);
+% b2: rows = query signal tokens (top half of tok), cols = key r, signal part (left half of r)
+\fill[green!30] (2.3,0) rectangle (2.8,-0.5);
+% c2: rows = query r signal part, cols = key r signal part
+\fill[red!25] (2.3,-2.3) rectangle (2.8,-2.8);
+\draw (0,0) rectangle (4.3,-4.3);
+\draw (1,0)--(1,-4.3); \draw (2.3,0)--(2.3,-4.3); \draw (3.3,0)--(3.3,-4.3);
+\draw (0,-1)--(4.3,-1); \draw (0,-2.3)--(4.3,-2.3); \draw (0,-3.3)--(4.3,-3.3);
+\draw[densely dotted] (0.5,0)--(0.5,-1);
+\draw[densely dotted] (2.8,0)--(2.8,-3.3); \draw[densely dotted] (2.3,-0.5)--(3.3,-0.5); \draw[densely dotted] (2.3,-2.8)--(3.3,-2.8);
+\draw (2.3,0)--(2.8,-0.5); \draw (2.3,-2.3)--(2.8,-2.8);
+\node at (0.75,-0.5) {$a_2$};
+\node[anchor=west] at (4.35,-0.25) {$b_2 I_4$: tok (signal) $\times$ $r$ (signal)};
+\node[anchor=west] at (4.35,-2.55) {$c_2 I_4$: $r$ (signal) $\times$ $r$ (signal)};
+\draw[thin,gray] (2.8,-0.25)--(4.35,-0.25); \draw[thin,gray] (2.8,-2.55)--(4.35,-2.55);
+\node at (1.65,-1.65) {$0$}; \node at (3.8,-3.8) {$0$};
+\end{scope}
+\end{tikzpicture}
+\end{center}
+\vspace{-0.3em}
+\begin{itemize}
+\item Rows = query, columns = key. tok: 8 token coords (signal $0$--$3$, then noise $4$--$7$); pos: 100 position coords;
+$r$: layer-1 output (8 coords, signal part shaded); pad: 100 unused coords. Entries in logits (raw$/\sqrt{108}$); unmarked entries are $0$.
+\item $a_1,a_2$: the \emph{noise-key} columns of the token block. $b_2I_4$: query signal token $\times$ key's $r$.
+$c_2I_4$: query's $r\times$ key's $r$. $p$: linear ramp in the position block.
+\item $W^{(1)}_{ov},W^{(2)}_{ov}$: identity on the token corner, frozen (copy readout); no free scalars.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Setup (4/6): the same model written in its five scalars}
+\small
+Substituting the block structure into the forward pass gives, exactly:
+\begin{block}{Layer 1 \hfill $p$ recency, $a_1$ noise veto}
+\vspace{-0.5em}
+\[
+s^{(1)}_{ij}=-p\,(i-j)+a_1\,\nu_j,\qquad r_i=\sum_{j<i}A^{(1)}_{ij}\,e_{x_j}
+\]
+\end{block}
+\begin{block}{Layer 2 \hfill $a_2$ noise veto, $b_2$ induction, $c_2$ state}
+\vspace{-0.5em}
+\[
+s^{(2)}_{ij}=a_2\,\nu_j+b_2\,\sigma_i\,r_j[x_i]+c_2\,\langle r_i,r_j\rangle_S,\qquad f_i=\sum_{j<i}A^{(2)}_{ij}\,e_{x_j}
+\]
+\end{block}
+\begin{itemize}
+\item $\sigma_i r_j[x_i]$: the query's token is signal, and layer 1 reports that token before key $j$.
+\item $\langle r_i,r_j\rangle_S$: query and key report the same signal token before them.
+\item Checked against the full-matrix implementation: losses agree to $1.2\times10^{-7}$, gradients to $1.2\times10^{-6}$.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Setup (5/6): training protocol, and why 25k sequences}
+\footnotesize
+\begin{columns}[T]
+\begin{column}{0.44\textwidth}
+\begin{block}{Protocol}
+\begin{itemize}
+\item initialization $\theta_0=0$
+\item full batch (all 25k sequences)
+\item Adam, lr $1.0$ on raw entries ($=0.096$ logits per sign step); plain GD also run
+\item 1000 steps per $\alpha$
+\end{itemize}
+\end{block}
+\end{column}
+\begin{column}{0.53\textwidth}
+\begin{block}{25k sequences approximate the population loss}
+The analysis is about $L(\theta)=\mathbb E[\cdot]$ (infinite data). Train and held-out test are independent draws, so
+$L_{\rm train}\approx L_{\rm test}$ means the finite-sample error is negligible:
+\begin{center}
+\begin{tabular}{cccc}\toprule
+$\alpha$ & $L_{\rm train}$ & $L_{\rm test}$ & difference\\\midrule
+0.2 & 1.81784 & 1.81771 & $-1.3\times10^{-4}$\\
+0.4 & 1.84253 & 1.84244 & $-0.9\times10^{-4}$\\
+0.6 & 1.69762 & 1.69782 & $+2.0\times10^{-4}$\\
+0.8 & 1.38527 & 1.38406 & $-1.2\times10^{-3}$\\
+0.9 & 1.14173 & 1.13869 & $-3.0\times10^{-3}$\\
+1.0 & 0.74728 & 0.74735 & $+0.7\times10^{-4}$\\\bottomrule
+\end{tabular}
+\end{center}
+Each full-batch gradient averages $25{,}000\times50=1.25$M predictions.
+\end{block}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Setup (6/6): the readout bias $b$}
+\footnotesize
+\textbf{Why a bias.} A good layer 2 puts $f_i[v]=0$ on noise tokens; noise targets (rate $1-\alpha$) would then cost $-\log0$.
+$b$ gives noise its probability so the noise filter is allowed.
+\begin{block}{Formula: noise gets total probability exactly $1-\alpha$ when $f_i$ is on signal tokens}
+\vspace{-0.6em}
+\[
+\frac{4\,b_{\rm noise}}{1+4b_{\rm sig}+4b_{\rm noise}}=1-\alpha
+\quad\Longleftrightarrow\quad
+b_{\rm noise}=\frac{(1-\alpha)(1+4b_{\rm sig})}{4\alpha},\qquad b_{\rm sig}=0.01\ \text{(set)}.
+\]
+\end{block}
+\textbf{Check: let gradient descent learn all 8.} $b_v=e^{\beta_v}$ (keeps $b_v>0$), $\beta_v=\log0.01$ for every $v$,
+$\theta_0=0$, trained jointly (Adam, lr $0.05$ on $\beta$, 1000 steps). Means over the 4 signal / 4 noise tokens:
+\begin{center}
+\begin{tabular}{cccccc}\toprule
+$\alpha$ & $b_{\rm sig}$ set & $b_{\rm sig}$ learned & $b_{\rm noise}$ set & $b_{\rm noise}$ learned & formula at learned $b_{\rm sig}$\\\midrule
+0.2 & 0.01 & 0.0421 & 1.0400 & 1.1483 & 1.1682\\
+0.4 & 0.01 & 0.0060 & 0.3900 & 0.3830 & 0.3839\\
+0.6 & 0.01 & 0.0018 & 0.1733 & 0.1668 & 0.1679\\
+0.8 & 0.01 & 0.0008 & 0.0650 & 0.0622 & 0.0627\\
+0.9 & 0.01 & 0.0005 & 0.0289 & 0.0277 & 0.0278\\\bottomrule
+\end{tabular}
+\end{center}
+\textbf{Fixing the bias is a shortcut, not an extra assumption: gradient descent would learn essentially the same bias anyway.}
+\end{frame}
+
+
+% ================================================================= QUESTION
+\begin{frame}{The question for Part 1}
+\vfill
+\begin{block}{Question}
+\large In this setup, with all five scalars initialised at zero, \emph{where precisely} does each one move at $t=0$?
+\end{block}
+\vspace{0.6em}
+\begin{center}
+Formally: with $\theta_0=(p,a_1,a_2,b_2,c_2)=0$, determine the sign (and size) of
+\[
+-\frac{\partial L}{\partial \theta_k}\Big|_{\theta=0},\qquad \theta_k\in\{p,\ a_1,\ a_2,\ b_2,\ c_2\}.
+\]
+\end{center}
+\vfill
+{\footnotesize\color{gray} Part 2: why, after moving, they settle at values that implement a noise-skipping induction head.}
+\end{frame}
+
+
+% ================================================================= LEMMA 1
+\begin{frame}{Lemma 1: layer 1 is taught only through $b_2$ and $c_2$}
+\small
+\begin{lemma}[Gating]
+For every $\theta$ and every dataset there are $U(\theta),W(\theta)\in\mathbb R^2$ such that
+\[
+\nabla_{(p,a_1)}L(\theta)\;=\;b_2\,U(\theta)\;+\;c_2\,W(\theta).
+\]
+Moreover, at a query $i$ whose own token is noise ($\sigma_i=0$), the loss $\ell_i$ depends on layer 1 (on $r_i$ and on every $r_j$)
+only through $c_2$: $\ s^{(2)}_{ij}=a_2\nu_j+c_2\langle r_i,r_j\rangle_S$.
+\end{lemma}
+\vspace{0.5em}
+\textbf{In words.} Layer 1's output $r$ appears in layer 2's score only multiplied by $b_2$ or by $c_2$.
+While both are zero, layer 1 is disconnected from the loss.
+\end{frame}
+
+\begin{frame}{Lemma 1: proof}
+\small\setlength{\abovedisplayskip}{4pt}\setlength{\belowdisplayskip}{4pt}
+\begin{proof}[Proof]
+$p,a_1$ enter $L$ only through $r$ (layer 1's output). $r$ enters $L$ only through the layer-2 scores, where
+\[
+s^{(2)}_{ij}=a_2\nu_j+b_2\,\sigma_i\,r_j[x_i]+c_2\,\langle r_i,r_j\rangle_S ,
+\]
+and $a_2\nu_j$ contains no $r$. Write $g_{ij}=\partial L/\partial s^{(2)}_{ij}$. By the chain rule, for $\lambda\in\{p,a_1\}$,
+\[
+\frac{\partial L}{\partial\lambda}=\sum_{i,j}g_{ij}\,\frac{\partial s^{(2)}_{ij}}{\partial\lambda}
+=b_2\underbrace{\sum_{i,j}g_{ij}\,\sigma_i\frac{\partial r_j[x_i]}{\partial\lambda}}_{=:\,U_\lambda(\theta)}
+\;+\;c_2\underbrace{\sum_{i,j}g_{ij}\Big(\Big\langle\tfrac{\partial r_i}{\partial\lambda},r_j\Big\rangle_S+\Big\langle r_i,\tfrac{\partial r_j}{\partial\lambda}\Big\rangle_S\Big)}_{=:\,W_\lambda(\theta)}
+\]
+(product rule for $\langle r_i,r_j\rangle_S$). Stacking $\lambda=p$ and $\lambda=a_1$, with $U=(U_p,U_{a_1})$ and $W=(W_p,W_{a_1})$:
+\[
+\nabla_{(p,a_1)}L=b_2\,U(\theta)+c_2\,W(\theta).
+\]
+If $\sigma_i=0$ the $b_2$ term vanishes, leaving $c_2\langle r_i,r_j\rangle_S$ as the only place $r$ enters $\ell_i$.
+\end{proof}
+\end{frame}
+
+\begin{frame}{Lemma 1: consequences at $t=0$}
+\small
+\begin{block}{Corollary (layer 2 moves first)}
+At $\theta_0=0$: $\ b_2=c_2=0\ \Rightarrow\ \nabla_{(p,a_1)}L(\theta_0)=0$ \textbf{exactly}. The first update moves only $(a_2,b_2,c_2)$;
+$p$ and $a_1$ can move only once $b_2$ or $c_2$ is nonzero.
+\end{block}
+\begin{itemize}
+\item \textbf{Exact:} an identity for every $\theta$, every $\alpha$, every $T$ and every dataset; no approximation or limit.
+\item \textbf{Observed:} after Adam's first step, every run with $\alpha<1$ has
+\[
+(p,\ a_1,\ a_2,\ b_2,\ c_2)=(0,\ 0,\ -0.096,\ +0.096,\ +0.096).
+\]
+In folder 18's 10{,}060-entry model the layer-1 gradient at $t=0$ is exactly $0$ in every entry.
+\item \textbf{$\alpha=1$ (no noise):} $\nu_j\equiv0$, so $\partial L/\partial a_1\equiv\partial L/\partial a_2\equiv0$; both stay $0$ for all time.
+\item \textbf{Two teaching channels for layer 1:} key side ($r_j$, via $b_2$ and $c_2$) and query side ($r_i$, via $c_2$ only).
+After a noise token ($\sigma_i=0$) the $b_2$ term is off, so both channels run through $c_2$.
+\end{itemize}
+\vspace{0.3em}
+{\footnotesize\color{gray}``A lower layer waits for the layer above'' is a standard observation in two-layer analyses
+(Bietti et al.\ 2023; Nichani et al.\ 2024); here it takes this specific form.}
+\end{frame}
+
+
+% ================================================================= LEMMA 2
+\begin{frame}{Lemma 2: the covariance law (which way layer 2 moves)}
+\small
+\begin{lemma}[Covariance law]
+Let $\kappa\in\{a_2,b_2,c_2\}$ with feature $\phi_{ij}=\partial s^{(2)}_{ij}/\partial\kappa$
+($\nu_j$, $\ \sigma_i r_j[x_i]$, $\ \langle r_i,r_j\rangle_S$ respectively). For every $\theta$ and every query $i$,
+\[
+-\frac{\partial\ell_i}{\partial\kappa}\;=\;w_i\;\mathrm{Cov}_{j\sim A^{(2)}_i}\big(\1[x_j=y_i],\ \phi_{ij}\big),
+\qquad w_i=\frac{1}{f_i[y_i]+b[y_i]}>0 .
+\]
+For the training loss: $\ -\dfrac{\partial L}{\partial\kappa}=\mathbb E\Big[\dfrac1{|W|}\sum_{i\in W}w_i\,\mathrm{Cov}_i\big(\1[x_j=y_i],\phi_{ij}\big)\Big]$.
+\end{lemma}
+\vspace{0.3em}
+\textbf{In words.} Gradient descent raises $\kappa$ exactly when the keys that $\kappa$ boosts hold the correct next token
+more often than the keys the query currently attends to. $w_i$ only sets the strength, never the sign.
+\vspace{0.3em}
+
+{\footnotesize\color{gray}Assumption used: copy readout ($W^{(2)}_{ov}=I$, frozen), so $f_i$ sums to $1$ and the normaliser of $q_i$ is constant.}
+\end{frame}
+
+\begin{frame}{Lemma 2: proof}
+\footnotesize\setlength{\abovedisplayskip}{3pt}\setlength{\belowdisplayskip}{3pt}
+Fix a query $i$; write $A_j=A^{(2)}_{ij}$, $y=y_i$, $f=f_i$.
+\begin{enumerate}
+\item \textbf{Softmax derivative:} $\ \dfrac{\partial A_k}{\partial s_j}=A_k\big(\1[k=j]-A_j\big)$.
+\item \textbf{Copy readout:} $f[y]=\sum_kA_k\1[x_k=y]$, hence
+$\ \dfrac{\partial f[y]}{\partial s_j}=\sum_k\1[x_k=y]A_k(\1[k=j]-A_j)=A_j\big(\1[x_j=y]-f[y]\big)$.
+\item \textbf{Loss:} $\1^\top f=1$ gives $\1^\top(f+b)=1+\1^\top b$ (constant), so
+$\ \ell=-\log(f[y]+b[y])+\text{const}$ and $\ \dfrac{\partial\ell}{\partial f[y]}=-w$.
+\item \textbf{Chain rule through the scores} ($\partial s_j/\partial\kappa=\phi_j$):
+\[
+-\frac{\partial\ell}{\partial\kappa}=w\sum_jA_j\big(\1[x_j=y]-f[y]\big)\phi_j .
+\]
+\item \textbf{It is a covariance.} With $J\sim A$: $\ \mathbb E[\1[x_J=y]]=f[y]$, and
+\[
+\sum_jA_j\big(\1[x_j=y]-f[y]\big)\phi_j=\mathbb E\big[\1[x_J=y]\,\phi_J\big]-\mathbb E\big[\1[x_J=y]\big]\,\mathbb E[\phi_J]
+\]
+\[
+=\mathrm{Cov}\big(\1[x_J=y],\phi_J\big).\qquad\qedsymbol
+\]
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Lemma 2: a worked example ($\kappa=c_2$)}
+\small
+Sequence $\ 2\ 3\ 2\ 3\ 2\ \underline{5}\ |\ 3$:\ the query (position 5) holds noise; its recovered state is $r_i=e_2$; the target is $y=3$.
+\begin{center}
+\begin{tabular}{cccccc}\toprule
+key $j$ & $x_j$ & last signal before $j$ & $\1[x_j=3]$ & $\phi_j=\langle e_2,r_j\rangle_S$ & $A_j$\\\midrule
+1 & 3 & 2 & 1 & 1 & 0.4\\
+2 & 2 & 3 & 0 & 0 & 0.4\\
+3 & 3 & 2 & 1 & 1 & 0.1\\
+4 & 2 & 3 & 0 & 0 & 0.1\\\bottomrule
+\end{tabular}
+\end{center}
+\begin{itemize}
+\item $f[3]=0.5$, $\ \mathbb E[\phi]=0.5$, $\ \mathbb E[\1\cdot\phi]=0.5\ \Rightarrow\ \mathrm{Cov}=0.5-0.25=+0.25$.
+\item $w=1/(0.5+0.01)\approx1.96$, so $-\partial\ell/\partial c_2\approx+0.49$: \textbf{raise $c_2$}.
+\item Same keys, query whose recovered state is $3$ (e.g.\ right after a signal token): $\phi=(0,1,0,1)$,
+$\mathrm{Cov}=-0.25$: \textbf{lower $c_2$}.
+\end{itemize}
+\vspace{0.2em}
+The sign of the full gradient depends on which kind of query dominates the average over the data.
+\end{frame}
+
+% ================================================================= ANALYSIS AT t = 0
+\begin{frame}{At $\theta=0$: what the model computes}
+\small
+All scores are $0$, so every attention is uniform over the keys: $A^{(1)}_{jk}=1/j$, $A^{(2)}_{ij}=1/i$.
+\begin{block}{The model at initialization}
+\vspace{-0.5em}
+\[
+r_j=h_j:=\frac1j\sum_{k<j}e_{x_k}\quad(\text{histogram of the prefix}),\qquad f_i=h_i,\qquad f_i[y]=\text{fraction of $y$ before $i$.}
+\]
+\end{block}
+\begin{block}{The three features at $\theta=0$}
+\begin{center}
+\begin{tabular}{lll}\toprule
+$\kappa$ & $\phi_{ij}$ at $\theta=0$ & meaning\\\midrule
+$a_2$ & $\nu_j$ & key $j$ is noise\\
+$b_2$ & $\sigma_i\,h_j[x_i]$ & fraction of earlier tokens before $j$ equal to my token (my token is signal)\\
+$c_2$ & $\langle h_i,h_j\rangle_S$ & overlap of signal-token histograms before me and before $j$\\\bottomrule
+\end{tabular}
+\end{center}
+\end{block}
+By Lemma 2, $-\partial L/\partial\kappa|_0=\mathbb E\big[\frac1{|W|}\sum_iw_i\,\mathrm{Cov}_{j\sim\mathrm{Unif}}(\1[x_j=y_i],\phi_{ij})\big]$.
+By Lemma 1, $-\partial L/\partial p|_0=-\partial L/\partial a_1|_0=0$.
+\end{frame}
+
+\begin{frame}{$a_2$ at $t=0$: two kinds of queries pull in opposite directions}
+\small
+$\phi_j=\nu_j$. Let $m$ = noise fraction of the keys ($\approx1-\alpha$). Then $\mathrm{Cov}=\mathbb E[\1[x_j=y]\nu_j]-f[y]\,m$.
+\begin{columns}[T]
+\begin{column}{0.49\textwidth}
+\begin{block}{Signal target (prob.\ $\alpha$)}
+A noise key never holds $y$: $\ \1[x_j=y]\nu_j\equiv0$.
+\[
+\mathrm{Cov}=-f[y]\,m<0\quad\Rightarrow\quad a_2\downarrow
+\]
+\end{block}
+\end{column}
+\begin{column}{0.49\textwidth}
+\begin{block}{Noise target (prob.\ $1-\alpha$)}
+Every key holding $y$ is noise: $\ \1[x_j=y]\nu_j=\1[x_j=y]$.
+\[
+\mathrm{Cov}=f[y]\,(1-m)>0\quad\Rightarrow\quad a_2\uparrow
+\]
+\end{block}
+\end{column}
+\end{columns}
+\vspace{0.4em}
+\textbf{Leading order} (long context, $f[y]\to$ token frequency, $m\to1-\alpha$):
+\[
+w f[y]\approx\frac{f}{f+b_{\rm sig}}\approx1\ \ \text{(signal)},\qquad
+w f[y]=\frac{f}{f+b_{\rm noise}}=\frac{\alpha}{\alpha+1+4b_{\rm sig}}\ \ \text{(noise)},
+\]
+\[
+-\frac{\partial L}{\partial a_2}\Big|_0\approx-\alpha(1-\alpha)\;+\;(1-\alpha)\,\alpha\,\frac{\alpha}{\alpha+1.04}
+=-\,\alpha(1-\alpha)\,\frac{1.04}{\alpha+1.04}\;<0\quad\text{for all }0<\alpha<1.
+\]
+\end{frame}
+
+\begin{frame}{$a_2$ at $t=0$: numbers, and the role of the readout bias}
+\footnotesize
+\begin{columns}[T]
+\begin{column}{0.4\textwidth}
+\textbf{Measured vs.\ leading order}
+\begin{center}
+\begin{tabular}{ccc}\toprule
+$\alpha$ & measured & formula\\\midrule
+0.2 & $-0.107$ & $-0.134$\\
+0.4 & $-0.154$ & $-0.173$\\
+0.6 & $-0.142$ & $-0.152$\\
+0.8 & $-0.089$ & $-0.090$\\
+0.9 & $-0.051$ & $-0.048$\\\bottomrule
+\end{tabular}
+\end{center}
+\end{column}
+\begin{column}{0.57\textwidth}
+\textbf{The two pulls separately}
+\begin{center}
+\begin{tabular}{cccc}\toprule
+$\alpha$ & down (signal tgt) & up, designed $b$ & up, flat $b=0.01$\\\midrule
+0.2 & $-0.132$ & $+0.025$ & $+0.152$\\
+0.4 & $-0.219$ & $+0.065$ & $+0.223$\\
+0.6 & $-0.226$ & $+0.084$ & $+0.215$\\
+0.8 & $-0.153$ & $+0.064$ & $+0.124$\\
+0.9 & $-0.087$ & $+0.036$ & $+0.054$\\\bottomrule
+\end{tabular}
+\end{center}
+\end{column}
+\end{columns}
+\vspace{0.5em}
+\begin{itemize}
+\item Without a noise bias the two pulls nearly \textbf{cancel} (each $\approx\alpha(1-\alpha)$); the residual is a finite-context
+and $b_{\rm sig}$ effect and its sign varies with $\alpha$.
+\item The noise bias already supplies noise targets their probability, so their upward vote is discounted by
+$\frac{\alpha}{\alpha+1.04}$: \textbf{the bias is what tips $a_2$ downward at $t=0$.}
+\item With a learnable bias (from $0.01$), $b_{\rm noise}$ is learned within the first steps and $a_2<0$ from step $\le30$ at every $\alpha$.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{$b_2$ at $t=0$: the induction weight is pushed up}
+\small
+$\phi_{ij}=\sigma_i\,h_j[x_i]$: ``how many copies of my token came before key $j$''. A blurry version of
+``key $j$ came right after my token''.
+\begin{itemize}
+\item A copy of my token at position $k$ raises $h_j[x_i]$ for \emph{every} later key, but only the keys just after it are
+likely to hold my token's successor $\Rightarrow$ a small positive covariance.
+\item Noise queries contribute \textbf{exactly $0$} ($\sigma_i=0$: constant feature, zero covariance).
+\end{itemize}
+\vspace{-0.2em}
+\begin{center}\footnotesize
+\begin{tabular}{ccccc}\toprule
+$\alpha$ & noise query & signal query, signal target & signal query, noise target & total $-\partial L/\partial b_2|_0$\\\midrule
+0.2 & $0$ & $+0.00017$ & $+0.00001$ & $+0.00018$\\
+0.4 & $0$ & $+0.00105$ & $+0.00003$ & $+0.00109$\\
+0.6 & $0$ & $+0.00296$ & $+0.00006$ & $+0.00301$\\
+0.8 & $0$ & $+0.00612$ & $+0.00008$ & $+0.00620$\\
+0.9 & $0$ & $+0.00802$ & $0$ & $+0.00802$\\
+1.0 & $0$ & $+0.01028$ & $0$ & $+0.01028$\\\bottomrule
+\end{tabular}
+\end{center}
+Roughly $\propto\alpha^3$: the query's token, the target and the key's context must all be signal.
+\end{frame}
+
+\begin{frame}{$b_2$ at $t=0$: the sign holds for every transition table}
+\footnotesize
+\begin{proposition}[Induction switches on; long-context limit]
+With $\pi$ the stationary law, $Z=(I-P+\1\pi^\top)^{-1}$, $D=Z-I$,
+\[
+\lim_{T\to\infty}\frac{T}{\log T}\Big(-\frac{\partial L_T}{\partial b_2}\Big|_{\theta=0}\Big)=2\ln2\;\alpha^3\;\mathbb E\big[S(\alpha)\big],
+\]
+\[
+S(\alpha)=\sum_y\frac{C_y}{\alpha\pi_y+b_{\rm sig}},\qquad C_y=\sum_v\pi_v^2P(v,y)D(v,y).
+\]
+For all $6^4=1296$ tables and every recurrent class: $C_y\ge0$ for every $y$; and $C\equiv0$ iff all states of the class share one
+successor set (the context is uninformative).
+\end{proposition}
+\begin{itemize}
+\item \textbf{Proof idea.} Lemma 2 at $\theta=0$; sum the covariance over lags. Between two signal tokens the number of noise
+tokens is geometric, and summing over lags \emph{cancels the noise}: $\sum_{\ell}\mathrm{Cov}(\1[x_t=y],\1[x_{t-\ell}=v])=\alpha\pi_vD(v,y)$.
+\item \textbf{Sign:} exact rational arithmetic over all tables (computer-assisted).
+\item \textbf{Size:} $\Theta(\log T/T)$ --- weak, because $h_j$ dilutes ``came right after my token'' over the whole prefix.
+\end{itemize}
+{\footnotesize\color{gray}Full proof: \texttt{proofs/7\_complete\_theorem.pdf}, part (ii); \texttt{proofs/4\_pull\_sign.pdf}.}
+\end{frame}
+
+\begin{frame}{$c_2$ at $t=0$: the state weight is pushed up (measured)}
+\small
+$\phi_{ij}=\langle h_i,h_j\rangle_S=\sum_{v\in S}h_i[v]\,h_j[v]$: a mixture of $b_2$-type detectors, one per signal token $v$,
+weighted by how often $v$ occurred before the \emph{query}. It does not use the query's token, so noise queries vote too.
+\begin{center}\footnotesize
+\begin{tabular}{cccccc}\toprule
+$\alpha$ & noise q., signal tgt & noise q., noise tgt & signal q., signal tgt & signal q., noise tgt & total\\\midrule
+0.2 & $+0.00001$ & $0$ & $0$ & $0$ & $+0.00001$\\
+0.4 & $+0.00005$ & $+0.00002$ & $+0.00001$ & $+0.00001$ & $+0.00009$\\
+0.6 & $+0.00010$ & $+0.00004$ & $+0.00012$ & $+0.00004$ & $+0.00030$\\
+0.8 & $+0.00015$ & $+0.00002$ & $+0.00049$ & $+0.00007$ & $+0.00073$\\
+0.9 & $+0.00010$ & $0$ & $+0.00083$ & $+0.00002$ & $+0.00095$\\
+1.0 & $0$ & $0$ & $+0.00126$ & $0$ & $+0.00126$\\\bottomrule
+\end{tabular}
+\end{center}
+\begin{itemize}
+\item Every entry $\ge0$; about $10\times$ smaller than the push on $b_2$.
+\item \textbf{Why positive:} the query's histogram over-weights the states it passed through \emph{recently}, which are linked to its
+current state; so $c_2$ slightly favours keys that followed those states.
+\item \textbf{Order effect:} shuffling the tokens within each sequence removes it (E3). Not covered by a proof.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Does $t=0$ depend on the readout bias?}
+\small
+Gradients at $\theta=0$ with the designed bias vs.\ a flat bias $b_v=0.01$ on all 8 tokens (the start of the learnable-bias run):
+\begin{center}\footnotesize
+\begin{tabular}{c|ccc|ccc}\toprule
+& \multicolumn{3}{c|}{designed $b$} & \multicolumn{3}{c}{flat $b=0.01$}\\
+$\alpha$ & $-\partial_{a_2}L$ & $-\partial_{b_2}L$ & $-\partial_{c_2}L$ & $-\partial_{a_2}L$ & $-\partial_{b_2}L$ & $-\partial_{c_2}L$\\\midrule
+0.2 & $-0.107$ & $+0.00018$ & $+0.00001$ & $+0.020$ & $+0.00021$ & $+0.00003$\\
+0.4 & $-0.154$ & $+0.00109$ & $+0.00009$ & $+0.004$ & $+0.00117$ & $+0.00017$\\
+0.6 & $-0.141$ & $+0.00301$ & $+0.00030$ & $-0.011$ & $+0.00310$ & $+0.00041$\\
+0.8 & $-0.089$ & $+0.00620$ & $+0.00073$ & $-0.029$ & $+0.00628$ & $+0.00081$\\
+0.9 & $-0.051$ & $+0.00802$ & $+0.00095$ & $-0.033$ & $+0.00802$ & $+0.00096$\\\bottomrule
+\end{tabular}
+\end{center}
+\begin{itemize}
+\item \textbf{Bias-independent:} Lemma 1, Lemma 2, $b_2\uparrow$, $c_2\uparrow$ (the $b_2$ push depends only on $b_{\rm sig}$).
+\item \textbf{Bias-dependent:} the sign of $a_2$ at $t=0$ under dense noise ($\alpha\le0.4$). With a learnable bias, $a_2$ turns
+negative once $b_{\rm noise}$ has been learned (by step 3 at $\alpha=0.4$, step 30 at $\alpha=0.2$).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Answer: where the five scalars move at $t=0$}
+\small
+\begin{center}
+\begin{tabular}{cccl}\toprule
+scalar & direction at $t=0$ & size ($\alpha=0.6$) & status\\\midrule
+$p$ & $0$ & $0$ & exact (Lemma 1)\\
+$a_1$ & $0$ & $0$ & exact (Lemma 1)\\
+$a_2$ & $\downarrow$ (stop copying noise) & $-0.14$ & leading order + measured; needs $b_{\rm noise}$\\
+$b_2$ & $\uparrow$ (induction) & $+0.003$ & proved: long-context limit, all 1296 tables\\
+$c_2$ & $\uparrow$ (state matching) & $+0.0003$ & measured (all $\alpha$)\\\bottomrule
+\end{tabular}
+\end{center}
+\vspace{0.3em}
+\begin{itemize}
+\item Under Adam the first step moves each unfrozen scalar by $0.096$ logits in the sign of its gradient:
+\[
+\theta_1=(0,\ 0,\ -0.096,\ +0.096,\ +0.096)\quad\text{for every }\alpha<1 .
+\]
+\item Plain gradient descent: the same signs; sizes in the ratios above ($a_2$ fastest, then $b_2$, then $c_2$).
+\item After step 1, $b_2,c_2\neq0$: by Lemma 1, \textbf{layer 1 is unlocked}.
+\end{itemize}
+\vspace{0.2em}
+{\footnotesize\color{gray}Part 2: which way layer 1 then moves (the skip), and where the scalars settle.}
+\end{frame}
+
+\end{document}
