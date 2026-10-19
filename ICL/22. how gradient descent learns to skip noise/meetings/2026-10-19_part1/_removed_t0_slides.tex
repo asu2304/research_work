@@ -1,0 +1,213 @@
+% t=0 analysis slides removed from slides_part1.tex on 2026-10-19 (kept for a later meeting)
+% ================================================================= ANALYSIS AT t = 0
+\begin{frame}{At $\theta=0$: what the model computes}
+\small
+All scores are $0$, so every attention is uniform over the keys: $A^{(1)}_{jk}=1/j$, $A^{(2)}_{ij}=1/i$.
+\begin{block}{The model at initialization}
+\vspace{-0.5em}
+\[
+r_j=h_j:=\frac1j\sum_{k<j}e_{x_k}\quad(\text{histogram of the prefix}),\qquad f_i=h_i,\qquad f_i[y]=\text{fraction of $y$ before $i$.}
+\]
+\end{block}
+\begin{block}{The three features at $\theta=0$}
+\begin{center}
+\begin{tabular}{lll}\toprule
+$\kappa$ & $\phi_{ij}$ at $\theta=0$ & meaning\\\midrule
+$a_2$ & $\nu_j$ & key $j$ is noise\\
+$b_2$ & $\sigma_i\,h_j[x_i]$ & fraction of earlier tokens before $j$ equal to my token (my token is signal)\\
+$c_2$ & $\langle h_i,h_j\rangle_S$ & overlap of signal-token histograms before me and before $j$\\\bottomrule
+\end{tabular}
+\end{center}
+\end{block}
+By Lemma 2, $-\partial L/\partial\kappa|_0=\mathbb E\big[\frac1{|W|}\sum_iw_i\,\mathrm{Cov}_{j\sim\mathrm{Unif}}(\1[x_j=y_i],\phi_{ij})\big]$.
+By Lemma 1, $-\partial L/\partial p|_0=-\partial L/\partial a_1|_0=0$.
+\end{frame}
+
+\begin{frame}{$a_2$ at $t=0$: two kinds of queries pull in opposite directions}
+\small
+$\phi_j=\nu_j$. Let $m$ = noise fraction of the keys ($\approx1-\alpha$). Then $\mathrm{Cov}=\mathbb E[\1[x_j=y]\nu_j]-f[y]\,m$.
+\begin{columns}[T]
+\begin{column}{0.49\textwidth}
+\begin{block}{Signal target (prob.\ $\alpha$)}
+A noise key never holds $y$: $\ \1[x_j=y]\nu_j\equiv0$.
+\[
+\mathrm{Cov}=-f[y]\,m<0\quad\Rightarrow\quad a_2\downarrow
+\]
+\end{block}
+\end{column}
+\begin{column}{0.49\textwidth}
+\begin{block}{Noise target (prob.\ $1-\alpha$)}
+Every key holding $y$ is noise: $\ \1[x_j=y]\nu_j=\1[x_j=y]$.
+\[
+\mathrm{Cov}=f[y]\,(1-m)>0\quad\Rightarrow\quad a_2\uparrow
+\]
+\end{block}
+\end{column}
+\end{columns}
+\vspace{0.4em}
+\textbf{Leading order} (long context, $f[y]\to$ token frequency, $m\to1-\alpha$):
+\[
+w f[y]\approx\frac{f}{f+b_{\rm sig}}\approx1\ \ \text{(signal)},\qquad
+w f[y]=\frac{f}{f+b_{\rm noise}}=\frac{\alpha}{\alpha+1+4b_{\rm sig}}\ \ \text{(noise)},
+\]
+\[
+-\frac{\partial L}{\partial a_2}\Big|_0\approx-\alpha(1-\alpha)\;+\;(1-\alpha)\,\alpha\,\frac{\alpha}{\alpha+1.04}
+=-\,\alpha(1-\alpha)\,\frac{1.04}{\alpha+1.04}\;<0\quad\text{for all }0<\alpha<1.
+\]
+\end{frame}
+
+\begin{frame}{$a_2$ at $t=0$: numbers, and the role of the readout bias}
+\footnotesize
+\begin{columns}[T]
+\begin{column}{0.4\textwidth}
+\textbf{Measured vs.\ leading order}
+\begin{center}
+\begin{tabular}{ccc}\toprule
+$\alpha$ & measured & formula\\\midrule
+0.2 & $-0.107$ & $-0.134$\\
+0.4 & $-0.154$ & $-0.173$\\
+0.6 & $-0.142$ & $-0.152$\\
+0.8 & $-0.089$ & $-0.090$\\
+0.9 & $-0.051$ & $-0.048$\\\bottomrule
+\end{tabular}
+\end{center}
+\end{column}
+\begin{column}{0.57\textwidth}
+\textbf{The two pulls separately}
+\begin{center}
+\begin{tabular}{cccc}\toprule
+$\alpha$ & down (signal tgt) & up, designed $b$ & up, flat $b=0.01$\\\midrule
+0.2 & $-0.132$ & $+0.025$ & $+0.152$\\
+0.4 & $-0.219$ & $+0.065$ & $+0.223$\\
+0.6 & $-0.226$ & $+0.084$ & $+0.215$\\
+0.8 & $-0.153$ & $+0.064$ & $+0.124$\\
+0.9 & $-0.087$ & $+0.036$ & $+0.054$\\\bottomrule
+\end{tabular}
+\end{center}
+\end{column}
+\end{columns}
+\vspace{0.5em}
+\begin{itemize}
+\item Without a noise bias the two pulls nearly \textbf{cancel} (each $\approx\alpha(1-\alpha)$); the residual is a finite-context
+and $b_{\rm sig}$ effect and its sign varies with $\alpha$.
+\item The noise bias already supplies noise targets their probability, so their upward vote is discounted by
+$\frac{\alpha}{\alpha+1.04}$: \textbf{the bias is what tips $a_2$ downward at $t=0$.}
+\item With a learnable bias (from $0.01$), $b_{\rm noise}$ is learned within the first steps and $a_2<0$ from step $\le30$ at every $\alpha$.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{$b_2$ at $t=0$: the induction weight is pushed up}
+\small
+$\phi_{ij}=\sigma_i\,h_j[x_i]$: ``how many copies of my token came before key $j$''. A blurry version of
+``key $j$ came right after my token''.
+\begin{itemize}
+\item A copy of my token at position $k$ raises $h_j[x_i]$ for \emph{every} later key, but only the keys just after it are
+likely to hold my token's successor $\Rightarrow$ a small positive covariance.
+\item Noise queries contribute \textbf{exactly $0$} ($\sigma_i=0$: constant feature, zero covariance).
+\end{itemize}
+\vspace{-0.2em}
+\begin{center}\footnotesize
+\begin{tabular}{ccccc}\toprule
+$\alpha$ & noise query & signal query, signal target & signal query, noise target & total $-\partial L/\partial b_2|_0$\\\midrule
+0.2 & $0$ & $+0.00017$ & $+0.00001$ & $+0.00018$\\
+0.4 & $0$ & $+0.00105$ & $+0.00003$ & $+0.00109$\\
+0.6 & $0$ & $+0.00296$ & $+0.00006$ & $+0.00301$\\
+0.8 & $0$ & $+0.00612$ & $+0.00008$ & $+0.00620$\\
+0.9 & $0$ & $+0.00802$ & $0$ & $+0.00802$\\
+1.0 & $0$ & $+0.01028$ & $0$ & $+0.01028$\\\bottomrule
+\end{tabular}
+\end{center}
+Roughly $\propto\alpha^3$: the query's token, the target and the key's context must all be signal.
+\end{frame}
+
+\begin{frame}{$b_2$ at $t=0$: the sign holds for every transition table}
+\footnotesize
+\begin{proposition}[Induction switches on; long-context limit]
+With $\pi$ the stationary law, $Z=(I-P+\1\pi^\top)^{-1}$, $D=Z-I$,
+\[
+\lim_{T\to\infty}\frac{T}{\log T}\Big(-\frac{\partial L_T}{\partial b_2}\Big|_{\theta=0}\Big)=2\ln2\;\alpha^3\;\mathbb E\big[S(\alpha)\big],
+\]
+\[
+S(\alpha)=\sum_y\frac{C_y}{\alpha\pi_y+b_{\rm sig}},\qquad C_y=\sum_v\pi_v^2P(v,y)D(v,y).
+\]
+For all $6^4=1296$ tables and every recurrent class: $C_y\ge0$ for every $y$; and $C\equiv0$ iff all states of the class share one
+successor set (the context is uninformative).
+\end{proposition}
+\begin{itemize}
+\item \textbf{Proof idea.} Lemma 2 at $\theta=0$; sum the covariance over lags. Between two signal tokens the number of noise
+tokens is geometric, and summing over lags \emph{cancels the noise}: $\sum_{\ell}\mathrm{Cov}(\1[x_t=y],\1[x_{t-\ell}=v])=\alpha\pi_vD(v,y)$.
+\item \textbf{Sign:} exact rational arithmetic over all tables (computer-assisted).
+\item \textbf{Size:} $\Theta(\log T/T)$ --- weak, because $h_j$ dilutes ``came right after my token'' over the whole prefix.
+\end{itemize}
+{\footnotesize\color{gray}Full proof: \texttt{proofs/7\_complete\_theorem.pdf}, part (ii); \texttt{proofs/4\_pull\_sign.pdf}.}
+\end{frame}
+
+\begin{frame}{$c_2$ at $t=0$: the state weight is pushed up (measured)}
+\small
+$\phi_{ij}=\langle h_i,h_j\rangle_S=\sum_{v\in S}h_i[v]\,h_j[v]$: a mixture of $b_2$-type detectors, one per signal token $v$,
+weighted by how often $v$ occurred before the \emph{query}. It does not use the query's token, so noise queries vote too.
+\begin{center}\footnotesize
+\begin{tabular}{cccccc}\toprule
+$\alpha$ & noise q., signal tgt & noise q., noise tgt & signal q., signal tgt & signal q., noise tgt & total\\\midrule
+0.2 & $+0.00001$ & $0$ & $0$ & $0$ & $+0.00001$\\
+0.4 & $+0.00005$ & $+0.00002$ & $+0.00001$ & $+0.00001$ & $+0.00009$\\
+0.6 & $+0.00010$ & $+0.00004$ & $+0.00012$ & $+0.00004$ & $+0.00030$\\
+0.8 & $+0.00015$ & $+0.00002$ & $+0.00049$ & $+0.00007$ & $+0.00073$\\
+0.9 & $+0.00010$ & $0$ & $+0.00083$ & $+0.00002$ & $+0.00095$\\
+1.0 & $0$ & $0$ & $+0.00126$ & $0$ & $+0.00126$\\\bottomrule
+\end{tabular}
+\end{center}
+\begin{itemize}
+\item Every entry $\ge0$; about $10\times$ smaller than the push on $b_2$.
+\item \textbf{Why positive:} the query's histogram over-weights the states it passed through \emph{recently}, which are linked to its
+current state; so $c_2$ slightly favours keys that followed those states.
+\item \textbf{Order effect:} shuffling the tokens within each sequence removes it (E3). Not covered by a proof.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Does $t=0$ depend on the readout bias?}
+\small
+Gradients at $\theta=0$ with the designed bias vs.\ a flat bias $b_v=0.01$ on all 8 tokens (the start of the learnable-bias run):
+\begin{center}\footnotesize
+\begin{tabular}{c|ccc|ccc}\toprule
+& \multicolumn{3}{c|}{designed $b$} & \multicolumn{3}{c}{flat $b=0.01$}\\
+$\alpha$ & $-\partial_{a_2}L$ & $-\partial_{b_2}L$ & $-\partial_{c_2}L$ & $-\partial_{a_2}L$ & $-\partial_{b_2}L$ & $-\partial_{c_2}L$\\\midrule
+0.2 & $-0.107$ & $+0.00018$ & $+0.00001$ & $+0.020$ & $+0.00021$ & $+0.00003$\\
+0.4 & $-0.154$ & $+0.00109$ & $+0.00009$ & $+0.004$ & $+0.00117$ & $+0.00017$\\
+0.6 & $-0.141$ & $+0.00301$ & $+0.00030$ & $-0.011$ & $+0.00310$ & $+0.00041$\\
+0.8 & $-0.089$ & $+0.00620$ & $+0.00073$ & $-0.029$ & $+0.00628$ & $+0.00081$\\
+0.9 & $-0.051$ & $+0.00802$ & $+0.00095$ & $-0.033$ & $+0.00802$ & $+0.00096$\\\bottomrule
+\end{tabular}
+\end{center}
+\begin{itemize}
+\item \textbf{Bias-independent:} Lemma 1, Lemma 2, $b_2\uparrow$, $c_2\uparrow$ (the $b_2$ push depends only on $b_{\rm sig}$).
+\item \textbf{Bias-dependent:} the sign of $a_2$ at $t=0$ under dense noise ($\alpha\le0.4$). With a learnable bias, $a_2$ turns
+negative once $b_{\rm noise}$ has been learned (by step 3 at $\alpha=0.4$, step 30 at $\alpha=0.2$).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Answer: where the five scalars move at $t=0$}
+\small
+\begin{center}
+\begin{tabular}{cccl}\toprule
+scalar & direction at $t=0$ & size ($\alpha=0.6$) & status\\\midrule
+$p$ & $0$ & $0$ & exact (Lemma 1)\\
+$a_1$ & $0$ & $0$ & exact (Lemma 1)\\
+$a_2$ & $\downarrow$ (stop copying noise) & $-0.14$ & leading order + measured; needs $b_{\rm noise}$\\
+$b_2$ & $\uparrow$ (induction) & $+0.003$ & proved: long-context limit, all 1296 tables\\
+$c_2$ & $\uparrow$ (state matching) & $+0.0003$ & measured (all $\alpha$)\\\bottomrule
+\end{tabular}
+\end{center}
+\vspace{0.3em}
+\begin{itemize}
+\item Under Adam the first step moves each unfrozen scalar by $0.096$ logits in the sign of its gradient:
+\[
+\theta_1=(0,\ 0,\ -0.096,\ +0.096,\ +0.096)\quad\text{for every }\alpha<1 .
+\]
+\item Plain gradient descent: the same signs; sizes in the ratios above ($a_2$ fastest, then $b_2$, then $c_2$).
+\item After step 1, $b_2,c_2\neq0$: by Lemma 1, \textbf{layer 1 is unlocked}.
+\end{itemize}
+\vspace{0.2em}
+{\footnotesize\color{gray}Part 2: which way layer 1 then moves (the skip), and where the scalars settle.}
+\end{frame}
+
