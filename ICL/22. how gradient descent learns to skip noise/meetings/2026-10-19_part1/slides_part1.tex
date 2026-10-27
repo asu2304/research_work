@@ -469,4 +469,161 @@ $\phi_{ij}=\nu_j$ ($a_2$), $\ \sigma_ir_j[x_i]$ ($b_2$), $\ \langle r_i,r_j\rang
 \vfill
 \end{frame}
 
+% ================================================================= a2 AT t = 0
+\begin{frame}{At $\theta=0$: what the model computes}
+\small
+All scores are $0$, so every attention is uniform over the keys ($j<i$): $\ A^{(2)}_{ij}=1/i$.
+\begin{block}{The model at initialization}
+\vspace{-0.5em}
+\[
+r_j=\frac1j\sum_{k<j}e_{x_k}\ \ (\text{histogram of the prefix}),
+\]
+\[
+f_i[y]=\frac1i\sum_{j<i}\1[x_j=y]\ \ (\text{fraction of earlier tokens equal to }y).
+\]
+\end{block}
+\begin{block}{The three features at $\theta=0$}
+\begin{center}
+\begin{tabular}{lll}\toprule
+$\kappa$ & $\phi_{ij}$ & meaning\\\midrule
+$a_2$ & $\nu_j$ & key $j$ is a noise token\\
+$b_2$ & $\sigma_i\,r_j[x_i]$ & fraction of tokens before $j$ equal to my token (if my token is signal)\\
+$c_2$ & $\langle r_i,r_j\rangle_S$ & overlap of the signal histograms before me and before $j$\\\bottomrule
+\end{tabular}
+\end{center}
+\end{block}
+We now take the scalars one at a time, starting with $a_2$.
+\end{frame}
+
+\begin{frame}{$a_2$ at $t=0$ (1/4): the covariance for one query}
+\small
+For $\kappa=a_2$ the feature is $\phi_j=\nu_j$. Write $m=\mathbb E_j[\nu_j]$ = fraction of noise keys before $i$. Lemma 2:
+\[
+-\frac{\partial\ell_i}{\partial a_2}=w_i\Big(\underbrace{\mathbb E_j\big[\1[x_j=y]\,\nu_j\big]}_{\text{keys that are noise \emph{and} hold }y}-\ f_i[y]\;m\Big).
+\]
+The first term depends only on whether the \textbf{target} $y$ is a signal or a noise token:
+\begin{columns}[T]
+\begin{column}{0.49\textwidth}
+\begin{block}{Signal target ($y\in S$)}
+A noise key never holds $y$, so $\1[x_j=y]\nu_j=0$ for every $j$:
+\[
+\mathrm{Cov}=-f_i[y]\,m<0
+\]
+\[
+\Rightarrow\ \text{push }a_2\downarrow
+\]
+\end{block}
+\end{column}
+\begin{column}{0.49\textwidth}
+\begin{block}{Noise target ($y\in N$)}
+Every key holding $y$ is noise, so $\1[x_j=y]\nu_j=\1[x_j=y]$:
+\[
+\mathrm{Cov}=f_i[y]-f_i[y]\,m=f_i[y](1-m)>0
+\]
+\[
+\Rightarrow\ \text{push }a_2\uparrow
+\]
+\end{block}
+\end{column}
+\end{columns}
+\vspace{0.3em}
+In words: raising $a_2$ moves attention onto noise keys. That helps only when the answer itself is a noise token.
+\end{frame}
+
+\begin{frame}{$a_2$ at $t=0$ (2/4): a worked example}
+\small
+Keys $j=0,\dots,5$ hold $\ 2\ \ \underline{5}\ \ 3\ \ \underline{6}\ \ 2\ \ 3$ (noise underlined); query $i=6$; uniform attention $A_j=\tfrac16$.
+So $\nu=(0,1,0,1,0,0)$ and $m=\tfrac26$.
+\begin{columns}[T]
+\begin{column}{0.49\textwidth}
+\begin{block}{Target $y=3$ (signal)}
+$\1[x_j=3]=(0,0,1,0,0,1)$, $\ f[3]=\tfrac26$\\[0.3em]
+$\mathbb E[\1\cdot\nu]=0$ (no key is both)\\[0.3em]
+$\mathrm{Cov}=0-\tfrac26\cdot\tfrac26=-\tfrac19$\\[0.3em]
+$\Rightarrow$ this query votes $a_2\downarrow$
+\end{block}
+\end{column}
+\begin{column}{0.49\textwidth}
+\begin{block}{Target $y=5$ (noise)}
+$\1[x_j=5]=(0,1,0,0,0,0)$, $\ f[5]=\tfrac16$\\[0.3em]
+$\mathbb E[\1\cdot\nu]=\tfrac16$ (key 1)\\[0.3em]
+$\mathrm{Cov}=\tfrac16-\tfrac16\cdot\tfrac26=+\tfrac19$\\[0.3em]
+$\Rightarrow$ this query votes $a_2\uparrow$
+\end{block}
+\end{column}
+\end{columns}
+\vspace{0.4em}
+\begin{itemize}
+\item Every query votes; the two kinds of target vote in opposite directions.
+\item Who wins is decided by (i) how often each kind of target occurs ($\alpha$ vs.\ $1-\alpha$) and (ii) the weight $w_i$,
+which contains the readout bias. Next slide.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{$a_2$ at $t=0$ (3/4): averaging over all queries}
+\footnotesize\setlength{\abovedisplayskip}{3pt}\setlength{\belowdisplayskip}{3pt}
+Multiply each vote by $w_i=1/(f_i[y]+b[y])$ and factor out $f_i[y]$:
+\[
+-\frac{\partial\ell_i}{\partial a_2}=
+\begin{cases}
+-\,\dfrac{f_i[y]}{f_i[y]+b_{\rm sig}}\cdot m & y\in S\\[1.2em]
++\,\dfrac{f_i[y]}{f_i[y]+b_{\rm noise}}\cdot(1-m) & y\in N
+\end{cases}
+\]
+\textbf{Long context} (the prefix frequencies reach their averages):
+\begin{itemize}
+\item $m\to1-\alpha$ (fraction of noise tokens);
+\item signal $y$: $f[y]\approx\alpha/4\gg b_{\rm sig}=0.01$, so $\dfrac{f}{f+b_{\rm sig}}\approx1$;
+\item noise $y$: $f[y]\to\dfrac{1-\alpha}4$ and $b_{\rm noise}=\dfrac{(1-\alpha)(1+4b_{\rm sig})}{4\alpha}$, so
+$\dfrac{f}{f+b_{\rm noise}}=\dfrac{1}{1+1.04/\alpha}=\dfrac{\alpha}{\alpha+1.04}$.
+\end{itemize}
+A target is signal w.p.\ $\alpha$ and noise w.p.\ $1-\alpha$, so
+\[
+-\frac{\partial L}{\partial a_2}\Big|_0\approx
+\underbrace{\alpha\cdot\big(-(1-\alpha)\big)}_{\text{signal targets}}
++\underbrace{(1-\alpha)\cdot\alpha\cdot\frac{\alpha}{\alpha+1.04}}_{\text{noise targets}}
+=-\,\alpha(1-\alpha)\,\frac{1.04}{\alpha+1.04}\ <0\quad(0<\alpha<1).
+\]
+\end{frame}
+
+\begin{frame}{$a_2$ at $t=0$ (4/4): numbers, and the role of the readout bias}
+\footnotesize
+\begin{columns}[T]
+\begin{column}{0.4\textwidth}
+\textbf{Measured vs.\ leading order}
+\begin{center}
+\begin{tabular}{ccc}\toprule
+$\alpha$ & measured & formula\\\midrule
+0.2 & $-0.107$ & $-0.134$\\
+0.4 & $-0.154$ & $-0.173$\\
+0.6 & $-0.142$ & $-0.152$\\
+0.8 & $-0.089$ & $-0.090$\\
+0.9 & $-0.051$ & $-0.048$\\\bottomrule
+\end{tabular}
+\end{center}
+\end{column}
+\begin{column}{0.57\textwidth}
+\textbf{The two pulls separately (measured)}
+\begin{center}
+\begin{tabular}{cccc}\toprule
+$\alpha$ & down (signal tgt) & up, designed $b$ & up, flat $b=0.01$\\\midrule
+0.2 & $-0.132$ & $+0.025$ & $+0.152$\\
+0.4 & $-0.219$ & $+0.065$ & $+0.223$\\
+0.6 & $-0.226$ & $+0.084$ & $+0.215$\\
+0.8 & $-0.153$ & $+0.064$ & $+0.124$\\
+0.9 & $-0.087$ & $+0.036$ & $+0.054$\\\bottomrule
+\end{tabular}
+\end{center}
+\end{column}
+\end{columns}
+\vspace{0.5em}
+\begin{itemize}
+\item \textbf{Result:} $a_2$ moves \textbf{down} at $t=0$ for every $\alpha<1$: layer 2 starts to stop copying noise tokens.
+Under Adam the first step is $a_2=-0.096$. (At $\alpha=1$ there is no noise: $\phi\equiv0$, no move.)
+\item \textbf{Why the bias matters:} the noise bias already gives a noise target most of its probability, so its upward
+vote is scaled by $\frac{\alpha}{\alpha+1.04}<1$. Without it (flat $b$) the two pulls nearly cancel (each $\approx\alpha(1-\alpha)$).
+\item With a learnable bias, $b_{\rm noise}$ is learned in the first steps and $a_2<0$ from step $\le30$ at every $\alpha$.
+\end{itemize}
+\end{frame}
+
 \end{document}
