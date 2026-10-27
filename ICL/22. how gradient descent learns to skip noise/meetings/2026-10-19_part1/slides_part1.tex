@@ -458,6 +458,10 @@ The sign of the full gradient depends on which kind of query dominates the avera
 -\frac{\partial L}{\partial\kappa}\Big|_{\theta=0}=\mathbb E\Big[\frac1{|W|}\sum_{i\in W}w_i\,\mathrm{Cov}_{j}\big(\1[x_j=y_i],\ \phi_{ij}\big)\Big],
 \qquad\kappa\in\{a_2,b_2,c_2\}.
 \]
+With $N=25{,}000$ training sequences $n=1,\dots,N$ and $|W|=50$ scored positions each, this is the full-batch average
+\[
+-\frac{\partial L}{\partial\kappa}\Big|_{\theta=0}=\frac{1}{N\,|W|}\sum_{n=1}^{N}\ \sum_{i\in W}w^{(n)}_i\,\mathrm{Cov}_j\big(\1[x^{(n)}_j=y^{(n)}_i],\ \phi^{(n)}_{ij}\big).
+\]
 \item At $\theta=0$ all attention is uniform, so each covariance can be evaluated from the data alone, with
 $\phi_{ij}=\nu_j$ ($a_2$), $\ \sigma_ir_j[x_i]$ ($b_2$), $\ \langle r_i,r_j\rangle_S$ ($c_2$).
 \item This gives the trajectory of $a_2$, $b_2$, $c_2$ at $t=0$, and so answers the question of Part 1.

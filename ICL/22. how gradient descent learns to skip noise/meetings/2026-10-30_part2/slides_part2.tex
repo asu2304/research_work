@@ -1,0 +1,113 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usepackage{amsmath,amssymb,booktabs,array,tikz}
+\usetikzlibrary{positioning}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+% ---------------------------------------------------------------- theme: standard blue-white (Madrid)
+\usetheme{Madrid}
+\usecolortheme{default}
+\usefonttheme{professionalfonts}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{blocks}[rounded][shadow=false]
+\setbeamertemplate{theorems}[numbered]
+\newtheorem{proposition}[theorem]{Proposition}
+% footline: short title on the left, slide number on the right (no author/date boxes)
+\setbeamertemplate{footline}{%
+  \leavevmode\hbox{%
+  \begin{beamercolorbox}[wd=.85\paperwidth,ht=2.4ex,dp=1ex,left]{title in head/foot}%
+    \hspace*{1em}\usebeamerfont{title in head/foot}\insertshorttitle
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.15\paperwidth,ht=2.4ex,dp=1ex,right]{date in head/foot}%
+    \usebeamerfont{date in head/foot}\insertframenumber{} / \inserttotalframenumber\hspace*{1em}
+  \end{beamercolorbox}}%
+  \vskip0pt}
+
+\newcommand{\1}{\mathbf{1}}
+\newcommand{\st}{\mathrm{st}}
+\newcommand{\pv}{\mathrm{pv}}
+\newcommand{\succc}{\mathrm{succ}}
+\title[How Gradient Descent Learns to Skip the Noise in ICL --- Part 2]{How Gradient Descent Learns to Skip the Noise\\ Injected While Performing ICL}
+\subtitle{Part 2: Beyond Initialization --- How the Skip Is Born and Where $c_2$ Settles}
+\author{}
+\date{}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \vfill
+  \begin{beamercolorbox}[sep=12pt,center,rounded=true]{title}
+    \usebeamerfont{title}\inserttitle
+  \end{beamercolorbox}
+  \vspace{0.7cm}
+  \begin{center}
+    {\usebeamercolor[fg]{structure}\large\insertsubtitle}\\[0.9em]
+    \small How layer 1 starts to skip the noise once layer 2 has moved, and where the state weight $c_2$ settles.
+  \end{center}
+  \vfill
+\end{frame}
+
+
+% ================================================================= NOTATION
+\begin{frame}{Notation (1/2): data and positions}
+\small
+\begin{columns}[T]
+\begin{column}{0.49\textwidth}
+\renewcommand{\arraystretch}{1.08}\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.6\linewidth}@{}}\toprule
+symbol & meaning\\\midrule
+$S=\{0,1,2,3\}$ & signal tokens\\
+$N=\{4,5,6,7\}$ & noise tokens\\
+$\succc(s)$ & the two successors of $s\in S$ (per sequence)\\
+$P$ & transition matrix, $P(s,v)=\tfrac12\1[v\in\succc(s)]$\\
+$\alpha$ & signal density; $1-\alpha$ = noise density\\
+$T$, $W$ & length $100$; scored positions $\{50,\dots,99\}$\\\bottomrule
+\end{tabular}
+\end{column}
+\begin{column}{0.49\textwidth}
+\renewcommand{\arraystretch}{1.08}\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.6\linewidth}@{}}\toprule
+symbol & meaning\\\midrule
+$x_t$ & token at position $t$\\
+$y_t=x_{t+1}$ & target at position $t$\\
+$\nu_t=\1[x_t\in N]$ & noise indicator\\
+$\sigma_t=1-\nu_t$ & signal indicator\\
+$\st(t)$ & last signal token at or before $t$ (the state)\\
+$\pv(t)$ & last signal token strictly before $t$\\\bottomrule
+\end{tabular}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Notation (2/2): model and analysis at initialization}
+\footnotesize
+\begin{columns}[T]
+\begin{column}{0.49\textwidth}
+\renewcommand{\arraystretch}{1.08}\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.6\linewidth}@{}}\toprule
+symbol & meaning\\\midrule
+$\theta$ & $(p,a_1,a_2,b_2,c_2)$; initialization $\theta_0=0$\\
+$i$, $j$ & query position; key position $j<i$\\
+$s^{(\ell)}_{ij}$, $A^{(\ell)}_{ij}$ & layer-$\ell$ score; attention $\mathrm{softmax}_j(s^{(\ell)}_{ij})$\\
+$e_v$ & one-hot vector of token $v$\\
+$r_i$ & layer-1 output at $i$; $r_i[v]$ its entry $v$\\
+$f_i$ & layer-2 output (a distribution over tokens)\\
+$b$, $q_i$ & fixed readout bias; prediction $q_i=(f_i+b)/(1+\1^\top b)$\\
+$\ell_i$, $L$ & $-\log q_i[y_i]$; expected mean over $W$\\\bottomrule
+\end{tabular}
+\end{column}
+\begin{column}{0.49\textwidth}
+\renewcommand{\arraystretch}{1.08}\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.6\linewidth}@{}}\toprule
+symbol & meaning\\\midrule
+$\1[\cdot]$ & indicator function\\
+$f_i[y]$ & $\sum_jA^{(2)}_{ij}\1[x_j=y]$\\
+$w_i$ & $1/(f_i[y_i]+b[y_i])$\\
+$\kappa$ & any layer-2 scalar: $a_2$, $b_2$ or $c_2$\\
+$\phi_{ij}$ & feature of $\kappa$: $\partial s^{(2)}_{ij}/\partial\kappa$\\
+$\mathbb E_{j\sim A_i}$ & $\sum_jA^{(2)}_{ij}(\cdot)_j$\\
+$\mathrm{Cov}_{j\sim A_i}$ & $\mathbb E[gh]-\mathbb E[g]\,\mathbb E[h]$\\
+$\langle u,v\rangle_S$ & $\sum_{s\in S}u[s]\,v[s]$\\\bottomrule
+\end{tabular}
+\end{column}
+\end{columns}
+\end{frame}
+
+
+\end{document}
