@@ -587,24 +587,24 @@ A target is signal w.p.\ $\alpha$ and noise w.p.\ $1-\alpha$, so
 \end{frame}
 
 \begin{frame}{$a_2$ at $t=0$ (4/4): numbers, and the role of the readout bias}
-\footnotesize
+\footnotesize\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{2pt}
 \begin{columns}[T]
 \begin{column}{0.4\textwidth}
-\textbf{Measured vs.\ leading order}
-\begin{center}
-\begin{tabular}{ccc}\toprule
-$\alpha$ & measured & formula\\\midrule
-0.2 & $-0.107$ & $-0.134$\\
-0.4 & $-0.154$ & $-0.173$\\
-0.6 & $-0.142$ & $-0.152$\\
-0.8 & $-0.089$ & $-0.090$\\
-0.9 & $-0.051$ & $-0.048$\\\bottomrule
+\textbf{$-\partial L/\partial a_2|_0$: measured vs.\ formula}
+\begin{center}\scriptsize\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{cccc}\toprule
+$\alpha$ & measured & formula & flat $b$\\\midrule
+0.2 & $-0.107$ & $-0.134$ & $+0.020$\\
+0.4 & $-0.154$ & $-0.173$ & $+0.004$\\
+0.6 & $-0.142$ & $-0.152$ & $-0.011$\\
+0.8 & $-0.089$ & $-0.090$ & $-0.029$\\
+0.9 & $-0.051$ & $-0.048$ & $-0.033$\\\bottomrule
 \end{tabular}
 \end{center}
 \end{column}
 \begin{column}{0.57\textwidth}
 \textbf{The two pulls separately (measured)}
-\begin{center}
+\begin{center}\scriptsize\renewcommand{\arraystretch}{0.95}
 \begin{tabular}{cccc}\toprule
 $\alpha$ & down (signal tgt) & up, designed $b$ & up, flat $b=0.01$\\\midrule
 0.2 & $-0.132$ & $+0.025$ & $+0.152$\\
@@ -616,13 +616,120 @@ $\alpha$ & down (signal tgt) & up, designed $b$ & up, flat $b=0.01$\\\midrule
 \end{center}
 \end{column}
 \end{columns}
-\vspace{0.5em}
+\vspace{0.1em}
 \begin{itemize}
 \item \textbf{Result:} $a_2$ moves \textbf{down} at $t=0$ for every $\alpha<1$: layer 2 starts to stop copying noise tokens.
 Under Adam the first step is $a_2=-0.096$. (At $\alpha=1$ there is no noise: $\phi\equiv0$, no move.)
-\item \textbf{Why the bias matters:} the noise bias already gives a noise target most of its probability, so its upward
-vote is scaled by $\frac{\alpha}{\alpha+1.04}<1$. Without it (flat $b$) the two pulls nearly cancel (each $\approx\alpha(1-\alpha)$).
-\item With a learnable bias, $b_{\rm noise}$ is learned in the first steps and $a_2<0$ from step $\le30$ at every $\alpha$.
+\item \textbf{The condition, for any bias.} Keeping both ratios of slide 21 ($f_S\approx\frac\alpha4$, $f_N\approx\frac{1-\alpha}4$):
+$-\partial_{a_2}L|_0\approx\alpha(1-\alpha)\big[\frac{f_N}{f_N+b_{\rm noise}}-\frac{f_S}{f_S+b_{\rm sig}}\big]$, so
+\[
+a_2\downarrow\ \text{at }t=0\iff\frac{b_{\rm noise}}{1-\alpha}>\frac{b_{\rm sig}}{\alpha}
+\quad\text{(the bias covers noise better than signal, per unit frequency).}
+\]
+Designed $b$: holds for every $\alpha$. Flat $b=0.01$: holds iff $\alpha>0.5$ --- matching the last column.
+\item \textbf{Learnable bias} (from $0.01$): $a_2$ turns negative when the learned biases cross this condition
+(step $\approx4$ at $\alpha=0.4$, $\approx30$ at $\alpha=0.2$).
+\end{itemize}
+\end{frame}
+
+% ================================================================= b2 AT t = 0
+\begin{frame}{$b_2$ at $t=0$ (1/4): the covariance for one query}
+\small
+For $\kappa=b_2$ the feature is $\phi_{ij}=\sigma_i\,r_j[x_i]$. At $\theta=0$, $r_j$ is the histogram of the tokens before $j$, so
+\[
+\phi_{ij}=\sigma_i\,r_j[x_i],\qquad r_j[v]=\frac1j\sum_{k<j}\1[x_k=v]=\text{fraction of tokens before key $j$ equal to $v$.}
+\]
+\begin{columns}[T]
+\begin{column}{0.44\textwidth}
+\begin{block}{Noise query ($\sigma_i=0$)}
+$\phi_{ij}=0$ for every key $j$: a constant feature has zero covariance.
+\[
+-\frac{\partial\ell_i}{\partial b_2}=0\quad\text{exactly.}
+\]
+\end{block}
+\end{column}
+\begin{column}{0.54\textwidth}
+\begin{block}{Signal query ($x_i=v\in S$)}
+\[
+-\frac{\partial\ell_i}{\partial b_2}=w_i\,\mathrm{Cov}_j\big(\1[x_j=y],\ r_j[v]\big)
+\]
+Do keys that hold the answer $y$ have \emph{more} $v$'s before them than average?
+\end{block}
+\end{column}
+\end{columns}
+\vspace{0.4em}
+\textbf{Why this can be positive.} The answer $y$ is a successor of the state $v$. In the context, every occurrence of $v$ is
+followed (after a run of noise) by a successor of $v$, and from that occurrence on $r_j[v]$ is larger. So keys holding $y$ tend to sit
+just after a jump of $r_j[v]$: $b_2$ is a blurry ``key $j$ came after my token'' detector, i.e.\ an \textbf{induction} feature.
+\end{frame}
+
+\begin{frame}{$b_2$ at $t=0$ (2/4): a worked example}
+\small
+Keys $j=0,\dots,6$ hold $\ 1\ \ 2\ \ 3\ \ 0\ \ 2\ \ \underline{5}\ \ 3$; the query holds $v=2$, the target is $y=3$ (a successor of $2$);
+uniform attention $A_j=\tfrac17$.
+\begin{center}
+\begin{tabular}{c|ccccccc}\toprule
+key $j$ & 0&1&2&3&4&5&6\\
+$x_j$ & 1&2&3&0&2&\underline5&3\\\midrule
+$\phi_j=r_j[2]$ & 0&0&$\tfrac12$&$\tfrac13$&$\tfrac14$&$\tfrac25$&$\tfrac13$\\
+$\1[x_j=3]$ & 0&0&\textbf1&0&0&0&\textbf1\\\bottomrule
+\end{tabular}
+\end{center}
+\begin{itemize}
+\item $f[3]=\tfrac27$, $\ \mathbb E[\phi]=\tfrac{109}{420}$, $\ \mathbb E[\1\cdot\phi]=\tfrac17\big(\tfrac12+\tfrac13\big)=\tfrac5{42}$
+\item $\mathrm{Cov}=\tfrac5{42}-\tfrac27\cdot\tfrac{109}{420}=+\tfrac{11}{245}\approx+0.045\ \Rightarrow$ this query votes $b_2\uparrow$.
+\item Both $3$'s come right after a $2$ (key 6 after a noise token): the jump in $r_j[2]$ \textbf{survives the noise},
+because $r_j$ counts every earlier $2$, not only the previous token.
+\item The feature is blurry: $r_j[2]$ stays high for \emph{all} later keys, not only the ones right after a $2$. So single
+queries can vote either way; the sign comes from the average (next slide).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{$b_2$ at $t=0$ (3/4): averaging over all queries}
+\footnotesize\setlength{\abovedisplayskip}{2pt}\setlength{\belowdisplayskip}{2pt}
+\textbf{Rewrite the feature as a sum over earlier positions.} Since $r_j[v]=\frac1j\sum_{k<j}\1[x_k=v]$, the covariance
+becomes a sum of \emph{lagged} covariances $\ \mathrm{Cov}\big(\1[x_t=y],\,\1[x_{t-\ell}=v]\big)$, $\ell\ge1$: ``does a $v$ at lag $\ell$
+make $y$ now more likely?''
+\begin{itemize}
+\item \textbf{Noise cancels in the sum over lags.} Each later signal step lands at exactly one lag, so
+$\ \sum_{\ell\ge1}\mathrm{Cov}\big(\1[x_t=y],\1[x_{t-\ell}=v]\big)=\alpha\,\pi_v\,D(v,y)$, $\ D=\sum_{n\ge1}(P^n-\1\pi^\top)$:
+the extra chance of reaching $y$ from $v$, summed over signal steps. Noise only changes \emph{where} a step lands.
+\item \textbf{Three signal events:} query is signal ($\alpha$), target is signal ($\alpha$), the key's context is signal ($\alpha$) $\Rightarrow\propto\alpha^3$.
+\item \textbf{Signal query, noise target:} a noise key is independent of the past, so $\mathrm{Cov}\approx0$.
+\end{itemize}
+\vspace{-0.7em}
+\begin{block}{Proposition (induction switches on; long-context limit)}
+With $\pi$ the stationary law of $P$ and $D$ as above,
+\[
+\lim_{T\to\infty}\frac{T}{\log T}\Big(-\frac{\partial L_T}{\partial b_2}\Big|_{\theta=0}\Big)=2\ln2\;\alpha^3\;\mathbb E\Big[\sum_y\frac{C_y}{\alpha\pi_y+b_{\rm sig}}\Big],
+\qquad C_y=\sum_v\pi_v^2\,P(v,y)\,D(v,y).
+\]
+All $6^4=1296$ tables: $C_y\ge0$ for every $y$ (exact arithmetic); $C\equiv0$ only if all states share one successor set. Hence $b_2\uparrow$.
+\end{block}
+Size $\Theta(\log T/T)$: weak, as $r_j$ spreads ``came right after my token'' over the whole prefix.
+{\color{gray}\ Proof: \texttt{proofs/7\_complete\_theorem.pdf} (ii), \texttt{4\_pull\_sign.pdf}.}
+\end{frame}
+
+\begin{frame}{$b_2$ at $t=0$ (4/4): numbers, and the readout bias}
+\footnotesize
+\begin{center}\renewcommand{\arraystretch}{0.95}
+\begin{tabular}{cccccc}\toprule
+$\alpha$ & noise query & signal q., signal tgt & signal q., noise tgt & total $-\partial L/\partial b_2|_0$ & flat $b=0.01$\\\midrule
+0.2 & $0$ & $+0.00017$ & $+0.00001$ & $+0.00018$ & $+0.00021$\\
+0.4 & $0$ & $+0.00105$ & $+0.00003$ & $+0.00109$ & $+0.00117$\\
+0.6 & $0$ & $+0.00296$ & $+0.00006$ & $+0.00301$ & $+0.00310$\\
+0.8 & $0$ & $+0.00612$ & $+0.00008$ & $+0.00620$ & $+0.00628$\\
+0.9 & $0$ & $+0.00802$ & $0$ & $+0.00802$ & $+0.00802$\\
+1.0 & $0$ & $+0.01028$ & $0$ & $+0.01028$ & ---\\\bottomrule
+\end{tabular}
+\end{center}
+\begin{itemize}
+\item \textbf{Result:} $b_2$ moves \textbf{up} at $t=0$ for every $\alpha>0$: layer 2 starts to attend to keys that came after
+the query's token (induction). Under Adam the first step is $b_2=+0.096$.
+\item Noise queries contribute exactly $0$; almost all of the push comes from signal query + signal target. Growth $\approx\alpha^3$.
+\item \textbf{Bias-independent:} only $b_{\rm sig}$ enters (through $w$); with a flat bias the numbers barely change.
+\item About $6$--$600\times$ smaller than the $a_2$ gradient. Adam still moves $b_2$ as far as $a_2$ on step 1
+(it uses only the sign); plain GD would move $b_2$ much more slowly.
 \end{itemize}
 \end{frame}
 
